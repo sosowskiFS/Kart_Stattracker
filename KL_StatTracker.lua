@@ -239,10 +239,12 @@ local function intThink()
 		--print("Updating skin use count...")
 		didSaveSkins = true
 		for p in players.iterate do
-			if globalSkinData[p.mo.skin] == nil then
-				globalSkinData[p.mo.skin] = 1
-			else
-				globalSkinData[p.mo.skin] = globalSkinData[p.mo.skin] + 1
+			if p.valid and p.mo ~= nil and p.mo.valid 
+				if globalSkinData[p.mo.skin] == nil then
+					globalSkinData[p.mo.skin] = 1
+				else
+					globalSkinData[p.mo.skin] = globalSkinData[p.mo.skin] + 1
+				end
 			end
 		end
 		saveFiles("Skin")	
@@ -271,15 +273,16 @@ local function intThink()
 		--print("Updating player data...")
 		didSavePlayer = true
 		for p in players.iterate do
-			checkNilPlayer(p.name)
-			if finishedPlayers[p.name] ~= nil then
-				globalPlayerData[p.name][1] = globalPlayerData[p.name][1] + 1
+			if p.valid and p.mo ~= nil and p.mo.valid 
+				checkNilPlayer(p.name)
+				if finishedPlayers[p.name] ~= nil then
+					globalPlayerData[p.name][1] = globalPlayerData[p.name][1] + 1
+				end
+				if raceWinner == p.name then
+					globalPlayerData[p.name][2] = globalPlayerData[p.name][2] + 1
+				end
 			end
-			if raceWinner == p.name then
-				globalPlayerData[p.name][2] = globalPlayerData[p.name][2] + 1
-			end
-		end
-		
+		end	
 		saveFiles("Player")	
 	end
 	
