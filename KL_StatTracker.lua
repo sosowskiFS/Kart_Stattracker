@@ -101,17 +101,17 @@ local function saveFiles(whatToSave)
 			print("Failed to save skin file!")
 		end
 	elseif whatToSave == "Map" then	
-		print('Saving map data...')
+		--print('Saving map data...')
 		if not pcall(_saveMapFunc) then
 			print("Failed to save map file!")
 		end
 	elseif whatToSave == "Player" then
-		print('Saving player data...')
+		--print('Saving player data...')
 		if not pcall(_savePlayerFunc) then
 			print("Failed to save player file!")
 		end
 	elseif whatToSave == "Time" then
-		print('Saving time data...')
+		--print('Saving time data...')
 		if not pcall(_saveTimeFunc) then
 			print("Failed to save time file!")
 		end
@@ -236,7 +236,8 @@ addHook("MapChange", durMapChange)
 local function intThink()
 	--Track skin usage
 	if not didSaveSkins then
-		print("Updating skin use count...")
+		--print("Updating skin use count...")
+		didSaveSkins = true
 		for p in players.iterate do
 			if globalSkinData[p.mo.skin] == nil then
 				globalSkinData[p.mo.skin] = 1
@@ -244,13 +245,13 @@ local function intThink()
 				globalSkinData[p.mo.skin] = globalSkinData[p.mo.skin] + 1
 			end
 		end
-		saveFiles("Skin")
-		didSaveSkins = true
+		saveFiles("Skin")	
 	end
 	
 	--Track Map Usage
 	if not didSaveMap then
-		print("Updating map data...")
+		--print("Updating map data...")
+		didSaveMap = true
 		if globalMapData[tostring(gamemap)] == nil then
 			globalMapData[tostring(gamemap)] = {0, 0}
 		end
@@ -262,13 +263,13 @@ local function intThink()
 			print ("Adding an RTV count...")
 			globalMapData[tostring(gamemap)][2] = globalMapData[tostring(gamemap)][2] + 1
 		end
-		saveFiles("Map")
-		didSaveMap = true
+		saveFiles("Map")	
 	end
 	
 	--Track player shit
 	if not didSavePlayer then
-		print("Updating player data...")
+		--print("Updating player data...")
+		didSavePlayer = true
 		for p in players.iterate do
 			checkNilPlayer(p.name)
 			if finishedPlayers[p.name] ~= nil then
@@ -279,11 +280,11 @@ local function intThink()
 			end
 		end
 		
-		saveFiles("Player")
-		didSavePlayer = true
+		saveFiles("Player")	
 	end
 	
 	if not didSaveTime then
+		didSaveTime = true
 		if globalTimeData[tostring(gamemap)] == nil then
 			globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic"}
 		end
@@ -300,8 +301,7 @@ local function intThink()
 			end
 		end
 		
-		saveFiles("Time")
-		didSaveTime = true
+		saveFiles("Time")		
 	end
 end
 addHook("IntermissionThinker", intThink)
