@@ -132,7 +132,7 @@ local function playerSpin(p, i, s)
 	checkNilPlayer(p.name)
 	globalPlayerData[p.name][5] = globalPlayerData[p.name][5] + 1
 	
-	if s~= nil and s.player ~= nil then
+	if s ~= nil and s.player ~= nil then
 		if s.player.name == p.name then
 			--Self hit
 			globalPlayerData[p.name][4] = globalPlayerData[p.name][4] + 1
@@ -151,7 +151,7 @@ local function playerExplode(p, i, s)
 	checkNilPlayer(p.name)
 	globalPlayerData[p.name][6] = globalPlayerData[p.name][6] + 1
 	
-	if s~= nil and s.player ~= nil then
+	if s ~= nil and s.player ~= nil then
 		if s.player.name == p.name then
 			--Self hit
 			globalPlayerData[p.name][4] = globalPlayerData[p.name][4] + 1
@@ -170,7 +170,7 @@ local function playerSquish(p, i, s)
 	checkNilPlayer(p.name)
 	globalPlayerData[p.name][7] = globalPlayerData[p.name][7] + 1
 	
-	if s~= nil and s.player ~= nil then
+	if s ~= nil and s.player ~= nil then
 		if s.player.name == p.name then
 			--Self hit
 			globalPlayerData[p.name][4] = globalPlayerData[p.name][4] + 1
