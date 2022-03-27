@@ -7,7 +7,7 @@ local globalTimeData = {}
 local f = io.open("Skincounter.txt", "r")
 if f then
 	--file already exsists, load from it
-	print('Loading skincounter data...')
+	--print('Loading skincounter data...')
 	for l in f:lines() do
 		local skinName, count = string.match(l, "(.*);(.*)")
 
@@ -20,7 +20,7 @@ end
 local m = io.open("Mapdata.txt", "r")
 if m then
 	--file already exsists, load from it
-	print('Loading map data...')
+	--print('Loading map data...')
 	for l in m:lines() do
 		local mapName, timesPlayed, rtv = string.match(l, "(.*);(.*);(.*)")
 
@@ -33,7 +33,7 @@ end
 local p = io.open("Playerdata.txt", "r")
 if p then
 	--do I really have to explain this to you three times
-	print('Loading player data...')
+	--print('Loading player data...')
 	for l in p:lines() do
 		local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 
@@ -46,7 +46,7 @@ end
 local f = io.open("Timerecords.txt", "r")
 if f then
 	--Vanilla/Tech records, juicebox records, Nitro records
-	print('Loading time record data...')
+	--print('Loading time record data...')
 	for l in f:lines() do
 		local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 		if mapName then
@@ -310,9 +310,6 @@ local function intThink()
 				juiceboxValue = 0
 			end
 		end
-		
-		print(driftmodValue)
-		print(juiceboxValue)
 		
 		if raceWinner ~= nil then
 			for p in players.iterate do
