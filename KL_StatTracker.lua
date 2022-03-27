@@ -45,12 +45,12 @@ if p then
 end
 local f = io.open("Timerecords.txt", "r")
 if f then
-	--STOP
+	--Vanilla/Tech records, juicebox records, Nitro records
 	print('Loading time record data...')
 	for l in f:lines() do
-		local mapName, time, player, skin = string.match(l, "(.*);(.*);(.*);(.*)")
+		local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 		if mapName then
-			globalTimeData[mapName] = {time, player, skin}
+			globalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
 		end
 	end
 	f:close()
@@ -84,10 +84,11 @@ local function _savePlayerFunc()
 end
 
 local function _saveTimeFunc()
+	--{time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
 	local f = assert(io.open("Timerecords.txt", "w"))
 	for key, value in pairs(globalTimeData) do
-		if value[2]:find(";") then continue end -- sanity check
-		f:write(key, ";", value[1], ";", value[2], ";", value[3], "\n")
+		if value[2]:find(";") or value[5]:find(";") or value[8]:find(";") then continue end -- sanity check
+		f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
 	end
 	f:close()
 end
@@ -288,17 +289,58 @@ local function intThink()
 	
 	if not didSaveTime then
 		didSaveTime = true
+		
 		if globalTimeData[tostring(gamemap)] == nil then
-			globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic"}
+			globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
 		end
-	
+		
+		--Determine what mods are running
+		--Time record saving priority - Driftmod > Juicebox > Tech/Vanilla
+		local driftmodValue = 0
+		if CV_FindVar("driftnitro") then
+			driftmodValue = CV_FindVar("driftnitro").value
+		end
+		local juiceboxValue = 0
+		if CV_FindVar("juicebox") then
+			juiceboxValue = CV_FindVar("juicebox").value
+		end
+		if CV_FindVar("techonly") then
+			--If techonly = 1 then consider juicebox as "off" for records
+			if CV_FindVar("techonly").value == 1 then
+				juiceboxValue = 0
+			end
+		end
+		
+		print(driftmodValue)
+		print(juiceboxValue)
+		
 		if raceWinner ~= nil then
 			for p in players.iterate do
 				if p.valid and p.mo ~= nil and p.mo.valid and raceWinner == p.name then
-					if p.realtime < tonumber(globalTimeData[tostring(gamemap)][1]) then
-						globalTimeData[tostring(gamemap)] = {p.realtime, p.name, p.mo.skin}
-						chatprint('\130NEW MAP RECORD!', true)
-						K_PlayPowerGloatSound(p.mo)
+					if driftmodValue == 1 then
+						if p.realtime < tonumber(globalTimeData[tostring(gamemap)][7]) then
+							globalTimeData[tostring(gamemap)][7] = p.realtime
+							globalTimeData[tostring(gamemap)][8] = p.name
+							globalTimeData[tostring(gamemap)][9] = p.mo.skin
+							chatprint('\130NEW NITRO MAP RECORD!', true)
+							K_PlayPowerGloatSound(p.mo)
+						end	
+					elseif juiceboxValue == 1 then
+						if p.realtime < tonumber(globalTimeData[tostring(gamemap)][4]) then
+							globalTimeData[tostring(gamemap)][4] = p.realtime
+							globalTimeData[tostring(gamemap)][5] = p.name
+							globalTimeData[tostring(gamemap)][6] = p.mo.skin
+							chatprint('\130NEW JUICEBOX MAP RECORD!', true)
+							K_PlayPowerGloatSound(p.mo)
+						end	
+					else
+						if p.realtime < tonumber(globalTimeData[tostring(gamemap)][1]) then
+							globalTimeData[tostring(gamemap)][1] = p.realtime
+							globalTimeData[tostring(gamemap)][2] = p.name
+							globalTimeData[tostring(gamemap)][3] = p.mo.skin
+							chatprint('\130NEW MAP RECORD!', true)
+							K_PlayPowerGloatSound(p.mo)
+						end
 					end
 				end
 			end
@@ -366,9 +408,17 @@ local function st_mapdata(p, ...)
 		--timesPlayed, rtv
 		CONS_Printf(p, "\x82"..mapheaderinfo[mTarget].lvlttl)
 		CONS_Printf(p, "\x83"..tostring(globalMapData[mTarget][1]).." plays | \x85"..tostring(globalMapData[mTarget][2]).." RTVs")
-		if globalTimeData[mTarget] ~= nil and globalTimeData[mTarget][2] ~= "placeholder" then
-			--time, player, skin
-			CONS_Printf(p, "Best time : "..buildTimeString(globalTimeData[mTarget][1]).." by "..tostring(globalTimeData[mTarget][2]))
+		
+		if globalTimeData[mTarget] ~= nil then
+			if globalTimeData[mTarget][2] ~= "placeholder" then
+				CONS_Printf(p, "Vanilla/Tech Record : "..buildTimeString(globalTimeData[mTarget][1]).." by "..tostring(globalTimeData[mTarget][2]))
+			end
+			if globalTimeData[mTarget][5] ~= "placeholder" then
+				CONS_Printf(p, "Juicebox Record : "..buildTimeString(globalTimeData[mTarget][4]).." by "..tostring(globalTimeData[mTarget][5]))
+			end
+			if globalTimeData[mTarget][8] ~= "placeholder" then
+				CONS_Printf(p, "Nitro Record : "..buildTimeString(globalTimeData[mTarget][7]).." by "..tostring(globalTimeData[mTarget][8]))
+			end
 		end
 	end
 end
