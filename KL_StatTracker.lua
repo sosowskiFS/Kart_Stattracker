@@ -281,6 +281,9 @@ local function intThink()
 				end
 				if raceWinner == p.name then
 					globalPlayerData[p.name][2] = globalPlayerData[p.name][2] + 1
+					if globalPlayerData[p.name][2] % 100 == 0 then
+						chatprint('\130'..p.name..' has won '..tostring(globalPlayerData[p.name][2])..' times!', true)
+					end
 				end
 			end
 		end	
@@ -366,7 +369,14 @@ local function st_playerdata(p, ...)
 		pTarget = table.concat({...}, " ")
 	end
 	
-	if globalPlayerData[pTarget] == nil then
+	if pTarget = "lobby" then
+		--Show races/wins for everyone currently playing
+		for p in players.iterate do
+			if p.valid and globalPlayerData[p.name] ~= nil then
+				CONS_Printf(p, "\x82"..p.name.."\x83 "..globalPlayerData[p.name][2].." wins \x80| "..globalPlayerData[p.name][1].." races")
+			end
+		end
+	elseif globalPlayerData[pTarget] == nil then
 		CONS_Printf(p, "Could not find player (It's case sensitive or leave blank to see your stats)")
 	else
 		--pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished
@@ -424,7 +434,7 @@ COM_AddCommand("st_mapdata", st_mapdata)
 local function st_skindata(p, ...)
 	local sTarget = nil
 	if not ... then
-		--assume player is looking their current skin
+		--assume player is looking at their current skin
 		sTarget = p.mo.skin
 	else
 		sTarget = table.concat({...}, " ")
