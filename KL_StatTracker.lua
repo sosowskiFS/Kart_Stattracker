@@ -369,7 +369,7 @@ local function st_playerdata(p, ...)
 		pTarget = table.concat({...}, " ")
 	end
 	
-	if pTarget = "lobby" then
+	if pTarget == "lobby" then
 		--Show races/wins for everyone currently playing
 		for p in players.iterate do
 			if p.valid and globalPlayerData[p.name] ~= nil then
