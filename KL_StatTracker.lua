@@ -263,7 +263,7 @@ local function intThink()
 			globalMapData[tostring(gamemap)][1] = globalMapData[tostring(gamemap)][1] + 1
 		else
 			--Nobody finished this race, assume it was RTV'd	
-			print ("Adding an RTV count...")
+			--print ("Adding an RTV count...")
 			globalMapData[tostring(gamemap)][2] = globalMapData[tostring(gamemap)][2] + 1
 		end
 		saveFiles("Map")	
