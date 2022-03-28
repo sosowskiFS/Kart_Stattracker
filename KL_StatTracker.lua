@@ -413,7 +413,7 @@ local function st_mapdata(p, ...)
 		CONS_Printf(p, "Could not find map (Use the map code or leave blank for current map)")
 	else
 		--timesPlayed, rtv
-		CONS_Printf(p, "\x82"..mapheaderinfo[mTarget].lvlttl)
+		CONS_Printf(p, "\x82"..tostring(mapheaderinfo[mTarget].lvlttl).." ("..tostring(mTarget)..")")
 		CONS_Printf(p, "\x83"..tostring(globalMapData[mTarget][1]).." plays | \x85"..tostring(globalMapData[mTarget][2]).." RTVs")
 		
 		if globalTimeData[mTarget] ~= nil then
