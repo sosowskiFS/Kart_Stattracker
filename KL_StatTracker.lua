@@ -371,9 +371,9 @@ local function st_playerdata(p, ...)
 	
 	if pTarget == "lobby" then
 		--Show races/wins for everyone currently playing
-		for p in players.iterate do
-			if p.valid and globalPlayerData[p.name] ~= nil then
-				CONS_Printf(p, "\x82"..p.name.."\x83 "..globalPlayerData[p.name][2].." wins \x80| "..globalPlayerData[p.name][1].." races")
+		for pl in players.iterate do
+			if pl.valid and globalPlayerData[pl.name] ~= nil then
+				CONS_Printf(p, "\x82"..pl.name.."\x83 "..globalPlayerData[pl.name][2].." wins \x80| "..globalPlayerData[pl.name][1].." races")
 			end
 		end
 	elseif globalPlayerData[pTarget] == nil then
