@@ -234,6 +234,30 @@ local function durMapChange()
 end
 addHook("MapChange", durMapChange)
 
+local function notRunningSpecialGameType()
+	--Checks to see if a special game mode is running or not
+	local normalGame = true
+	
+	--Friendmod
+	if CV_FindVar("fr_enabled") and  CV_FindVar("fr_enabled").value == 1 then
+		normalGame = false
+	end
+	
+	if CV_FindVar("combi_active") and  CV_FindVar("combi_active").value == 1 then
+		normalGame = false
+	end
+	
+	if CV_FindVar("frontrun_enabled") and  CV_FindVar("frontrun_enabled").value == 1 then
+		normalGame = false
+	end
+	
+	if CV_FindVar("elimination") and  CV_FindVar("elimination").value == 1 then
+		normalGame = false
+	end
+	
+	return normalGame
+end
+
 local function intThink()
 	--Track skin usage
 	if not didSaveSkins then
@@ -292,61 +316,64 @@ local function intThink()
 	
 	if not didSaveTime then
 		didSaveTime = true
-		
-		if globalTimeData[tostring(gamemap)] == nil then
-			globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
-		end
-		
-		--Determine what mods are running
-		--Time record saving priority - Driftmod > Juicebox > Tech/Vanilla
-		local driftmodValue = 0
-		if CV_FindVar("driftnitro") then
-			driftmodValue = CV_FindVar("driftnitro").value
-		end
-		local juiceboxValue = 0
-		if CV_FindVar("juicebox") then
-			juiceboxValue = CV_FindVar("juicebox").value
-		end
-		if CV_FindVar("techonly") then
-			--If techonly = 1 then consider juicebox as "off" for records
-			if CV_FindVar("techonly").value == 1 then
-				juiceboxValue = 0
+		--Make sure no special game type is running
+		if notRunningSpecialGameType() then
+			if globalTimeData[tostring(gamemap)] == nil then
+				globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
 			end
-		end
-		
-		if raceWinner ~= nil then
-			for p in players.iterate do
-				if p.valid and p.mo ~= nil and p.mo.valid and raceWinner == p.name then
-					if driftmodValue == 1 then
-						if p.realtime < tonumber(globalTimeData[tostring(gamemap)][7]) then
-							globalTimeData[tostring(gamemap)][7] = p.realtime
-							globalTimeData[tostring(gamemap)][8] = p.name
-							globalTimeData[tostring(gamemap)][9] = p.mo.skin
-							chatprint('\130NEW NITRO MAP RECORD!', true)
-							K_PlayPowerGloatSound(p.mo)
-						end	
-					elseif juiceboxValue == 1 then
-						if p.realtime < tonumber(globalTimeData[tostring(gamemap)][4]) then
-							globalTimeData[tostring(gamemap)][4] = p.realtime
-							globalTimeData[tostring(gamemap)][5] = p.name
-							globalTimeData[tostring(gamemap)][6] = p.mo.skin
-							chatprint('\130NEW JUICEBOX MAP RECORD!', true)
-							K_PlayPowerGloatSound(p.mo)
-						end	
-					else
-						if p.realtime < tonumber(globalTimeData[tostring(gamemap)][1]) then
-							globalTimeData[tostring(gamemap)][1] = p.realtime
-							globalTimeData[tostring(gamemap)][2] = p.name
-							globalTimeData[tostring(gamemap)][3] = p.mo.skin
-							chatprint('\130NEW MAP RECORD!', true)
-							K_PlayPowerGloatSound(p.mo)
+			
+			--Determine what mods are running
+			--Time record saving priority - Driftmod > Juicebox > Tech/Vanilla
+			local driftmodValue = 0
+			if CV_FindVar("driftnitro") then
+				driftmodValue = CV_FindVar("driftnitro").value
+			end
+			local juiceboxValue = 0
+			if CV_FindVar("juicebox") then
+				juiceboxValue = CV_FindVar("juicebox").value
+			end
+			if CV_FindVar("techonly") then
+				--If techonly = 1 then consider juicebox as "off" for records
+				if CV_FindVar("techonly").value == 1 then
+					juiceboxValue = 0
+				end
+			end
+			
+			if raceWinner ~= nil then
+				for p in players.iterate do
+					if p.valid and p.mo ~= nil and p.mo.valid and raceWinner == p.name then
+						if driftmodValue == 1 then
+							if p.realtime < tonumber(globalTimeData[tostring(gamemap)][7]) then
+								globalTimeData[tostring(gamemap)][7] = p.realtime
+								globalTimeData[tostring(gamemap)][8] = p.name
+								globalTimeData[tostring(gamemap)][9] = p.mo.skin
+								chatprint('\130NEW NITRO MAP RECORD!', true)
+								K_PlayPowerGloatSound(p.mo)
+							end	
+						elseif juiceboxValue == 1 then
+							if p.realtime < tonumber(globalTimeData[tostring(gamemap)][4]) then
+								globalTimeData[tostring(gamemap)][4] = p.realtime
+								globalTimeData[tostring(gamemap)][5] = p.name
+								globalTimeData[tostring(gamemap)][6] = p.mo.skin
+								chatprint('\130NEW JUICEBOX MAP RECORD!', true)
+								K_PlayPowerGloatSound(p.mo)
+							end	
+						else
+							if p.realtime < tonumber(globalTimeData[tostring(gamemap)][1]) then
+								globalTimeData[tostring(gamemap)][1] = p.realtime
+								globalTimeData[tostring(gamemap)][2] = p.name
+								globalTimeData[tostring(gamemap)][3] = p.mo.skin
+								chatprint('\130NEW MAP RECORD!', true)
+								K_PlayPowerGloatSound(p.mo)
+							end
 						end
 					end
 				end
 			end
+			
+			saveFiles("Time")	
 		end
-		
-		saveFiles("Time")		
+	
 	end
 end
 addHook("IntermissionThinker", intThink)
