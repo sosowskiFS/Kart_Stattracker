@@ -35,10 +35,10 @@ if p then
 	--do I really have to explain this to you three times
 	--print('Loading player data...')
 	for l in p:lines() do
-		local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+		local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 
 		if pName then
-			globalPlayerData[pName] = {mapsPlayed, wins, hits, selfHits, spinned, exploded, squished}
+			globalPlayerData[pName] = {mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo}
 		end
 	end
 	p:close()
@@ -122,7 +122,7 @@ end
 local function checkNilPlayer(name)
 	--Cleaner to just throw this here since I have to do it so much
 	if globalPlayerData[name] == nil then
-		globalPlayerData[name] = {0, 0, 0, 0, 0, 0, 0}
+		globalPlayerData[name] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1500, 1500, 1500}
 	end
 end
 
@@ -189,8 +189,8 @@ addHook("PlayerSquish", playerSquish)
 --all saving flags
 local completedRun = false
 local didSaveSkins = false
-local raceWinner = nil
-local finishedPlayers = {}
+local playerOrder = {}
+local posPointer = 1
 local didSaveMap = false
 local didSavePlayer = false
 local didSaveTime = false
@@ -201,6 +201,7 @@ local didSaveTime = false
 local function think()
 	if not completedRun then
 		local allStopped = true
+		
 		for p in players.iterate do
 			if p.valid and p.mo ~= nil and p.mo.valid then
 				if p.exiting == 0 then
@@ -208,15 +209,29 @@ local function think()
 					allStopped = false
 				elseif p.exiting ~= 0 then
 					--Someone stopped. Determine if winner and mark finished players.
-					if raceWinner == nil then
-						raceWinner = p.name
+					--Store names for each position as a table in case of ties
+					if playerOrder[posPointer] == nil then
+						playerOrder[posPointer] = {p.name}
+					else if playerOrder[posPointer] ~= nil then
+						--2 players finished on the same tic, this is a tie
+						table.insert(playerOrder[posPointer], p.name)
 					end
-					if finishedPlayers[p.name] == nil then
-						finishedPlayers[p.name] = true
-					end
+					
+					--if raceWinner == nil then
+						--raceWinner = p.name
+					--end
+					--if finishedPlayers[p.name] == nil then
+						--possibleTie = true
+						--finishedPlayers[p.name] = true
+					--end
 				end
 			end
 		end
+		
+		if playerOrder[posPointer] ~= nil then
+			posPointer = posPointer + 1
+		end
+		
 		completedRun = allStopped	
 	end
 end
@@ -226,11 +241,11 @@ addHook("ThinkFrame", think)
 local function durMapChange()
 	didSaveSkins = false
 	completedRun = false
-	raceWinner = nil
-	finishedPlayers = {}
+	playerOrder = {}
 	didSaveMap = false
 	didSavePlayer = false
 	didSaveTime = false
+	posPointer = 1
 end
 addHook("MapChange", durMapChange)
 
@@ -282,7 +297,7 @@ local function intThink()
 		if globalMapData[tostring(gamemap)] == nil then
 			globalMapData[tostring(gamemap)] = {0, 0}
 		end
-		if raceWinner ~= nil then
+		if playerOrder[1] ~= nil then
 			--Map was completed
 			globalMapData[tostring(gamemap)][1] = globalMapData[tostring(gamemap)][1] + 1
 		else
@@ -296,21 +311,100 @@ local function intThink()
 	--Track player shit
 	if not didSavePlayer then
 		--print("Updating player data...")
+		--{mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo}
 		didSavePlayer = true
-		for p in players.iterate do
-			if p.valid and p.mo ~= nil and p.mo.valid 
-				checkNilPlayer(p.name)
-				if finishedPlayers[p.name] ~= nil then
-					globalPlayerData[p.name][1] = globalPlayerData[p.name][1] + 1
-				end
-				if raceWinner == p.name then
-					globalPlayerData[p.name][2] = globalPlayerData[p.name][2] + 1
-					if globalPlayerData[p.name][2] % 100 == 0 then
-						chatprint('\130'..p.name..' has won '..tostring(globalPlayerData[p.name][2])..' times!', true)
-					end
-				end
+		
+		if notRunningSpecialGameType() then
+			local eloChanges = {}
+			local gameModeIndex = 10
+			if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
+				gameModeIndex = 12
+			else if CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
+				if CV_FindVar("techonly") and CV_FindVar("techonly").value == 1 then
+					gameModeIndex = 10
+				else
+					gameModeIndex = 11
+				end				
 			end
-		end	
+					
+			for pos, players in pairs(playerOrder) do
+				--If there's more than a 5 way tie I'm legitimately impressed
+				for i=1,5,1 do
+					if players[i] ~= nil then
+						checkNilPlayer(players[i])
+						--Increment play count
+						globalPlayerData[players[i]][1] = globalPlayerData[players[i]][1] + 1
+						
+						--Increment 1st,2nd,3rd finish where appropriate
+						if pos == 1 then
+							globalPlayerData[players[i]][2] = globalPlayerData[players[i]][2] + 1
+							if globalPlayerData[players[i]][2] % 100 == 0 then
+								chatprint('\130'..p.name..' has won '..tostring(globalPlayerData[players[i]][2])..' times!', true)
+							end
+						elseif pos == 2 then
+							globalPlayerData[players[i]][8] = globalPlayerData[players[i]][8] + 1
+						elseif pos == 3 then
+							globalPlayerData[players[i]][9] = globalPlayerData[players[i]][9] + 1
+						end
+						
+						--Calculate ELO changes and store to save at the end
+						eloChanges[players[i]] = 0				
+						for ePos, ePlayers in pairs(playerOrder) do
+							for e=1,5,1 do
+								--Ignore the same position
+								if ePlayers[e] ~= nil and pos ~= ePos then		
+									checkNilPlayer(ePlayers[e])
+									
+									if pos < ePos then
+										--Players you beat
+										--positive = lower rank, negative = higher rank
+										--NEED TO VERIFY - For calcuations with decimals, this assumes that SRB2 strips decimal places without rounding
+										local rankDif = (globalPlayerData[players[i]][gameModeIndex] - globalPlayerData[ePlayers[e]][gameModeIndex]) / 100
+										local rankChange = 5						
+										if rankDif > 0 then
+											rankChange = rankChange - rankDif
+											if rankChange < 0 then
+												rankChange = 0
+											end
+										else if rankDif < 0 then
+											--Absolute value of rankDif
+											rankChange = rankChange + abs(rankDif)
+										end
+										
+										eloChanges[players[i]] = eloChanges[players[i]] + rankChange
+									else
+										--players you lost to
+										local rankDif = (globalPlayerData[players[i]][gameModeIndex] - globalPlayerData[ePlayers[e]][gameModeIndex]) / 100
+										local rankChange = -5						
+										if rankDif > 0 then
+											rankChange = rankChange - rankDif
+										else if rankDif < 0 then
+											--Lost to someone with higher rank, cap max change at 500 diff							
+											rankChange = rankChange + abs(rankDif)
+											if rankChange > 0 then
+												rankChange = 0
+											end
+										end
+										
+										eloChanges[players[i]] = eloChanges[players[i]] + rankChange
+									end
+								end
+							end
+						end
+					end
+				end			
+			end
+			
+			--Loop through and apply all ELO changes
+			for player, change in pairs(eloChanges) do
+				if player ~= nil then
+					--muh sanity
+					checkNilPlayer(player)
+					print(player.." - "..tostring(change))
+					globalPlayerData[player][gameModeIndex] = globalPlayerData[player][gameModeIndex] + change			
+				end		
+			end
+		end
 		saveFiles("Player")	
 	end
 	
@@ -320,6 +414,17 @@ local function intThink()
 		if notRunningSpecialGameType() then
 			if globalTimeData[tostring(gamemap)] == nil then
 				globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+			end
+			
+			--Temp fix to wipe damaged records
+			if tonumber(globalTimeData[tostring(gamemap)][7]) < 200 then
+				globalTimeData[tostring(gamemap)][7] = 99999999
+			end
+			if tonumber(globalTimeData[tostring(gamemap)][4]) < 200 then
+				globalTimeData[tostring(gamemap)][4] = 99999999
+			end
+			if tonumber(globalTimeData[tostring(gamemap)][1]) < 200 then
+				globalTimeData[tostring(gamemap)][1] = 99999999
 			end
 			
 			--Determine what mods are running
@@ -339,7 +444,10 @@ local function intThink()
 				end
 			end
 			
-			if raceWinner ~= nil then
+			if playerOrder[1] ~= nil then
+				--Remove reference to raceWinner
+				--Handle possible ties by looping through potential table in playerOrder
+				
 				for p in players.iterate do
 					if p.valid and p.mo ~= nil and p.mo.valid and raceWinner == p.name then
 						if driftmodValue == 1 then
