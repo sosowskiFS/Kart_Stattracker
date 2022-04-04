@@ -444,12 +444,10 @@ local function intThink()
 				end
 			end
 			
-			if playerOrder[1] ~= nil then
-				--Remove reference to raceWinner
-				--Handle possible ties by looping through potential table in playerOrder
-				
+			if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
+				--There's no handling for ties here and I don't really care all that much tbh
 				for p in players.iterate do
-					if p.valid and p.mo ~= nil and p.mo.valid and raceWinner == p.name then
+					if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
 						if driftmodValue == 1 then
 							if p.realtime < tonumber(globalTimeData[tostring(gamemap)][7]) then
 								globalTimeData[tostring(gamemap)][7] = p.realtime
