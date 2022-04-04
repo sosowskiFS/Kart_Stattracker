@@ -39,6 +39,14 @@ if p then
 
 		if pName then
 			globalPlayerData[pName] = {mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo}
+			--Default possible nil values that were added in an update
+			if globalPlayerData[pName][8] == nil then
+				globalPlayerData[pName][8] = 0
+				globalPlayerData[pName][9] = 0
+				globalPlayerData[pName][10] = 1500
+				globalPlayerData[pName][11] = 1500
+				globalPlayerData[pName][12] = 1500
+			end
 		end
 	end
 	p:close()
@@ -190,6 +198,7 @@ addHook("PlayerSquish", playerSquish)
 local completedRun = false
 local didSaveSkins = false
 local playerOrder = {}
+local recordedPlayers = {}
 local posPointer = 1
 local didSaveMap = false
 local didSavePlayer = false
@@ -210,20 +219,15 @@ local function think()
 				elseif p.exiting ~= 0 then
 					--Someone stopped. Determine if winner and mark finished players.
 					--Store names for each position as a table in case of ties
-					if playerOrder[posPointer] == nil then
-						playerOrder[posPointer] = {p.name}
-					else if playerOrder[posPointer] ~= nil then
-						--2 players finished on the same tic, this is a tie
-						table.insert(playerOrder[posPointer], p.name)
-					end
-					
-					--if raceWinner == nil then
-						--raceWinner = p.name
-					--end
-					--if finishedPlayers[p.name] == nil then
-						--possibleTie = true
-						--finishedPlayers[p.name] = true
-					--end
+					if recordedPlayers[p.name] == nil then
+						if playerOrder[posPointer] == nil then
+							playerOrder[posPointer] = {p.name}
+						else if playerOrder[posPointer] ~= nil then
+							--2 players finished on the same tic, this is a tie
+							table.insert(playerOrder[posPointer], p.name)
+						end					
+						recordedPlayers[p.name] = 1
+					end		
 				end
 			end
 		end
@@ -242,6 +246,7 @@ local function durMapChange()
 	didSaveSkins = false
 	completedRun = false
 	playerOrder = {}
+	recordedPlayers = {}
 	didSaveMap = false
 	didSavePlayer = false
 	didSaveTime = false
@@ -254,19 +259,19 @@ local function notRunningSpecialGameType()
 	local normalGame = true
 	
 	--Friendmod
-	if CV_FindVar("fr_enabled") and  CV_FindVar("fr_enabled").value == 1 then
+	if CV_FindVar("fr_enabled") and CV_FindVar("fr_enabled").value == 1 then
 		normalGame = false
 	end
 	
-	if CV_FindVar("combi_active") and  CV_FindVar("combi_active").value == 1 then
+	if CV_FindVar("combi_active") and CV_FindVar("combi_active").value == 1 then
 		normalGame = false
 	end
 	
-	if CV_FindVar("frontrun_enabled") and  CV_FindVar("frontrun_enabled").value == 1 then
+	if CV_FindVar("frontrun_enabled") and CV_FindVar("frontrun_enabled").value == 1 then
 		normalGame = false
 	end
 	
-	if CV_FindVar("elimination") and  CV_FindVar("elimination").value == 1 then
+	if CV_FindVar("elimination") and CV_FindVar("elimination").value == 1 then
 		normalGame = false
 	end
 	
@@ -504,22 +509,34 @@ local function st_playerdata(p, ...)
 	
 	if pTarget == "lobby" then
 		--Show races/wins for everyone currently playing
+		local gameModeIndex = 10
+		if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
+			gameModeIndex = 12
+		else if CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
+			if CV_FindVar("techonly") and CV_FindVar("techonly").value == 1 then
+				gameModeIndex = 10
+			else
+				gameModeIndex = 11
+			end				
+		end
+				
 		for pl in players.iterate do
-			if pl.valid and globalPlayerData[pl.name] ~= nil then
-				CONS_Printf(p, "\x82"..pl.name.."\x83 "..globalPlayerData[pl.name][2].." wins \x80| "..globalPlayerData[pl.name][1].." races")
+			if pl.valid and globalPlayerData[pl.name] ~= nil then			
+				CONS_Printf(p, "\x82"..pl.name.."\x84 "..globalPlayerData[pl.name][gameModeIndex].." KS\x83 "..globalPlayerData[pl.name][2].." wins \x80| "..globalPlayerData[pl.name][1].." races")
 			end
 		end
 	elseif globalPlayerData[pTarget] == nil then
 		CONS_Printf(p, "Could not find player (It's case sensitive or leave blank to see your stats)")
 	else
-		--pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished
+		--{mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo}
 		--Time assumption: 3 minutes 30 seconds per race
 		--tfw no math library
 		local playtime = 210 * tonumber(globalPlayerData[pTarget][1])
 		local hours = FixedFloor((playtime / 3600) * FRACUNIT) / FRACUNIT
 		local minutes = FixedFloor(((playtime % 3600) / 60) * FRACUNIT) / FRACUNIT
-		CONS_Printf(p, "\x82"..pTarget)
-		CONS_Printf(p, tostring(globalPlayerData[pTarget][1]).." races | \x83"..tostring(globalPlayerData[pTarget][2]).." wins")
+		CONS_Printf(p, "\x83"..pTarget.." \x80- "..tostring(globalPlayerData[pTarget][1]).." races")
+		CONS_Printf(p, "\x82"..tostring(globalPlayerData[pTarget][2]).." 1st places \x80| \x86"..tostring(globalPlayerData[pTarget][8]).." 2nd places \x80| \x8D"..tostring(globalPlayerData[pTarget][9]).." 3rd places")
+		CONS_Printf(p, "KartScores - \x83"..tostring(globalPlayerData[pTarget][10]).." Vanilla/Tech \x80| \x84"..tostring(globalPlayerData[pTarget][11]).." Juicebox \x80| \x85"..tostring(globalPlayerData[pTarget][12]).." Nitro")
 		CONS_Printf(p, tostring(globalPlayerData[pTarget][3]).." item hits | \x85"..tostring(globalPlayerData[pTarget][4]).." self or enviroment hits")
 		CONS_Printf(p, "\x82"..tostring(globalPlayerData[pTarget][5]).." spinouts | \x87"..tostring(globalPlayerData[pTarget][6]).." times exploded | \x84"..tostring(globalPlayerData[pTarget][7]).." times squished")
 		CONS_Printf(p, "Total playtime : "..tostring(hours).." hours, "..tostring(minutes).." minutes (est.)")
