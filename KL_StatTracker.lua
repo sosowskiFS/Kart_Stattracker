@@ -34,19 +34,20 @@ local p = io.open("Playerdata.txt", "r")
 if p then
 	--do I really have to explain this to you three times
 	--print('Loading player data...')
+	print("Trying to Open")
 	for l in p:lines() do
 		local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 
+		print(pName)
 		if pName then
+			print("in")
 			globalPlayerData[pName] = {mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo}
-			--Default possible nil values that were added in an update
-			if globalPlayerData[pName][8] == nil then
-				globalPlayerData[pName][8] = 0
-				globalPlayerData[pName][9] = 0
-				globalPlayerData[pName][10] = 1500
-				globalPlayerData[pName][11] = 1500
-				globalPlayerData[pName][12] = 1500
-			end
+		else
+			--Assume this is an older record & attempt to update it
+			local LpName, LmapsPlayed, Lwins, Lhits, LselfHits, Lspinned, Lexploded, Lsquished = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+			if LpName then
+				globalPlayerData[LpName] = {LmapsPlayed, Lwins, Lhits, LselfHits, Lspinned, Lexploded, Lsquished, 0, 0, 1500, 1500, 1500}
+			end		
 		end
 	end
 	p:close()
@@ -86,7 +87,7 @@ local function _savePlayerFunc()
 	local f = assert(io.open("Playerdata.txt", "w"))
 	for key, value in pairs(globalPlayerData) do
 		if key:find(";") then continue end -- sanity check
-		f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], "\n")
+		f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], ";", value[10], ";", value[11], ";", value[12], "\n")
 	end
 	f:close()	
 end
@@ -222,13 +223,23 @@ local function think()
 					if recordedPlayers[p.name] == nil then
 						if playerOrder[posPointer] == nil then
 							playerOrder[posPointer] = {p.name}
-						else if playerOrder[posPointer] ~= nil then
+						elseif playerOrder[posPointer] ~= nil then
 							--2 players finished on the same tic, this is a tie
 							table.insert(playerOrder[posPointer], p.name)
 						end					
 						recordedPlayers[p.name] = 1
+						print("Pos "..tostring(posPointer))
 					end		
 				end
+			end
+					
+			--Detect people who timed out
+			if p.valid and p.mo == nil and p.pflags then
+				print(PF_TIMEOVER)
+				print(p.pflags)
+				local isTimeOver = 'PF_TimeOver' in p.pflags
+				print(isTimeOver)
+				print("---")
 			end
 		end
 		
@@ -315,7 +326,7 @@ local function intThink()
 	
 	--Track player shit
 	if not didSavePlayer then
-		--print("Updating player data...")
+		print("Updating player data...")
 		--{mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo}
 		didSavePlayer = true
 		
@@ -324,7 +335,7 @@ local function intThink()
 			local gameModeIndex = 10
 			if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
 				gameModeIndex = 12
-			else if CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
+			elseif CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
 				if CV_FindVar("techonly") and CV_FindVar("techonly").value == 1 then
 					gameModeIndex = 10
 				else
@@ -371,7 +382,7 @@ local function intThink()
 											if rankChange < 0 then
 												rankChange = 0
 											end
-										else if rankDif < 0 then
+										elseif rankDif < 0 then
 											--Absolute value of rankDif
 											rankChange = rankChange + abs(rankDif)
 										end
@@ -383,7 +394,7 @@ local function intThink()
 										local rankChange = -5						
 										if rankDif > 0 then
 											rankChange = rankChange - rankDif
-										else if rankDif < 0 then
+										elseif rankDif < 0 then
 											--Lost to someone with higher rank, cap max change at 500 diff							
 											rankChange = rankChange + abs(rankDif)
 											if rankChange > 0 then
@@ -512,7 +523,7 @@ local function st_playerdata(p, ...)
 		local gameModeIndex = 10
 		if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
 			gameModeIndex = 12
-		else if CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
+		elseif CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
 			if CV_FindVar("techonly") and CV_FindVar("techonly").value == 1 then
 				gameModeIndex = 10
 			else
