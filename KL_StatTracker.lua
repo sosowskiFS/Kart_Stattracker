@@ -1,5 +1,6 @@
 --StatTracker
 --Tracks and filesaves Skin usage, map usage, and player data
+--	1.3 - Adds KartScore(ELO) system
 local globalSkinData = {}
 local globalMapData = {}
 local globalPlayerData = {}
@@ -506,6 +507,30 @@ local function netvars(net)
 end
 addHook("NetVars", netvars)
 
+--Helper function for sorting data in console commands
+function spairs(t, order)
+    -- collect the keys
+    local keys = {}
+    for k in pairs(t) do keys[#keys+1] = k end
+
+    -- if order function given, sort by it by passing the table and keys a, b,
+    -- otherwise just sort the keys 
+    if order then
+        table.sort(keys, function(a,b) return order(t, a, b) end)
+    else
+        table.sort(keys)
+    end
+
+    -- return the iterator function
+    local i = 0
+    return function()
+        i = i + 1
+        if keys[i] then
+            return keys[i], t[keys[i]]
+        end
+    end
+end
+
 --Console commands for data lookups
 local function st_playerdata(p, ...)
 	local pTarget = nil
@@ -531,8 +556,44 @@ local function st_playerdata(p, ...)
 				
 		for pl in players.iterate do
 			if pl.valid and globalPlayerData[pl.name] ~= nil then			
-				CONS_Printf(p, "\x82"..pl.name.."\x84 "..globalPlayerData[pl.name][gameModeIndex].." KS\x83 "..globalPlayerData[pl.name][2].." wins \x80| "..globalPlayerData[pl.name][1].." races")
+				CONS_Printf(p, "\x82"..pl.name.."\x84 "..globalPlayerData[pl.name][gameModeIndex].." KS \x80|\x83 "..globalPlayerData[pl.name][2].." wins \x80| "..globalPlayerData[pl.name][1].." races")
 			end
+		end
+	elseif pTarget=="top" or pTarget == "top wins" then
+		local shitToSort = {}
+		for k, v in pairs(globalPlayerData) do
+			shitToSort[k] = v[2]
+		end
+		local forCounter = 1
+		for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
+			CONS_Printf(p, tostring(forCounter).." - \x83"..k.." \x82 "..tostring(v).." wins")
+			
+			forCounter = forCounter + 1
+			if forCounter > 10 then break end
+		end
+	elseif pTarget == "top ks" then
+		--Uses the current mode's ELO
+		local gameModeIndex = 10
+		if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
+			gameModeIndex = 12
+		elseif CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
+			if CV_FindVar("techonly") and CV_FindVar("techonly").value == 1 then
+				gameModeIndex = 10
+			else
+				gameModeIndex = 11
+			end				
+		end
+		
+		local shitToSort = {}
+		for k, v in pairs(globalPlayerData) do
+			shitToSort[k] = v[gameModeIndex]
+		end
+		local forCounter = 1
+		for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
+			CONS_Printf(p, tostring(forCounter).." - \x83"..k.." \x82 "..tostring(v).." KartScore")
+			
+			forCounter = forCounter + 1
+			if forCounter > 10 then break end
 		end
 	elseif globalPlayerData[pTarget] == nil then
 		CONS_Printf(p, "Could not find player (It's case sensitive or leave blank to see your stats)")
@@ -568,7 +629,31 @@ local function st_mapdata(p, ...)
 	end
 	mTarget = tostring(mTarget)
 	
-	if globalMapData[mTarget] == nil then
+	if mTarget == "top" then
+		local shitToSort = {}
+		for k, v in pairs(globalMapData) do
+			shitToSort[k] = v[1]
+		end
+		local forCounter = 1
+		for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
+			CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x83"..tostring(v).." plays | \x85"..toString(globalMapData[k][2]).." RTVs")
+			
+			forCounter = forCounter + 1
+			if forCounter > 10 then break end
+		end
+	elseif mTarget == "bottom" then
+		local shitToSort = {}
+		for k, v in pairs(globalMapData) do
+			shitToSort[k] = v[2]
+		end
+		local forCounter = 1
+		for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
+			CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x85"..tostring(v).." RTVs | \x83"..toString(globalMapData[k][1]).." plays")
+			
+			forCounter = forCounter + 1
+			if forCounter > 10 then break end
+		end
+	elseif globalMapData[mTarget] == nil then
 		CONS_Printf(p, "Could not find map (Use the map code or leave blank for current map)")
 	else
 		--timesPlayed, rtv
@@ -599,12 +684,37 @@ local function st_skindata(p, ...)
 		sTarget = table.concat({...}, " ")
 	end
 	
-	if globalSkinData[sTarget] == nil then
+	if sTarget == "top" then
+		for k,v in spairs(globalSkinData, function(t,a,b) return t[b] < t[a] end) do
+			CONS_Printf(p, tostring(forCounter).." - \x82"..k.." - \x83"..tostring(v).." uses")
+			
+			forCounter = forCounter + 1
+			if forCounter > 10 then break end
+		end
+	elseif globalSkinData[sTarget] == nil then
 		CONS_Printf(p, "Could not find skin (Use skin code or leave blank for current map)")
 	else
 		--just a count
 		CONS_Printf(p, "\x82"..sTarget)
-		CONS_Printf(p, "Used in "..tostring(globalSkinData[sTarget]).." races")
+		CONS_Printf(p, "Used "..tostring(globalSkinData[sTarget]).." times")
 	end
 end
 COM_AddCommand("st_skindata", st_skindata)
+
+--[[
+	I'm just leaving this here for reference on sorting because I fucking hate it
+
+	local globalPlayerData = {}
+	globalPlayerData['UrMom'] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1500, 1500, 1500}
+	globalPlayerData['UrDad'] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1250, 1500, 1500}
+	globalPlayerData['UrFace'] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1654, 1500, 1500}
+
+	local shitToSort = {}
+	for k, v in pairs(globalPlayerData) do
+	  shitToSort[k] = v[10]
+	end
+
+	for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
+		print(k, v)
+	end
+--]]
