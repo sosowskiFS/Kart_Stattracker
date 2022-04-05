@@ -200,7 +200,6 @@ local completedRun = false
 local didSaveSkins = false
 local playerOrder = {}
 local recordedPlayers = {}
-local posPointer = 1
 local didSaveMap = false
 local didSavePlayer = false
 local didSaveTime = false
@@ -217,34 +216,34 @@ local function think()
 				if p.exiting == 0 then
 					--Someone is still running
 					allStopped = false
+					if p.pflags & PF_TIMEOVER then
+						--Someone DNF'd. Mark them down.
+						if recordedPlayers[p.name] == nil then
+							if playerOrder[p.kartstuff[k_position]] == nil then
+								playerOrder[p.kartstuff[k_position]] = {p.name}
+							elseif playerOrder[p.kartstuff[k_position]] ~= nil then
+								--2 players finished on the same tic, this is a tie
+								table.insert(playerOrder[p.kartstuff[k_position]], p.name)
+							end					
+							recordedPlayers[p.name] = 1
+							print(p.name.." Pos "..tostring(p.kartstuff[k_position]).." Realtime "..tostring(p.realtime))
+						end	
+					end
 				elseif p.exiting ~= 0 then
 					--Someone stopped. Determine if winner and mark finished players.
 					--Store names for each position as a table in case of ties
 					if recordedPlayers[p.name] == nil then
-						if playerOrder[posPointer] == nil then
-							playerOrder[posPointer] = {p.name}
-						elseif playerOrder[posPointer] ~= nil then
+						if playerOrder[p.kartstuff[k_position]] == nil then
+							playerOrder[p.kartstuff[k_position]] = {p.name}
+						elseif playerOrder[p.kartstuff[k_position]] ~= nil then
 							--2 players finished on the same tic, this is a tie
-							table.insert(playerOrder[posPointer], p.name)
+							table.insert(playerOrder[p.kartstuff[k_position]], p.name)
 						end					
 						recordedPlayers[p.name] = 1
-						print("Pos "..tostring(posPointer))
+						print(p.name.." Pos "..tostring(p.kartstuff[k_position]).." Realtime "..tostring(p.realtime))
 					end		
 				end
 			end
-					
-			--Detect people who timed out
-			if p.valid and p.mo == nil and p.pflags then
-				print(PF_TIMEOVER)
-				print(p.pflags)
-				local isTimeOver = 'PF_TimeOver' in p.pflags
-				print(isTimeOver)
-				print("---")
-			end
-		end
-		
-		if playerOrder[posPointer] ~= nil then
-			posPointer = posPointer + 1
 		end
 		
 		completedRun = allStopped	
@@ -261,7 +260,6 @@ local function durMapChange()
 	didSaveMap = false
 	didSavePlayer = false
 	didSaveTime = false
-	posPointer = 1
 end
 addHook("MapChange", durMapChange)
 
