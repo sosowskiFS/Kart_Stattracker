@@ -35,13 +35,12 @@ local p = io.open("Playerdata.txt", "r")
 if p then
 	--do I really have to explain this to you three times
 	--print('Loading player data...')
-	print("Trying to Open")
 	for l in p:lines() do
 		local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 
-		print(pName)
+		--print(pName)
 		if pName then
-			print("in")
+			--print("in")
 			globalPlayerData[pName] = {mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo}
 		else
 			--Assume this is an older record & attempt to update it
@@ -227,7 +226,7 @@ local function think()
 								table.insert(playerOrder[p.kartstuff[k_position]], p.name)
 							end					
 							recordedPlayers[p.name] = 1
-							print(p.name.." Pos "..tostring(p.kartstuff[k_position]).." Realtime "..tostring(p.realtime))
+							--print(p.name.." Pos "..tostring(p.kartstuff[k_position]).." Realtime "..tostring(p.realtime))
 						end	
 					end
 				elseif p.exiting ~= 0 then
@@ -241,7 +240,7 @@ local function think()
 							table.insert(playerOrder[p.kartstuff[k_position]], p.name)
 						end					
 						recordedPlayers[p.name] = 1
-						print(p.name.." Pos "..tostring(p.kartstuff[k_position]).." Realtime "..tostring(p.realtime))
+						--print(p.name.." Pos "..tostring(p.kartstuff[k_position]).." Realtime "..tostring(p.realtime))
 					end		
 				end
 			end
@@ -325,7 +324,7 @@ local function intThink()
 	
 	--Track player shit
 	if not didSavePlayer then
-		print("Updating player data...")
+		--print("Updating player data...")
 		--{mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo}
 		didSavePlayer = true
 		
@@ -415,7 +414,7 @@ local function intThink()
 				if player ~= nil then
 					--muh sanity
 					checkNilPlayer(player)
-					print(player.." - "..tostring(change))
+					--print(player.." - "..tostring(change))
 					globalPlayerData[player][gameModeIndex] = globalPlayerData[player][gameModeIndex] + change
 					if globalPlayerData[player][gameModeIndex] < 0 then
 						--Holy shit you suck, what the fuck
