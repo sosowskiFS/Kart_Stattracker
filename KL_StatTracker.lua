@@ -416,7 +416,11 @@ local function intThink()
 					--muh sanity
 					checkNilPlayer(player)
 					print(player.." - "..tostring(change))
-					globalPlayerData[player][gameModeIndex] = globalPlayerData[player][gameModeIndex] + change			
+					globalPlayerData[player][gameModeIndex] = globalPlayerData[player][gameModeIndex] + change
+					if globalPlayerData[player][gameModeIndex] < 0 then
+						--Holy shit you suck, what the fuck
+						globalPlayerData[player][gameModeIndex] = 0
+					end
 				end		
 			end
 		end
@@ -508,7 +512,7 @@ end
 addHook("NetVars", netvars)
 
 --Helper function for sorting data in console commands
-function spairs(t, order)
+local function spairs(t, order)
     -- collect the keys
     local keys = {}
     for k in pairs(t) do keys[#keys+1] = k end
@@ -562,7 +566,8 @@ local function st_playerdata(p, ...)
 	elseif pTarget=="top" or pTarget == "top wins" then
 		local shitToSort = {}
 		for k, v in pairs(globalPlayerData) do
-			shitToSort[k] = v[2]
+			shitToSort[k] = tonumber(v[2])
+			
 		end
 		local forCounter = 1
 		for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
@@ -586,7 +591,7 @@ local function st_playerdata(p, ...)
 		
 		local shitToSort = {}
 		for k, v in pairs(globalPlayerData) do
-			shitToSort[k] = v[gameModeIndex]
+			shitToSort[k] = tonumber(v[gameModeIndex])
 		end
 		local forCounter = 1
 		for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
@@ -632,11 +637,11 @@ local function st_mapdata(p, ...)
 	if mTarget == "top" then
 		local shitToSort = {}
 		for k, v in pairs(globalMapData) do
-			shitToSort[k] = v[1]
+			shitToSort[k] = tonumber(v[1])
 		end
 		local forCounter = 1
 		for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
-			CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x83"..tostring(v).." plays | \x85"..toString(globalMapData[k][2]).." RTVs")
+			CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x83"..tostring(v).." plays | \x85"..tostring(globalMapData[k][2]).." RTVs")
 			
 			forCounter = forCounter + 1
 			if forCounter > 10 then break end
@@ -644,11 +649,11 @@ local function st_mapdata(p, ...)
 	elseif mTarget == "bottom" then
 		local shitToSort = {}
 		for k, v in pairs(globalMapData) do
-			shitToSort[k] = v[2]
+			shitToSort[k] = tonumber(v[2])
 		end
 		local forCounter = 1
 		for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
-			CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x85"..tostring(v).." RTVs | \x83"..toString(globalMapData[k][1]).." plays")
+			CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x85"..tostring(v).." RTVs | \x83"..tostring(globalMapData[k][1]).." plays")
 			
 			forCounter = forCounter + 1
 			if forCounter > 10 then break end
@@ -685,7 +690,8 @@ local function st_skindata(p, ...)
 	end
 	
 	if sTarget == "top" then
-		for k,v in spairs(globalSkinData, function(t,a,b) return t[b] < t[a] end) do
+		local forCounter = 1
+		for k,v in spairs(globalSkinData, function(t,a,b) return tonumber(t[b]) < tonumber(t[a]) end) do
 			CONS_Printf(p, tostring(forCounter).." - \x82"..k.." - \x83"..tostring(v).." uses")
 			
 			forCounter = forCounter + 1
