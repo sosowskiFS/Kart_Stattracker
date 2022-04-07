@@ -284,6 +284,10 @@ local function notRunningSpecialGameType()
 		normalGame = false
 	end
 	
+	if CV_FindVar("spbatk") and CV_FindVar("spbatk").value == 1 then
+		normalGame = false
+	end
+	
 	return normalGame
 end
 
