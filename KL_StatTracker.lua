@@ -644,10 +644,12 @@ local function st_mapdata(p, ...)
 		end
 		local forCounter = 1
 		for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
-			CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x83"..tostring(v).." plays | \x85"..tostring(globalMapData[k][2]).." RTVs")
+			if k ~= "1" then
+				CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x83"..tostring(v).." plays | \x85"..tostring(globalMapData[k][2]).." RTVs")
 			
-			forCounter = forCounter + 1
-			if forCounter > 10 then break end
+				forCounter = forCounter + 1
+				if forCounter > 10 then break end
+			end
 		end
 	elseif mTarget == "bottom" then
 		local shitToSort = {}
@@ -656,10 +658,12 @@ local function st_mapdata(p, ...)
 		end
 		local forCounter = 1
 		for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
-			CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x85"..tostring(v).." RTVs | \x83"..tostring(globalMapData[k][1]).." plays")
-			
-			forCounter = forCounter + 1
-			if forCounter > 10 then break end
+			if k ~= "1" then	
+				CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x85"..tostring(v).." RTVs | \x83"..tostring(globalMapData[k][1]).." plays")
+				
+				forCounter = forCounter + 1
+				if forCounter > 10 then break end
+			end
 		end
 	elseif globalMapData[mTarget] == nil then
 		CONS_Printf(p, "Could not find map (Use the map code or leave blank for current map)")
