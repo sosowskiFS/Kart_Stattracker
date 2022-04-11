@@ -23,10 +23,19 @@ if m then
 	--file already exsists, load from it
 	--print('Loading map data...')
 	for l in m:lines() do
-		local mapName, timesPlayed, rtv = string.match(l, "(.*);(.*);(.*)")
+		local mapID, timesPlayed, rtv, mapName = string.match(l, "(.*);(.*);(.*);(.*)")
 
-		if mapName then
-			globalMapData[mapName] = {timesPlayed, rtv}
+		if mapID then
+			globalMapData[mapID] = {timesPlayed, rtv, mapName}
+		else
+			--Attempt to parse & update old record
+			local LmapID, LtimesPlayed, Lrtv = string.match(l, "(.*);(.*);(.*)")
+			if LmapID and mapheader[tostring(LmapID)] then
+				globalMapData[LmapID] = {LtimesPlayed, Lrtv, mapheader[tostring(LmapID)].lvlttl}
+			else if LmapID then
+				--Old record and no longer on server - will be deleted in maintenance
+				globalMapData[LmapID] = {LtimesPlayed, Lrtv, "I am dead"}
+			end
 		end
 	end
 	m:close()
@@ -291,7 +300,38 @@ local function notRunningSpecialGameType()
 	return normalGame
 end
 
+--Not touched outside of setting true - should mean only 1 maintenance per restart
+local didMaint = false
+
 local function intThink()
+
+	--Data maintenance
+	if didMaint == false then
+		--Add new skins that aren't represented in data yet
+		for s in skins.iterate do
+			if globalSkinData[s.name] == nil then
+				globalSkinData[s.name] = 0
+			end
+		end
+		--Delete removed skins
+		local skinReference = globalSkinData
+		for k, v in pairs(skinReference) do
+			if skins[k] == nil then
+				globalSkinData[k] = nil
+			end
+		end
+		--Add new maps that aren't in data yet & delete removed maps
+		--MAPZZ = 1035. If they extend this higher then update the max in the loop below.
+		for i=1,1035,1 do
+			if mapheader[tostring(i)] ~= nil and globalMapData[tostring(i)] == nil then
+				globalMapData[tostring(i)] = {0, 0, mapheader[tostring(i)].lvlttl}
+			elseif mapheader[tostring(i)] == nil and globalMapData[tostring(i)] ~= nil then
+				globalMapData[tostring(i)] = nil
+			end
+		end
+		
+		didMaint = true
+	end
 	--Track skin usage
 	if not didSaveSkins then
 		--print("Updating skin use count...")
@@ -313,7 +353,7 @@ local function intThink()
 		--print("Updating map data...")
 		didSaveMap = true
 		if globalMapData[tostring(gamemap)] == nil then
-			globalMapData[tostring(gamemap)] = {0, 0}
+			globalMapData[tostring(gamemap)] = {0, 0, mapheader[tostring(gamemap)].lvlttl}
 		end
 		if playerOrder[1] ~= nil then
 			--Map was completed
