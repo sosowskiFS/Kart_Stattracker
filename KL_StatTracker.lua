@@ -6,6 +6,7 @@ local globalMapData = {}
 local globalPlayerData = {}
 local globalTimeData = {}
 local f = io.open("Skincounter.txt", "r")
+
 if f then
 	--file already exsists, load from it
 	--print('Loading skincounter data...')
@@ -30,9 +31,9 @@ if m then
 		else
 			--Attempt to parse & update old record
 			local LmapID, LtimesPlayed, Lrtv = string.match(l, "(.*);(.*);(.*)")
-			if LmapID and mapheader[tostring(LmapID)] then
-				globalMapData[LmapID] = {LtimesPlayed, Lrtv, mapheader[tostring(LmapID)].lvlttl}
-			else if LmapID then
+			if LmapID and mapheaderinfo[tostring(LmapID)] then
+				globalMapData[LmapID] = {LtimesPlayed, Lrtv, mapheaderinfo[tostring(LmapID)].lvlttl}
+			elseif LmapID then
 				--Old record and no longer on server - will be deleted in maintenance
 				globalMapData[LmapID] = {LtimesPlayed, Lrtv, "I am dead"}
 			end
@@ -87,7 +88,7 @@ end
 local function _saveMapFunc()
 	local f = assert(io.open("Mapdata.txt", "w"))
 	for key, value in pairs(globalMapData) do
-		f:write(key, ";", value[1], ";", value[2], "\n")
+		f:write(key, ";", value[1], ";", value[2], ";", value[3], "\n")
 	end
 	f:close()
 end
@@ -323,15 +324,16 @@ local function intThink()
 		--Add new maps that aren't in data yet & delete removed maps
 		--MAPZZ = 1035. If they extend this higher then update the max in the loop below.
 		for i=1,1035,1 do
-			if mapheader[tostring(i)] ~= nil and globalMapData[tostring(i)] == nil then
-				globalMapData[tostring(i)] = {0, 0, mapheader[tostring(i)].lvlttl}
-			elseif mapheader[tostring(i)] == nil and globalMapData[tostring(i)] ~= nil then
+			if mapheaderinfo[tostring(i)] ~= nil and globalMapData[tostring(i)] == nil then
+				globalMapData[tostring(i)] = {0, 0, mapheaderinfo[tostring(i)].lvlttl}
+			elseif mapheaderinfo[tostring(i)] == nil and globalMapData[tostring(i)] ~= nil then
 				globalMapData[tostring(i)] = nil
 			end
 		end
 		
 		didMaint = true
 	end
+	
 	--Track skin usage
 	if not didSaveSkins then
 		--print("Updating skin use count...")
@@ -353,7 +355,7 @@ local function intThink()
 		--print("Updating map data...")
 		didSaveMap = true
 		if globalMapData[tostring(gamemap)] == nil then
-			globalMapData[tostring(gamemap)] = {0, 0, mapheader[tostring(gamemap)].lvlttl}
+			globalMapData[tostring(gamemap)] = {0, 0, mapheaderinfo[tostring(gamemap)].lvlttl}
 		end
 		if playerOrder[1] ~= nil then
 			--Map was completed
@@ -684,7 +686,7 @@ local function st_mapdata(p, ...)
 		end
 		local forCounter = 1
 		for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
-			if k ~= "1" then
+			if mapheaderinfo[k] and k ~= "1" then
 				CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x83"..tostring(v).." plays | \x85"..tostring(globalMapData[k][2]).." RTVs")
 			
 				forCounter = forCounter + 1
@@ -698,7 +700,7 @@ local function st_mapdata(p, ...)
 		end
 		local forCounter = 1
 		for k,v in spairs(shitToSort, function(t,a,b) return t[b] < t[a] end) do
-			if k ~= "1" then	
+			if mapheaderinfo[k] and k ~= "1" then	
 				CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x85"..tostring(v).." RTVs | \x83"..tostring(globalMapData[k][1]).." plays")
 				
 				forCounter = forCounter + 1
