@@ -295,7 +295,19 @@ local function notRunningSpecialGameType()
 	end
 	
 	if CV_FindVar("spbatk") and CV_FindVar("spbatk").value == 1 then
-		normalGame = false
+		local foundP = 0
+		for p in players.iterate do
+			if p.valid and p.mo ~= nil and p.mo.valid then
+				foundP = foundP + 1
+				if foundP > 1 then
+					--print("More than 1 playing, exiting")
+					break
+				end
+			end	
+		end
+		if foundP <= 1 then
+			normalGame = false
+		end
 	end
 	
 	return normalGame
@@ -334,19 +346,28 @@ local function intThink()
 		didMaint = true
 	end
 	
+	local notSpecialMode = true
+	
 	--Track skin usage
 	if not didSaveSkins then
 		--print("Updating skin use count...")
 		didSaveSkins = true
-		for p in players.iterate do
-			if p.valid and p.mo ~= nil and p.mo.valid 
-				if globalSkinData[p.mo.skin] == nil then
-					globalSkinData[p.mo.skin] = 1
-				else
-					globalSkinData[p.mo.skin] = globalSkinData[p.mo.skin] + 1
+		
+		--This gets set once here, and then checked by everything else
+		notSpecialMode = notRunningSpecialGameType()
+		
+		if notSpecialMode then
+			for p in players.iterate do
+				if p.valid and p.mo ~= nil and p.mo.valid 
+					if globalSkinData[p.mo.skin] == nil then
+						globalSkinData[p.mo.skin] = 1
+					else
+						globalSkinData[p.mo.skin] = globalSkinData[p.mo.skin] + 1
+					end
 				end
 			end
 		end
+
 		saveFiles("Skin")	
 	end
 	
@@ -354,16 +375,19 @@ local function intThink()
 	if not didSaveMap then
 		--print("Updating map data...")
 		didSaveMap = true
-		if globalMapData[tostring(gamemap)] == nil then
-			globalMapData[tostring(gamemap)] = {0, 0, mapheaderinfo[tostring(gamemap)].lvlttl}
-		end
-		if playerOrder[1] ~= nil then
-			--Map was completed
-			globalMapData[tostring(gamemap)][1] = globalMapData[tostring(gamemap)][1] + 1
-		else
-			--Nobody finished this race, assume it was RTV'd	
-			--print ("Adding an RTV count...")
-			globalMapData[tostring(gamemap)][2] = globalMapData[tostring(gamemap)][2] + 1
+		
+		if notSpecialMode then
+			if globalMapData[tostring(gamemap)] == nil then
+				globalMapData[tostring(gamemap)] = {0, 0, mapheaderinfo[tostring(gamemap)].lvlttl}
+			end
+			if playerOrder[1] ~= nil then
+				--Map was completed
+				globalMapData[tostring(gamemap)][1] = globalMapData[tostring(gamemap)][1] + 1
+			else
+				--Nobody finished this race, assume it was RTV'd	
+				--print ("Adding an RTV count...")
+				globalMapData[tostring(gamemap)][2] = globalMapData[tostring(gamemap)][2] + 1
+			end
 		end
 		saveFiles("Map")	
 	end
@@ -374,7 +398,7 @@ local function intThink()
 		--{mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo}
 		didSavePlayer = true
 		
-		if notRunningSpecialGameType() then
+		if notSpecialMode then
 			local eloChanges = {}
 			local gameModeIndex = 10
 			if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
@@ -475,7 +499,7 @@ local function intThink()
 	if not didSaveTime then
 		didSaveTime = true
 		--Make sure no special game type is running
-		if notRunningSpecialGameType() then
+		if notSpecialMode then
 			if globalTimeData[tostring(gamemap)] == nil then
 				globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
 			end
@@ -733,7 +757,11 @@ local function st_skindata(p, ...)
 	local sTarget = nil
 	if not ... then
 		--assume player is looking at their current skin
-		sTarget = p.mo.skin
+		if p.mo ~= nil then
+			sTarget = p.mo.skin
+		else
+			sTarget = "sonic"
+		end	
 	else
 		sTarget = table.concat({...}, " ")
 	end
