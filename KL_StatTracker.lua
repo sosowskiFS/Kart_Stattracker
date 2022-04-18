@@ -1,16 +1,17 @@
 --StatTracker
 --Tracks and filesaves Skin usage, map usage, and player data
+--Note: add sep=; at the top of saved txt files in order to open in Excel as a CSV
 --	1.3 - Adds KartScore(ELO) system
+
+--TODO : Add the skin's display name to the Skincounter file so it's kinda readable
+
 local globalSkinData = {}
 local globalMapData = {}
 local globalPlayerData = {}
 local globalTimeData = {}
+local globalPlayerSkinUseData = {}
+
 local f = io.open("Skincounter.txt", "r")
-
---Show total number of records on player card
---Show ELO position in total server list
---https://stackoverflow.com/questions/1426954/split-string-in-lua
-
 if f then
 	--file already exsists, load from it
 	--print('Loading skincounter data...')
@@ -78,6 +79,39 @@ if f then
 	end
 	f:close()
 end
+--https://stackoverflow.com/questions/1426954/split-string-in-lua
+local f = io.open("pSkinUse.txt", "r")
+if f then
+	--Skin usage per player
+	--Data line format PlayerName;SkinName/Use(as number)|SkinName2/Use....
+	--Converted data format
+		--globalPlayerSkinUseData["PlayerName"] = Table object
+		--globalPlayerSkinUseData["PlayerName"]["SkinName"] = Skin's use count by this player
+	for l in f:lines() do
+		local pName, rawData = string.match(exData, "(.*);(.*)")
+		if pName then
+			local tempTable = {}
+			for str in string.gmatch(rawData, "([^|]+)") do
+				--Needs 2 splits
+				local keyV = ""
+				for str2 in string.gmatch(str, "([^/]+)") do
+					if keyV == "" then
+						keyV = str2
+					else
+						tempTable[keyV] = str2
+						keyV = ""
+					end
+				end
+			end
+			
+			globalPlayerSkinUseData[pName] = tempTable
+		end
+	end
+	f:close()
+end
+
+--Todo - reformat the above data for file saving
+--Data line format PlayerName;SkinName/Use(as number)|SkinName2/Use....
 
 --You can't pcall functions with parameters unless the function is written inside of that, I guess
 local function _saveSkinFunc()
