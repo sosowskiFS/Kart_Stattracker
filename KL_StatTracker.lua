@@ -7,6 +7,10 @@ local globalPlayerData = {}
 local globalTimeData = {}
 local f = io.open("Skincounter.txt", "r")
 
+--Show total number of records on player card
+--Show ELO position in total server list
+--https://stackoverflow.com/questions/1426954/split-string-in-lua
+
 if f then
 	--file already exsists, load from it
 	--print('Loading skincounter data...')
