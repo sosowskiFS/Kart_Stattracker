@@ -4,6 +4,7 @@
 --	1.3 - Adds KartScore(ELO) system
 
 --TODO : Add the skin's display name to the Skincounter file so it's kinda readable
+--TODO : Overwrite the map's track name in globalMapData when updating it's playcount
 
 local globalSkinData = {}
 local globalMapData = {}
