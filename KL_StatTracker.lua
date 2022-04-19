@@ -2,9 +2,7 @@
 --Tracks and filesaves Skin usage, map usage, and player data
 --Note: add sep=; at the top of saved txt files in order to open in Excel as a CSV
 --	1.3 - Adds KartScore(ELO) system
-
---TODO : Add the skin's display name to the Skincounter file so it's kinda readable
---TODO : Overwrite the map's track name in globalMapData when updating it's playcount
+--  1.4 - Tracks skin usage by player
 
 local globalSkinData = {}
 local globalMapData = {}
@@ -17,10 +15,20 @@ if f then
 	--file already exsists, load from it
 	--print('Loading skincounter data...')
 	for l in f:lines() do
-		local skinName, count = string.match(l, "(.*);(.*)")
+		local skinName, count, realName = string.match(l, "(.*);(.*);(.*)")
 
 		if skinName then
-			globalSkinData[skinName] = count
+			globalSkinData[skinName] = {count, realName}
+			else
+				--Old record, update
+				local LskinName, Lcount, LrealName = string.match(l, "(.*);(.*)")
+				if LskinName and skins[LskinName] then
+					globalSkinData[LskinName] = {Lcount, skins[LskinName].realname}
+				elseif LskinName then
+					--possible deleted skin
+					globalSkinData[LskinName] = {Lcount, "Removed Skin"}
+				end
+			end
 		end
 	end
 	f:close()
@@ -119,7 +127,7 @@ local function _saveSkinFunc()
 	local f = assert(io.open("Skincounter.txt", "w"))
 	for key, value in pairs(globalSkinData) do
 		if key:find(";") then continue end -- sanity check
-		f:write(key, ";", value, "\n")
+		f:write(key, ";", value[1], ";", value[2], "\n")
 	end
 	f:close()
 end
@@ -151,6 +159,22 @@ local function _saveTimeFunc()
 	f:close()
 end
 
+local function _savePSkinUseFunc()
+	--{player, {SkinData}}
+	--SkinData is reformatted to be stored as plaintext
+	local f = assert(io.open("pSkinUse.txt", "w"))
+	for key, value in pairs(globalPlayerSkinUseData) do
+		if key:find(";") then continue end -- no no no no no
+		local assembledString = ""
+		for key2, value2 in pairs(value) do
+			if key2:find("/") or key2:find("|") then continue end -- if you're putting this into a skin ID, you're an asshole
+		    if assembledString ~= "" then assembledString = assembledString .. "|" end
+		    assembledString = assembledString .. key2 .. "/" .. value2
+		end
+		f:write(key, ";", assembledString, "\n")
+	end
+end
+
 local function saveFiles(whatToSave)
 	if consoleplayer ~= server then return end
 
@@ -173,6 +197,10 @@ local function saveFiles(whatToSave)
 		--print('Saving time data...')
 		if not pcall(_saveTimeFunc) then
 			print("Failed to save time file!")
+		end
+	elseif whatToSave == "SkinUsage" then
+		if not pcall(_savePSkinUseFunc) then
+			print("Failed to save player skin use file!")
 		end
 	end
 end
@@ -362,7 +390,7 @@ local function intThink()
 		--Add new skins that aren't represented in data yet
 		for s in skins.iterate do
 			if globalSkinData[s.name] == nil then
-				globalSkinData[s.name] = 0
+				globalSkinData[s.name] = {0, s.realname}
 			end
 		end
 		--Delete removed skins
@@ -379,6 +407,11 @@ local function intThink()
 				globalMapData[tostring(i)] = {0, 0, mapheaderinfo[tostring(i)].lvlttl}
 			elseif mapheaderinfo[tostring(i)] == nil and globalMapData[tostring(i)] ~= nil then
 				globalMapData[tostring(i)] = nil
+			end
+			
+			if globalMapData[tostring(i)] ~= nil and globalMapData[tostring(i)][3] == "I am dead" and mapheaderinfo[tostring(i)] ~= nil then
+				--Try to correct any messed up data
+				globalMapData[tostring(i)][3] = mapheaderinfo[tostring(i)].lvlttl
 			end
 		end
 		
@@ -397,11 +430,28 @@ local function intThink()
 		
 		if notSpecialMode then
 			for p in players.iterate do
-				if p.valid and p.mo ~= nil and p.mo.valid 
-					if globalSkinData[p.mo.skin] == nil then
-						globalSkinData[p.mo.skin] = 1
+				if p.valid and p.mo ~= nil and p.mo.valid then
+					if globalPlayerSkinUseData[p.name] == nil then
+						globalPlayerSkinUseData[p.name] = {}
+						globalPlayerSkinUseData[p.name][p.mo.skin] = 1
 					else
-						globalSkinData[p.mo.skin] = globalSkinData[p.mo.skin] + 1
+						globalPlayerSkinUseData[p.name][p.mo.skin] = globalPlayerSkinUseData[p.name][p.mo.skin] + 1
+					end
+					--Determine if this player's usage should increment global data
+					local shouldIncrement = false
+					if globalPlayerSkinUseData[p.name][p.mo.skin] == 1 then
+						shouldIncrement = true
+					else if globalPlayerSkinUseData[p.name][p.mo.skin] <= 50 and globalPlayerSkinUseData[p.name][p.mo.skin] % 5 == 0 then
+						shouldIncrement = true
+					end
+					
+					--realname
+					if shouldIncrement then
+						if globalSkinData[p.mo.skin] == nil then
+							globalSkinData[p.mo.skin] = {1, skins[p.mo.skin].realname}
+						else
+							globalSkinData[p.mo.skin][1] = globalSkinData[p.mo.skin] + 1
+						end
 					end
 				end
 			end
@@ -616,6 +666,7 @@ local function netvars(net)
 	globalMapData = net($)
 	globalPlayerData = net($)
 	globalTimeData = net($)
+	globalPlayerSkinUseData = net($)
 end
 addHook("NetVars", netvars)
 
@@ -806,8 +857,12 @@ local function st_skindata(p, ...)
 	end
 	
 	if sTarget == "top" then
+		local shitToSort = {}
+		for k, v in pairs(globalSkinData) do
+			shitToSort[k] = tonumber(v[1])
+		end
 		local forCounter = 1
-		for k,v in spairs(globalSkinData, function(t,a,b) return tonumber(t[b]) < tonumber(t[a]) end) do
+		for k,v in spairs(shitToSort, function(t,a,b) return tonumber(t[b]) < tonumber(t[a]) end) do
 			CONS_Printf(p, tostring(forCounter).." - \x82"..k.." - \x83"..tostring(v).." uses")
 			
 			forCounter = forCounter + 1
@@ -818,7 +873,7 @@ local function st_skindata(p, ...)
 	else
 		--just a count
 		CONS_Printf(p, "\x82"..sTarget)
-		CONS_Printf(p, "Used "..tostring(globalSkinData[sTarget]).." times")
+		CONS_Printf(p, "Used "..tostring(globalSkinData[sTarget][1]).." times")
 	end
 end
 COM_AddCommand("st_skindata", st_skindata)
