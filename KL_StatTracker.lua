@@ -21,7 +21,7 @@ if f then
 			globalSkinData[skinName] = {count, realName}
 		else
 			--Old record, update
-			local LskinName, Lcount, LrealName = string.match(l, "(.*);(.*)")
+			local LskinName, Lcount = string.match(l, "(.*);(.*)")
 			if LskinName and skins[LskinName] then
 				globalSkinData[LskinName] = {Lcount, skins[LskinName].realname}
 			elseif LskinName then
