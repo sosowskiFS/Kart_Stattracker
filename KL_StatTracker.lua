@@ -396,6 +396,9 @@ local function intThink()
 		for k, v in pairs(skinReference) do
 			if skins[k] == nil then
 				globalSkinData[k] = nil
+			elseif skins[k] ~= nil and v[2] == "Removed Skin" then
+				--Fix broken record
+				globalSkinData[k][2] = skins[k].realname
 			end
 		end
 		--Add new maps that aren't in data yet & delete removed maps
