@@ -19,15 +19,14 @@ if f then
 
 		if skinName then
 			globalSkinData[skinName] = {count, realName}
-			else
-				--Old record, update
-				local LskinName, Lcount, LrealName = string.match(l, "(.*);(.*)")
-				if LskinName and skins[LskinName] then
-					globalSkinData[LskinName] = {Lcount, skins[LskinName].realname}
-				elseif LskinName then
-					--possible deleted skin
-					globalSkinData[LskinName] = {Lcount, "Removed Skin"}
-				end
+		else
+			--Old record, update
+			local LskinName, Lcount, LrealName = string.match(l, "(.*);(.*)")
+			if LskinName and skins[LskinName] then
+				globalSkinData[LskinName] = {Lcount, skins[LskinName].realname}
+			elseif LskinName then
+				--possible deleted skin
+				globalSkinData[LskinName] = {Lcount, "Removed Skin"}
 			end
 		end
 	end
@@ -97,7 +96,7 @@ if f then
 		--globalPlayerSkinUseData["PlayerName"] = Table object
 		--globalPlayerSkinUseData["PlayerName"]["SkinName"] = Skin's use count by this player
 	for l in f:lines() do
-		local pName, rawData = string.match(exData, "(.*);(.*)")
+		local pName, rawData = string.match(l, "(.*);(.*)")
 		if pName then
 			local tempTable = {}
 			for str in string.gmatch(rawData, "([^|]+)") do
@@ -183,6 +182,9 @@ local function saveFiles(whatToSave)
 		if not pcall(_saveSkinFunc) then
 			print("Failed to save skin file!")
 		end
+		if not pcall(_savePSkinUseFunc) then
+			print("Failed to save player skin use file!")
+		end
 	elseif whatToSave == "Map" then	
 		--print('Saving map data...')
 		if not pcall(_saveMapFunc) then
@@ -197,11 +199,7 @@ local function saveFiles(whatToSave)
 		--print('Saving time data...')
 		if not pcall(_saveTimeFunc) then
 			print("Failed to save time file!")
-		end
-	elseif whatToSave == "SkinUsage" then
-		if not pcall(_savePSkinUseFunc) then
-			print("Failed to save player skin use file!")
-		end
+		end	
 	end
 end
 
@@ -434,6 +432,8 @@ local function intThink()
 					if globalPlayerSkinUseData[p.name] == nil then
 						globalPlayerSkinUseData[p.name] = {}
 						globalPlayerSkinUseData[p.name][p.mo.skin] = 1
+					elseif globalPlayerSkinUseData[p.name][p.mo.skin] == nil then
+						globalPlayerSkinUseData[p.name][p.mo.skin] = 1
 					else
 						globalPlayerSkinUseData[p.name][p.mo.skin] = globalPlayerSkinUseData[p.name][p.mo.skin] + 1
 					end
@@ -441,7 +441,7 @@ local function intThink()
 					local shouldIncrement = false
 					if globalPlayerSkinUseData[p.name][p.mo.skin] == 1 then
 						shouldIncrement = true
-					else if globalPlayerSkinUseData[p.name][p.mo.skin] <= 50 and globalPlayerSkinUseData[p.name][p.mo.skin] % 5 == 0 then
+					elseif globalPlayerSkinUseData[p.name][p.mo.skin] <= 50 and globalPlayerSkinUseData[p.name][p.mo.skin] % 5 == 0 then
 						shouldIncrement = true
 					end
 					
@@ -450,7 +450,7 @@ local function intThink()
 						if globalSkinData[p.mo.skin] == nil then
 							globalSkinData[p.mo.skin] = {1, skins[p.mo.skin].realname}
 						else
-							globalSkinData[p.mo.skin][1] = globalSkinData[p.mo.skin] + 1
+							globalSkinData[p.mo.skin][1] = globalSkinData[p.mo.skin][1] + 1
 						end
 					end
 				end
@@ -863,8 +863,11 @@ local function st_skindata(p, ...)
 		end
 		local forCounter = 1
 		for k,v in spairs(shitToSort, function(t,a,b) return tonumber(t[b]) < tonumber(t[a]) end) do
-			CONS_Printf(p, tostring(forCounter).." - \x82"..k.." - \x83"..tostring(v).." uses")
-			
+			if skins[k] ~= nil then
+				CONS_Printf(p, tostring(forCounter).." - \x82"..tostring(skins[k].realname).." - \x83"..tostring(v).." weighted uses")
+			else
+				CONS_Printf(p, tostring(forCounter).." - \x82"..k.." - \x83"..tostring(v).." weighted uses")
+			end					
 			forCounter = forCounter + 1
 			if forCounter > 10 then break end
 		end
@@ -872,8 +875,13 @@ local function st_skindata(p, ...)
 		CONS_Printf(p, "Could not find skin (Use skin code or leave blank for current map)")
 	else
 		--just a count
-		CONS_Printf(p, "\x82"..sTarget)
-		CONS_Printf(p, "Used "..tostring(globalSkinData[sTarget][1]).." times")
+		if skins[sTarget] then
+			CONS_Printf(p, "\x82"..tostring(skins[sTarget].realname))
+		else
+			CONS_Printf(p, "\x82"..sTarget)
+		end
+		
+		CONS_Printf(p, tostring(globalSkinData[sTarget][1]).." weighted uses")
 	end
 end
 COM_AddCommand("st_skindata", st_skindata)
