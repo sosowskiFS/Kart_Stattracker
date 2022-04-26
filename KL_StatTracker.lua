@@ -323,6 +323,14 @@ local function think()
 		
 		completedRun = allStopped	
 	end
+	
+	for p in players.iterate
+		if (p.hasRecordHUD == nil)
+			p.hasRecordHUD = 1;
+		else
+			continue;
+		end
+	end
 end
 addHook("ThinkFrame", think)
 
@@ -503,28 +511,28 @@ local function intThink()
 				end				
 			end
 					
-			for pos, players in pairs(playerOrder) do
+			for pos, thisPlayer in pairs(playerOrder) do
 				--If there's more than a 5 way tie I'm legitimately impressed
 				for i=1,5,1 do
-					if players[i] ~= nil then
-						checkNilPlayer(players[i])
+					if thisPlayer[i] ~= nil then
+						checkNilPlayer(thisPlayer[i])
 						--Increment play count
-						globalPlayerData[players[i]][1] = globalPlayerData[players[i]][1] + 1
+						globalPlayerData[thisPlayer[i]][1] = globalPlayerData[thisPlayer[i]][1] + 1
 						
 						--Increment 1st,2nd,3rd finish where appropriate
 						if pos == 1 then
-							globalPlayerData[players[i]][2] = globalPlayerData[players[i]][2] + 1
-							if globalPlayerData[players[i]][2] % 100 == 0 then
-								chatprint('\130'..p.name..' has won '..tostring(globalPlayerData[players[i]][2])..' times!', true)
+							globalPlayerData[thisPlayer[i]][2] = globalPlayerData[thisPlayer[i]][2] + 1
+							if globalPlayerData[thisPlayer[i]][2] % 100 == 0 then
+								chatprint('\130'..p.name..' has won '..tostring(globalPlayerData[thisPlayer[i]][2])..' times!', true)
 							end
 						elseif pos == 2 then
-							globalPlayerData[players[i]][8] = globalPlayerData[players[i]][8] + 1
+							globalPlayerData[thisPlayer[i]][8] = globalPlayerData[thisPlayer[i]][8] + 1
 						elseif pos == 3 then
-							globalPlayerData[players[i]][9] = globalPlayerData[players[i]][9] + 1
+							globalPlayerData[thisPlayer[i]][9] = globalPlayerData[thisPlayer[i]][9] + 1
 						end
 						
 						--Calculate ELO changes and store to save at the end
-						eloChanges[players[i]] = 0				
+						eloChanges[thisPlayer[i]] = 0				
 						for ePos, ePlayers in pairs(playerOrder) do
 							for e=1,5,1 do
 								--Ignore the same position
@@ -535,7 +543,7 @@ local function intThink()
 										--Players you beat
 										--positive = lower rank, negative = higher rank
 										--NEED TO VERIFY - For calcuations with decimals, this assumes that SRB2 strips decimal places without rounding
-										local rankDif = (globalPlayerData[players[i]][gameModeIndex] - globalPlayerData[ePlayers[e]][gameModeIndex]) / 100
+										local rankDif = (globalPlayerData[thisPlayer[i]][gameModeIndex] - globalPlayerData[ePlayers[e]][gameModeIndex]) / 100
 										local rankChange = 5						
 										if rankDif > 0 then
 											rankChange = rankChange - rankDif
@@ -547,10 +555,10 @@ local function intThink()
 											rankChange = rankChange + abs(rankDif)
 										end
 										
-										eloChanges[players[i]] = eloChanges[players[i]] + rankChange
+										eloChanges[thisPlayer[i]] = eloChanges[thisPlayer[i]] + rankChange
 									else
 										--players you lost to
-										local rankDif = (globalPlayerData[players[i]][gameModeIndex] - globalPlayerData[ePlayers[e]][gameModeIndex]) / 100
+										local rankDif = (globalPlayerData[thisPlayer[i]][gameModeIndex] - globalPlayerData[ePlayers[e]][gameModeIndex]) / 100
 										local rankChange = -5						
 										if rankDif > 0 then
 											rankChange = rankChange - rankDif
@@ -562,7 +570,7 @@ local function intThink()
 											end
 										end
 										
-										eloChanges[players[i]] = eloChanges[players[i]] + rankChange
+										eloChanges[thisPlayer[i]] = eloChanges[thisPlayer[i]] + rankChange
 									end
 								end
 							end
@@ -582,8 +590,21 @@ local function intThink()
 						--Holy shit you suck, what the fuck
 						globalPlayerData[player][gameModeIndex] = 0
 					end
-				end		
+				end
 			end
+			
+			--Notify players
+			for p in players.iterate do
+				if p.valid and p.mo ~= nil and p.mo.valid and eloChanges[p.name] ~= nil then	
+					local changeFormatted = tostring(eloChanges[p.name])
+					--Attempt to index ? (a number value)
+					if tonumber(eloChanges[p.name]) > 0 then
+						changeFormatted = "+"..tostring(eloChanges[p.name])
+					end
+					chatprintf(p, "\130KS - "..tostring(globalPlayerData[p.name][gameModeIndex]).." ("..changeFormatted..")", false)
+				end
+			end
+			
 		end
 		saveFiles("Player")	
 	end
@@ -678,9 +699,25 @@ local function buildTimeString(x)
 	return ""..string.format("%02d", G_TicsToMinutes(x)).."' "..string.format("%02d", G_TicsToSeconds(x))..'" '..string.format("%02d", G_TicsToCentiseconds(x))
 end
 
---Draw map + mode's record below current time (if it exists)
+--record hud toggle
+COM_AddCommand("st_showtime", function(p, text)
+	if (p.hasRecordHUD ~= nil) then
+		if ((text == "off") or (text == "0") or (text == "no"))
+			p.hasRecordHUD = 0
+			CONS_Printf(p, "\n".."\x82".."Disabled record time display")
+		elseif ((text == "on") or (text == "1") or (text == "yes"))
+			p.hasRecordHUD = 1
+			CONS_Printf(p, "\n".."\x82".."Enabled record time display")
+		end
+	else
+		CONS_Printf(p, "\nNot ready yet, try again shortly.")
+	end
+ end, 0)
 
+--Draw map + mode's record below current time (if it exists)
 local function drawRecordTime(v, p)
+	if p.hasRecordHUD == 0 then return end
+	
 	local gameModeIndex = 10
 	if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
 		gameModeIndex = 12
@@ -711,16 +748,18 @@ local function drawRecordTime(v, p)
 		end
 	end
 	
+	--Hide temp stuff
+	if recordHolder == 'placeholder' then return end
+	
 	--Will need to truncate long ass record holder names
 	if stringTime ~= nil then
 		local rgHudOffset = 138
-		local screenYSub = 177
+		local screenYSub = 170
 		
-		if splitscreen == 0
-			local font = "OPPRNK"		
+		if splitscreen == 0	
 			local scrwidth = v.width()/v.dupx();
 			local winheight = v.height()/v.dupy();
-			local windiff = ((winheight-200)/2)
+			local windiff = ((winheight-200)/2) + (winheight-200) --REEEEEEE DECIMALS ARE THE DEVIL!!!
 			local right = ((scrwidth+75)/2);
 			
 			if leveltime < 138 then
@@ -729,10 +768,11 @@ local function drawRecordTime(v, p)
 				rgHudOffset = 0
 			end		
 			
+			v.draw((2-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch("2STTMBG"), vflags)
 			if skins[recordSkin] ~= nil then
-				v.draw((4-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub-2), v.cachePatch(skins[recordSkin].facemmap), flags, v.getColormap(recordSkin, skins[recordSkin].prefcolor))
+				v.draw((5-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub-2), v.cachePatch(skins[recordSkin].facemmap), flags, v.getColormap(recordSkin, skins[recordSkin].prefcolor))
 			end
-			v.drawString((18-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), tostring(stringTime))
+			v.drawString((19-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), tostring(stringTime))
 			--v.draw((18-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch(font.."0"..tostring(stringTime)), flags)
 		end
 	end
