@@ -673,6 +673,73 @@ local function netvars(net)
 end
 addHook("NetVars", netvars)
 
+local function buildTimeString(x)
+	if x == nil or x == 99999999 then return "N/A" end
+	return ""..string.format("%02d", G_TicsToMinutes(x)).."' "..string.format("%02d", G_TicsToSeconds(x))..'" '..string.format("%02d", G_TicsToCentiseconds(x))
+end
+
+--Draw map + mode's record below current time (if it exists)
+
+local function drawRecordTime(v, p)
+	local gameModeIndex = 10
+	if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
+		gameModeIndex = 12
+	elseif CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
+		if CV_FindVar("techonly") and CV_FindVar("techonly").value == 1 then
+			gameModeIndex = 10
+		else
+			gameModeIndex = 11
+		end				
+	end
+	
+	local stringTime = nil
+	local recordHolder = nil
+	local recordSkin = nil
+	if globalTimeData[tostring(gamemap)] ~= nil then
+		if gameModeIndex == 10 then
+			stringTime = buildTimeString(globalTimeData[tostring(gamemap)][1])
+			recordHolder = globalTimeData[tostring(gamemap)][2]
+			recordSkin = globalTimeData[tostring(gamemap)][3]
+		elseif gameModeIndex == 11 then
+			stringTime = buildTimeString(globalTimeData[tostring(gamemap)][4])
+			recordHolder = globalTimeData[tostring(gamemap)][5]
+			recordSkin = globalTimeData[tostring(gamemap)][6]
+		elseif gameModeIndex == 12 then
+			stringTime = buildTimeString(globalTimeData[tostring(gamemap)][7])
+			recordHolder = globalTimeData[tostring(gamemap)][8]
+			recordSkin = globalTimeData[tostring(gamemap)][9]
+		end
+	end
+	
+	--Will need to truncate long ass record holder names
+	if stringTime ~= nil then
+		local rgHudOffset = 138
+		local screenYSub = 177
+		
+		if splitscreen == 0
+			local font = "OPPRNK"		
+			local scrwidth = v.width()/v.dupx();
+			local winheight = v.height()/v.dupy();
+			local windiff = ((winheight-200)/2)
+			local right = ((scrwidth+75)/2);
+			
+			if leveltime < 138 then
+				rgHudOffset = -1 * (138-leveltime)
+			else
+				rgHudOffset = 0
+			end		
+			
+			if skins[recordSkin] ~= nil then
+				v.draw((4-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub-2), v.cachePatch(skins[recordSkin].facemmap), flags, v.getColormap(recordSkin, skins[recordSkin].prefcolor))
+			end
+			v.drawString((18-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), tostring(stringTime))
+			--v.draw((18-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch(font.."0"..tostring(stringTime)), flags)
+		end
+	end
+end
+
+hud.add(drawRecordTime, game)
+
 --Helper function for sorting data in console commands
 local function spairs(t, order)
     -- collect the keys
@@ -780,11 +847,6 @@ local function st_playerdata(p, ...)
 	end
 end
 COM_AddCommand("st_playerdata", st_playerdata)
-
-local function buildTimeString(x)
-	if x == nil or x == 99999999 then return "N/A" end
-	return ""..string.format("%02d", G_TicsToMinutes(x)).."' "..string.format("%02d", G_TicsToSeconds(x))..'" '..string.format("%02d", G_TicsToCentiseconds(x))
-end
 
 local function st_mapdata(p, ...)
 	local mTarget = nil
