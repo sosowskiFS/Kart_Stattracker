@@ -325,10 +325,11 @@ local function think()
 	end
 	
 	for p in players.iterate
-		if (p.hasRecordHUD == nil)
-			p.hasRecordHUD = 1;
+		if p.hasRecordHUD == nil and p.showKSChange == nil then
+			p.hasRecordHUD = 1
+			p.showKSChange = 1
 		else
-			continue;
+			continue
 		end
 	end
 end
@@ -385,6 +386,21 @@ local function notRunningSpecialGameType()
 	
 	return normalGame
 end
+
+--show KS change toggle p.showKSChange
+COM_AddCommand("st_showks", function(p, text)
+	if (p.showKSChange ~= nil) then
+		if ((text == "off") or (text == "0") or (text == "no"))
+			p.showKSChange = 0
+			CONS_Printf(p, "\n".."\x82".."Disabled end of race KS display")
+		elseif ((text == "on") or (text == "1") or (text == "yes"))
+			p.showKSChange = 1
+			CONS_Printf(p, "\n".."\x82".."Enabled end of race KS display")
+		end
+	else
+		CONS_Printf(p, "\nNot ready yet, try again shortly.")
+	end
+ end, 0)
 
 --Not touched outside of setting true - should mean only 1 maintenance per restart
 local didMaint = false
@@ -595,9 +611,9 @@ local function intThink()
 			
 			--Notify players
 			for p in players.iterate do
-				if p.valid and p.mo ~= nil and p.mo.valid and eloChanges[p.name] ~= nil then	
+				if p.valid and p.mo ~= nil and p.mo.valid and eloChanges[p.name] ~= nil then
+					if p.showKSChange == 0 then return end					
 					local changeFormatted = tostring(eloChanges[p.name])
-					--Attempt to index ? (a number value)
 					if tonumber(eloChanges[p.name]) > 0 then
 						changeFormatted = "+"..tostring(eloChanges[p.name])
 					end
@@ -699,6 +715,11 @@ local function buildTimeString(x)
 	return ""..string.format("%02d", G_TicsToMinutes(x)).."' "..string.format("%02d", G_TicsToSeconds(x))..'" '..string.format("%02d", G_TicsToCentiseconds(x))
 end
 
+local function buildTimeStringTable(x)
+	if x == nil or x == 99999999 then return nil end
+	return {string.sub(string.format("%02d", G_TicsToMinutes(x)), 1, 1), string.sub(string.format("%02d", G_TicsToMinutes(x)), 2, 2), string.sub(string.format("%02d", G_TicsToSeconds(x)), 1, 1), string.sub(string.format("%02d", G_TicsToSeconds(x)), 2, 2), string.sub(string.format("%02d", G_TicsToCentiseconds(x)), 1, 1), string.sub(string.format("%02d", G_TicsToCentiseconds(x)), 2, 2)}
+end
+
 --record hud toggle
 COM_AddCommand("st_showtime", function(p, text)
 	if (p.hasRecordHUD ~= nil) then
@@ -734,15 +755,15 @@ local function drawRecordTime(v, p)
 	local recordSkin = nil
 	if globalTimeData[tostring(gamemap)] ~= nil then
 		if gameModeIndex == 10 then
-			stringTime = buildTimeString(globalTimeData[tostring(gamemap)][1])
+			stringTime = buildTimeStringTable(globalTimeData[tostring(gamemap)][1])
 			recordHolder = globalTimeData[tostring(gamemap)][2]
 			recordSkin = globalTimeData[tostring(gamemap)][3]
 		elseif gameModeIndex == 11 then
-			stringTime = buildTimeString(globalTimeData[tostring(gamemap)][4])
+			stringTime = buildTimeStringTable(globalTimeData[tostring(gamemap)][4])
 			recordHolder = globalTimeData[tostring(gamemap)][5]
 			recordSkin = globalTimeData[tostring(gamemap)][6]
 		elseif gameModeIndex == 12 then
-			stringTime = buildTimeString(globalTimeData[tostring(gamemap)][7])
+			stringTime = buildTimeStringTable(globalTimeData[tostring(gamemap)][7])
 			recordHolder = globalTimeData[tostring(gamemap)][8]
 			recordSkin = globalTimeData[tostring(gamemap)][9]
 		end
@@ -751,16 +772,16 @@ local function drawRecordTime(v, p)
 	--Hide temp stuff
 	if recordHolder == 'placeholder' then return end
 	
-	--Will need to truncate long ass record holder names
 	if stringTime ~= nil then
 		local rgHudOffset = 138
-		local screenYSub = 170
+		local screenYSub = 173
 		
 		if splitscreen == 0	
 			local scrwidth = v.width()/v.dupx();
 			local winheight = v.height()/v.dupy();
 			local windiff = ((winheight-200)/2) + (winheight-200) --REEEEEEE DECIMALS ARE THE DEVIL!!!
 			local right = ((scrwidth+75)/2);
+			local font = "OPPRNK"
 			
 			if leveltime < 138 then
 				rgHudOffset = -1 * (138-leveltime)
@@ -768,12 +789,35 @@ local function drawRecordTime(v, p)
 				rgHudOffset = 0
 			end		
 			
-			v.draw((2-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch("2STTMBG"), vflags)
+			v.draw((-19-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch("2STTMBG"), vflags)
 			if skins[recordSkin] ~= nil then
-				v.draw((5-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub-2), v.cachePatch(skins[recordSkin].facemmap), flags, v.getColormap(recordSkin, skins[recordSkin].prefcolor))
+				v.draw((37-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub-2), v.cachePatch(skins[recordSkin].facemmap), flags, v.getColormap(recordSkin, skins[recordSkin].prefcolor))
 			end
-			v.drawString((19-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), tostring(stringTime))
+			--v.drawString((16-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), tostring(stringTime[1]))
+			--OPPRNK only has characters for 1 digit at a time, so here's a block of shit
+			v.draw((49-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch(font.."0"..stringTime[1]), flags)
+			v.draw((55-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch(font.."0"..stringTime[2]), flags)
+			v.draw((63-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch("2STMNMK"), vflags)
+			v.draw((69-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch(font.."0"..stringTime[3]), flags)
+			v.draw((75-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch(font.."0"..stringTime[4]), flags)
+			v.draw((83-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch("2STSCMK"), vflags)
+			v.draw((89-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch(font.."0"..stringTime[5]), flags)
+			v.draw((95-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch(font.."0"..stringTime[6]), flags)
 			--v.draw((18-(rgHudOffset*12))+right, ((winheight-windiff)-screenYSub), v.cachePatch(font.."0"..tostring(stringTime)), flags)
+			
+			--player name
+			if string.len(recordHolder) < 7 then
+				local nameWidth = v.stringWidth(recordHolder, flags)
+				v.drawString((36-(rgHudOffset*12))+(right - nameWidth), ((winheight-windiff)-screenYSub), recordHolder, flags)
+			elseif string.len(recordHolder) > 13 then
+				recordHolder = string.sub(recordHolder, 1, 11)..".."
+				local nameWidth = v.stringWidth(recordHolder, flags, "small")
+				v.drawString((36-(rgHudOffset*12))+(right - nameWidth), ((winheight-windiff)-screenYSub) + 2, recordHolder, flags, "small")
+			else
+				local nameWidth = v.stringWidth(recordHolder, flags, "small")
+				v.drawString((36-(rgHudOffset*12))+(right - nameWidth), ((winheight-windiff)-screenYSub) + 2, recordHolder, flags, "small")
+			end
+			
 		end
 	end
 end
