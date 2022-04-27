@@ -1,8 +1,10 @@
 --StatTracker
 --Tracks and filesaves Skin usage, map usage, and player data
+--Onyo
 --Note: add sep=; at the top of saved txt files in order to open in Excel as a CSV
 --	1.3 - Adds KartScore(ELO) system
 --  1.4 - Tracks skin usage by player
+--  1.5 - Adds HUD Elements for some stats
 
 local globalSkinData = {}
 local globalMapData = {}
@@ -117,9 +119,6 @@ if f then
 	end
 	f:close()
 end
-
---Todo - reformat the above data for file saving
---Data line format PlayerName;SkinName/Use(as number)|SkinName2/Use....
 
 --You can't pcall functions with parameters unless the function is written inside of that, I guess
 local function _saveSkinFunc()
@@ -279,6 +278,12 @@ local didSaveMap = false
 local didSavePlayer = false
 local didSaveTime = false
 
+--HUD Display stuff
+--Need an intermission hud lua hook to actually use these
+--local recordSkinColor = nil
+--local slideValue = -50
+--local slideRun = "stop"
+
 --if p.exiting > 0 then someone crossed the finish line
 --keep track of partial and full finishes for recordkeeping
 -- p.mo ~= nil (nil = spectator)
@@ -344,6 +349,10 @@ local function durMapChange()
 	didSaveMap = false
 	didSavePlayer = false
 	didSaveTime = false
+	
+	--recordSkinColor = nil
+	--slideValue = -50
+	--slideRun = "stop"
 end
 addHook("MapChange", durMapChange)
 
@@ -670,6 +679,8 @@ local function intThink()
 								globalTimeData[tostring(gamemap)][7] = p.realtime
 								globalTimeData[tostring(gamemap)][8] = p.name
 								globalTimeData[tostring(gamemap)][9] = p.mo.skin
+								--recordSkinColor = p.skincolor
+								--slideRun = "left"
 								chatprint('\130NEW NITRO MAP RECORD!', true)
 								K_PlayPowerGloatSound(p.mo)
 							end	
@@ -678,6 +689,8 @@ local function intThink()
 								globalTimeData[tostring(gamemap)][4] = p.realtime
 								globalTimeData[tostring(gamemap)][5] = p.name
 								globalTimeData[tostring(gamemap)][6] = p.mo.skin
+								--recordSkinColor = p.skincolor
+								--slideRun = "left"
 								chatprint('\130NEW JUICEBOX MAP RECORD!', true)
 								K_PlayPowerGloatSound(p.mo)
 							end	
@@ -686,6 +699,8 @@ local function intThink()
 								globalTimeData[tostring(gamemap)][1] = p.realtime
 								globalTimeData[tostring(gamemap)][2] = p.name
 								globalTimeData[tostring(gamemap)][3] = p.mo.skin
+								--recordSkinColor = p.skincolor
+								--slideRun = "left"
 								chatprint('\130NEW MAP RECORD!', true)
 								K_PlayPowerGloatSound(p.mo)
 							end
@@ -719,6 +734,95 @@ local function buildTimeStringTable(x)
 	if x == nil or x == 99999999 then return nil end
 	return {string.sub(string.format("%02d", G_TicsToMinutes(x)), 1, 1), string.sub(string.format("%02d", G_TicsToMinutes(x)), 2, 2), string.sub(string.format("%02d", G_TicsToSeconds(x)), 1, 1), string.sub(string.format("%02d", G_TicsToSeconds(x)), 2, 2), string.sub(string.format("%02d", G_TicsToCentiseconds(x)), 1, 1), string.sub(string.format("%02d", G_TicsToCentiseconds(x)), 2, 2)}
 end
+
+--Intermission isn't a set up hud hook for Kart, so this is here if and whenever it finally is
+--Fuck Oni
+--[[local function interShowNewRecord(v)
+	if slideRun ~= "stop" then
+		local gameModeIndex = 10
+		if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
+			gameModeIndex = 12
+		elseif CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
+			if CV_FindVar("techonly") and CV_FindVar("techonly").value == 1 then
+				gameModeIndex = 10
+			else
+				gameModeIndex = 11
+			end				
+		end
+		
+		local stringTime = nil
+		local recordHolder = nil
+		local recordSkin = nil
+		if globalTimeData[tostring(gamemap)] ~= nil then
+			if gameModeIndex == 10 then
+				stringTime = buildTimeString(globalTimeData[tostring(gamemap)][1])
+				recordHolder = globalTimeData[tostring(gamemap)][2]
+				recordSkin = globalTimeData[tostring(gamemap)][3]
+			elseif gameModeIndex == 11 then
+				stringTime = buildTimeString(globalTimeData[tostring(gamemap)][4])
+				recordHolder = globalTimeData[tostring(gamemap)][5]
+				recordSkin = globalTimeData[tostring(gamemap)][6]
+			elseif gameModeIndex == 12 then
+				stringTime = buildTimeString(globalTimeData[tostring(gamemap)][7])
+				recordHolder = globalTimeData[tostring(gamemap)][8]
+				recordSkin = globalTimeData[tostring(gamemap)][9]
+			end
+		end
+		
+		local rgHudOffset = 138
+		local screenYSub = 50
+		
+		local scrwidth = v.width()/v.dupx();
+		local winheight = v.height()/v.dupy();
+		local windiff = ((winheight-200)/2)
+		local right = ((scrwidth+75)/2);
+		
+		local actualOffset = -50
+		if slideRun == "left" then
+			slideValue = $ + 1
+			if slideValue <= 0 then
+				actualOffset = slideValue
+			else
+				actualOffset = 0
+			end
+			if slideValue > 300 then
+				slideRun = "right"
+			end
+		elseif slideRun == "right" then
+			slideValue = $ - 1
+			if slideValue <= 0 then
+				actualOffset = slideValue
+			else
+				actualOffset = 0
+			end
+			if slideValue < -50 then
+				slideRun = "stop"
+			end
+		end
+	
+		if skins[recordSkin] ~= nil then
+			if recordSkinColor == nil then
+				v.draw((65-(actualOffset*5))+right, ((winheight-windiff)-screenYSub), v.cachePatch(skins[recordSkin].facewant), flags, v.getColormap(recordSkin, skins[recordSkin].prefcolor))
+			else
+				v.draw((65-(actualOffset*5))+right, ((winheight-windiff)-screenYSub), v.cachePatch(skins[recordSkin].facewant), flags, v.getColormap(recordSkin, recordSkinColor))
+			end		
+		end
+		
+		local headerWidth = v.stringWidth("NEW RECORD", flags)
+		if slideValue % 5 == 0 then
+			v.drawString((64-(actualOffset*5))+(right - headerWidth), ((winheight-windiff)-48), "\x82NEW RECORD", flags)
+		else
+			v.drawString((64-(actualOffset*5))+(right - headerWidth), ((winheight-windiff)-48), "NEW RECORD", flags)
+		end	
+		
+		local nameWidth = v.stringWidth(recordHolder, flags)
+		v.drawString((64-(actualOffset*5))+(right - nameWidth), ((winheight-windiff)-38), recordHolder, flags)
+		
+		local timeWidth = v.stringWidth(stringTime, flags)
+		v.drawString((64-(actualOffset*5))+(right - timeWidth), ((winheight-windiff)-28), stringTime, flags)
+	end
+end
+hud.add(interShowNewRecord, "intermission")]]--
 
 --record hud toggle
 COM_AddCommand("st_showtime", function(p, text)
@@ -817,11 +921,9 @@ local function drawRecordTime(v, p)
 				local nameWidth = v.stringWidth(recordHolder, flags, "small")
 				v.drawString((36-(rgHudOffset*12))+(right - nameWidth), ((winheight-windiff)-screenYSub) + 2, recordHolder, flags, "small")
 			end
-			
 		end
 	end
 end
-
 hud.add(drawRecordTime, game)
 
 --Helper function for sorting data in console commands
