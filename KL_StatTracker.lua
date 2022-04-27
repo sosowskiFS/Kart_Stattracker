@@ -280,9 +280,13 @@ local didSaveTime = false
 
 --HUD Display stuff
 --Need an intermission hud lua hook to actually use these
---local recordSkinColor = nil
---local slideValue = -50
---local slideRun = "stop"
+local recordSkinColor = nil
+local slideValue = -50
+local slideRun = "stop"
+local rTimeHolder = nil
+local rPlayerHolder = nil
+local rSkinHolder = nil
+local rSkinColorHolder = nil
 
 --if p.exiting > 0 then someone crossed the finish line
 --keep track of partial and full finishes for recordkeeping
@@ -294,8 +298,6 @@ local function think()
 		for p in players.iterate do
 			if p.valid and p.mo ~= nil and p.mo.valid then
 				if p.exiting == 0 then
-					--Someone is still running
-					allStopped = false
 					if p.pflags & PF_TIMEOVER then
 						--Someone DNF'd. Mark them down.
 						if recordedPlayers[p.name] == nil then
@@ -307,7 +309,10 @@ local function think()
 							end					
 							recordedPlayers[p.name] = 1
 							--print(p.name.." Pos "..tostring(p.kartstuff[k_position]).." Realtime "..tostring(p.realtime))
-						end	
+						end
+					else
+						--Someone is still running
+						allStopped = false
 					end
 				elseif p.exiting ~= 0 then
 					--Someone stopped. Determine if winner and mark finished players.
@@ -327,6 +332,64 @@ local function think()
 		end
 		
 		completedRun = allStopped	
+	end
+	
+	if completedRun and slideRun == "stop" then
+		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
+			local driftmodValue = 0
+			if CV_FindVar("driftnitro") then
+				driftmodValue = CV_FindVar("driftnitro").value
+			end
+			local juiceboxValue = 0
+			if CV_FindVar("juicebox") then
+				juiceboxValue = CV_FindVar("juicebox").value
+			end
+			if CV_FindVar("techonly") then
+				--If techonly = 1 then consider juicebox as "off" for records
+				if CV_FindVar("techonly").value == 1 then
+					juiceboxValue = 0
+				end
+			end
+			
+			for p in players.iterate do
+				if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
+					if globalTimeData[tostring(gamemap)] == nil then
+						globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+					end
+					if driftmodValue == 1 then
+						if p.realtime < tonumber(globalTimeData[tostring(gamemap)][7]) then
+							rTimeHolder = p.realtime
+							rPlayerHolder = p.name
+							rSkinHolder = p.mo.skin
+							rSkinColorHolder = p.skincolor
+							slideRun = "left"
+							--chatprint('\130NEW NITRO MAP RECORD!', true)
+							K_PlayPowerGloatSound(p.mo)
+						end	
+					elseif juiceboxValue == 1 then
+						if p.realtime < tonumber(globalTimeData[tostring(gamemap)][4]) then
+							rTimeHolder = p.realtime
+							rPlayerHolder = p.name
+							rSkinHolder = p.mo.skin
+							rSkinColorHolder = p.skincolor
+							slideRun = "left"
+							--chatprint('\130NEW JUICEBOX MAP RECORD!', true)
+							K_PlayPowerGloatSound(p.mo)
+						end	
+					else
+						if p.realtime < tonumber(globalTimeData[tostring(gamemap)][1]) then
+							rTimeHolder = p.realtime
+							rPlayerHolder = p.name
+							rSkinHolder = p.mo.skin
+							rSkinColorHolder = p.skincolor
+							slideRun = "left"
+							--chatprint('\130NEW MAP RECORD!', true)
+							K_PlayPowerGloatSound(p.mo)
+						end
+					end
+				end
+			end	
+		end
 	end
 	
 	for p in players.iterate
@@ -350,9 +413,14 @@ local function durMapChange()
 	didSavePlayer = false
 	didSaveTime = false
 	
-	--recordSkinColor = nil
-	--slideValue = -50
-	--slideRun = "stop"
+	recordSkinColor = nil
+	slideValue = -50
+	slideRun = "stop"
+	
+	rTimeHolder = nil
+	rPlayerHolder = nil
+	rSkinHolder = nil
+	rSkinColorHolder = nil
 end
 addHook("MapChange", durMapChange)
 
@@ -622,11 +690,11 @@ local function intThink()
 			for p in players.iterate do
 				if p.valid and p.mo ~= nil and p.mo.valid and eloChanges[p.name] ~= nil then
 					if p.showKSChange == 0 then return end					
-					local changeFormatted = tostring(eloChanges[p.name])
+					local changeFormatted = "\x85"..tostring(eloChanges[p.name])
 					if tonumber(eloChanges[p.name]) > 0 then
-						changeFormatted = "+"..tostring(eloChanges[p.name])
+						changeFormatted = "\x83+"..tostring(eloChanges[p.name])
 					end
-					chatprintf(p, "\130KS - "..tostring(globalPlayerData[p.name][gameModeIndex]).." ("..changeFormatted..")", false)
+					chatprintf(p, "\x82KS - "..tostring(globalPlayerData[p.name][gameModeIndex]).." ("..changeFormatted.."\x82)", false)
 				end
 			end
 			
@@ -681,8 +749,8 @@ local function intThink()
 								globalTimeData[tostring(gamemap)][9] = p.mo.skin
 								--recordSkinColor = p.skincolor
 								--slideRun = "left"
-								chatprint('\130NEW NITRO MAP RECORD!', true)
-								K_PlayPowerGloatSound(p.mo)
+								--chatprint('\130NEW NITRO MAP RECORD!', true)
+								--K_PlayPowerGloatSound(p.mo)
 							end	
 						elseif juiceboxValue == 1 then
 							if p.realtime < tonumber(globalTimeData[tostring(gamemap)][4]) then
@@ -691,8 +759,8 @@ local function intThink()
 								globalTimeData[tostring(gamemap)][6] = p.mo.skin
 								--recordSkinColor = p.skincolor
 								--slideRun = "left"
-								chatprint('\130NEW JUICEBOX MAP RECORD!', true)
-								K_PlayPowerGloatSound(p.mo)
+								--chatprint('\130NEW JUICEBOX MAP RECORD!', true)
+								--K_PlayPowerGloatSound(p.mo)
 							end	
 						else
 							if p.realtime < tonumber(globalTimeData[tostring(gamemap)][1]) then
@@ -701,8 +769,8 @@ local function intThink()
 								globalTimeData[tostring(gamemap)][3] = p.mo.skin
 								--recordSkinColor = p.skincolor
 								--slideRun = "left"
-								chatprint('\130NEW MAP RECORD!', true)
-								K_PlayPowerGloatSound(p.mo)
+								--chatprint('\130NEW MAP RECORD!', true)
+								--K_PlayPowerGloatSound(p.mo)
 							end
 						end
 					end
@@ -735,9 +803,9 @@ local function buildTimeStringTable(x)
 	return {string.sub(string.format("%02d", G_TicsToMinutes(x)), 1, 1), string.sub(string.format("%02d", G_TicsToMinutes(x)), 2, 2), string.sub(string.format("%02d", G_TicsToSeconds(x)), 1, 1), string.sub(string.format("%02d", G_TicsToSeconds(x)), 2, 2), string.sub(string.format("%02d", G_TicsToCentiseconds(x)), 1, 1), string.sub(string.format("%02d", G_TicsToCentiseconds(x)), 2, 2)}
 end
 
---Intermission isn't a set up hud hook for Kart, so this is here if and whenever it finally is
+--Intermission isn't a set up hud hook for Kart, so this will have to do without jamming in crazy hacks
 --Fuck Oni
---[[local function interShowNewRecord(v)
+local function interShowNewRecord(v)
 	if slideRun ~= "stop" then
 		local gameModeIndex = 10
 		if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
@@ -753,7 +821,7 @@ end
 		local stringTime = nil
 		local recordHolder = nil
 		local recordSkin = nil
-		if globalTimeData[tostring(gamemap)] ~= nil then
+		--[[if globalTimeData[tostring(gamemap)] ~= nil then
 			if gameModeIndex == 10 then
 				stringTime = buildTimeString(globalTimeData[tostring(gamemap)][1])
 				recordHolder = globalTimeData[tostring(gamemap)][2]
@@ -767,8 +835,12 @@ end
 				recordHolder = globalTimeData[tostring(gamemap)][8]
 				recordSkin = globalTimeData[tostring(gamemap)][9]
 			end
-		end
-		
+		end]]--
+				
+		stringTime = buildTimeString(rTimeHolder)
+		recordHolder = rPlayerHolder
+		recordSkin = rSkinHolder
+			
 		local rgHudOffset = 138
 		local screenYSub = 50
 		
@@ -776,9 +848,10 @@ end
 		local winheight = v.height()/v.dupy();
 		local windiff = ((winheight-200)/2)
 		local right = ((scrwidth+75)/2);
+
 		
-		local actualOffset = -50
-		if slideRun == "left" then
+		--local actualOffset = -50
+		--[[if slideRun == "left" then
 			slideValue = $ + 1
 			if slideValue <= 0 then
 				actualOffset = slideValue
@@ -798,31 +871,36 @@ end
 			if slideValue < -50 then
 				slideRun = "stop"
 			end
+		end]]--
+		if slideValue < 0 then
+			slideValue = $ + 2
 		end
 	
 		if skins[recordSkin] ~= nil then
-			if recordSkinColor == nil then
-				v.draw((65-(actualOffset*5))+right, ((winheight-windiff)-screenYSub), v.cachePatch(skins[recordSkin].facewant), flags, v.getColormap(recordSkin, skins[recordSkin].prefcolor))
+			if rSkinColorHolder == nil then
+				v.draw((65-(slideValue*5))+right, ((winheight-windiff)-screenYSub), v.cachePatch(skins[recordSkin].facewant), flags, v.getColormap(recordSkin, skins[recordSkin].prefcolor))
 			else
-				v.draw((65-(actualOffset*5))+right, ((winheight-windiff)-screenYSub), v.cachePatch(skins[recordSkin].facewant), flags, v.getColormap(recordSkin, recordSkinColor))
+				--use recordSkinColor if an intermission hud hook ever becomes a thing
+				v.draw((65-(slideValue*5))+right, ((winheight-windiff)-screenYSub), v.cachePatch(skins[recordSkin].facewant), flags, v.getColormap(recordSkin, rSkinColorHolder))
 			end		
 		end
 		
 		local headerWidth = v.stringWidth("NEW RECORD", flags)
-		if slideValue % 5 == 0 then
-			v.drawString((64-(actualOffset*5))+(right - headerWidth), ((winheight-windiff)-48), "\x82NEW RECORD", flags)
+		v.drawString((64-(slideValue*5))+(right - headerWidth), ((winheight-windiff)-48), "\x82NEW RECORD", flags)
+		--[[if slideValue % 5 == 0 then
+			v.drawString((64-(slideValue*5))+(right - headerWidth), ((winheight-windiff)-48), "\x82NEW RECORD", flags)
 		else
-			v.drawString((64-(actualOffset*5))+(right - headerWidth), ((winheight-windiff)-48), "NEW RECORD", flags)
-		end	
+			v.drawString((64-(slideValue*5))+(right - headerWidth), ((winheight-windiff)-48), "NEW RECORD", flags)
+		end]]--
 		
 		local nameWidth = v.stringWidth(recordHolder, flags)
-		v.drawString((64-(actualOffset*5))+(right - nameWidth), ((winheight-windiff)-38), recordHolder, flags)
+		v.drawString((64-(slideValue*5))+(right - nameWidth), ((winheight-windiff)-38), recordHolder, flags)
 		
 		local timeWidth = v.stringWidth(stringTime, flags)
-		v.drawString((64-(actualOffset*5))+(right - timeWidth), ((winheight-windiff)-28), stringTime, flags)
+		v.drawString((64-(slideValue*5))+(right - timeWidth), ((winheight-windiff)-28), stringTime, flags)
 	end
 end
-hud.add(interShowNewRecord, "intermission")]]--
+hud.add(interShowNewRecord, game)
 
 --record hud toggle
 COM_AddCommand("st_showtime", function(p, text)
