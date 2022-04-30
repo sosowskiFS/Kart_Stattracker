@@ -616,7 +616,7 @@ local function intThink()
 						if pos == 1 then
 							globalPlayerData[thisPlayer[i]][2] = globalPlayerData[thisPlayer[i]][2] + 1
 							if globalPlayerData[thisPlayer[i]][2] % 100 == 0 then
-								chatprint('\130'..p.name..' has won '..tostring(globalPlayerData[thisPlayer[i]][2])..' times!', true)
+								chatprint('\130'..thisPlayer..' has won '..tostring(globalPlayerData[thisPlayer[i]][2])..' times!', true)
 							end
 						elseif pos == 2 then
 							globalPlayerData[thisPlayer[i]][8] = globalPlayerData[thisPlayer[i]][8] + 1
