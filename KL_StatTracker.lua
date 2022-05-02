@@ -316,7 +316,7 @@ local function think()
 		completedRun = allStopped	
 	end
 	
-	if completedRun and slideRun == "stop" then		
+	if notSpecialMode and completedRun and slideRun == "stop" then		
 		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
 			local driftmodValue = 0
 			if CV_FindVar("driftnitro") then
