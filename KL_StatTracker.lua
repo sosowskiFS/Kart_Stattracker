@@ -316,7 +316,7 @@ local function think()
 		completedRun = allStopped	
 	end
 	
-	if completedRun and slideRun == "stop" then
+	if completedRun and slideRun == "stop" then		
 		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
 			local driftmodValue = 0
 			if CV_FindVar("driftnitro") then
@@ -416,23 +416,25 @@ addHook("MapChange", durMapChange)
 
 local function notRunningSpecialGameType()
 	--Checks to see if a special game mode is running or not
-	local normalGame = true
+	if G_BattleGametype() then
+		return false
+	end
 	
 	--Friendmod
 	if CV_FindVar("fr_enabled") and CV_FindVar("fr_enabled").value == 1 then
-		normalGame = false
+		return false
 	end
 	
 	if CV_FindVar("combi_active") and CV_FindVar("combi_active").value == 1 then
-		normalGame = false
+		return false
 	end
 	
 	if CV_FindVar("frontrun_enabled") and CV_FindVar("frontrun_enabled").value == 1 then
-		normalGame = false
+		return false
 	end
 	
 	if CV_FindVar("elimination") and CV_FindVar("elimination").value == 1 then
-		normalGame = false
+		return false
 	end
 	
 	if CV_FindVar("spbatk") and CV_FindVar("spbatk").value == 1 then
@@ -447,11 +449,11 @@ local function notRunningSpecialGameType()
 			end	
 		end
 		if foundP <= 1 then
-			normalGame = false
+			return false
 		end
 	end
 	
-	return normalGame
+	return true
 end
 
 --show KS change toggle p.showKSChange
@@ -489,10 +491,11 @@ local function intThink()
 				else
 					--calculate the weighted uses			
 					local weightedUse = FixedFloor((v2 / 5) * FRACUNIT) / FRACUNIT
+					if tonumber(v2) > 0 then
+						weightedUse = $ + 1
+					end
 					if weightedUse > 10 then
 						weightedUse = 10
-					else if v2 < 5 and v2 > 0 then
-						weightedUse = 1
 					end			
 					
 					if globalSkinData[k2] == nil then
@@ -635,8 +638,6 @@ local function intThink()
 			for pos, thisPlayer in pairs(playerOrder) do
 				--for i=1,5,1 do
 				for k, v in pairs(thisPlayer) do
-					print(k)
-					print(v)
 					checkNilPlayer(v)
 					--Increment play count
 					globalPlayerData[v][1] = globalPlayerData[v][1] + 1
