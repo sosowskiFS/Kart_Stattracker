@@ -1,0 +1,6 @@
+Add total unweighted use column to skin data
+Make data maintence check player skin use sheet and replace the entirety of the general skin data sheet
+Try to make multiple names save in the event of a tie record
+Ignore battle mode for time records at a minimum
+Add admin parameters to disable sections of code, or all of it.
+Clear out code that imports old versions of datasheets
