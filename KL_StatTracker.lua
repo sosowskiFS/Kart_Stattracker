@@ -17,18 +17,15 @@ if f then
 	--file already exsists, load from it
 	--print('Loading skincounter data...')
 	for l in f:lines() do
-		local skinName, count, realName = string.match(l, "(.*);(.*);(.*)")
+		local skinName, count, realName, totalCount = string.match(l, "(.*);(.*);(.*);(.*)")
 
 		if skinName then
-			globalSkinData[skinName] = {count, realName}
+			globalSkinData[skinName] = {count, realName, totalCount}
 		else
 			--Old record, update
-			local LskinName, Lcount = string.match(l, "(.*);(.*)")
-			if LskinName and skins[LskinName] then
-				globalSkinData[LskinName] = {Lcount, skins[LskinName].realname}
-			elseif LskinName then
-				--possible deleted skin
-				globalSkinData[LskinName] = {Lcount, "Removed Skin"}
+			local LskinName, Lcount, LrealName = string.match(l, "(.*);(.*);(.*)")
+			if LskinName then
+				globalSkinData[LskinName] = {Lcount, LrealName, Lcount}
 			end
 		end
 	end
@@ -43,15 +40,6 @@ if m then
 
 		if mapID then
 			globalMapData[mapID] = {timesPlayed, rtv, mapName}
-		else
-			--Attempt to parse & update old record
-			local LmapID, LtimesPlayed, Lrtv = string.match(l, "(.*);(.*);(.*)")
-			if LmapID and mapheaderinfo[tostring(LmapID)] then
-				globalMapData[LmapID] = {LtimesPlayed, Lrtv, mapheaderinfo[tostring(LmapID)].lvlttl}
-			elseif LmapID then
-				--Old record and no longer on server - will be deleted in maintenance
-				globalMapData[LmapID] = {LtimesPlayed, Lrtv, "I am dead"}
-			end
 		end
 	end
 	m:close()
@@ -67,12 +55,6 @@ if p then
 		if pName then
 			--print("in")
 			globalPlayerData[pName] = {mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo}
-		else
-			--Assume this is an older record & attempt to update it
-			local LpName, LmapsPlayed, Lwins, Lhits, LselfHits, Lspinned, Lexploded, Lsquished = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			if LpName then
-				globalPlayerData[LpName] = {LmapsPlayed, Lwins, Lhits, LselfHits, Lspinned, Lexploded, Lsquished, 0, 0, 1500, 1500, 1500}
-			end		
 		end
 	end
 	p:close()
@@ -125,7 +107,7 @@ local function _saveSkinFunc()
 	local f = assert(io.open("Skincounter.txt", "w"))
 	for key, value in pairs(globalSkinData) do
 		if key:find(";") then continue end -- sanity check
-		f:write(key, ";", value[1], ";", value[2], "\n")
+		f:write(key, ";", value[1], ";", value[2], ";", value[3], "\n")
 	end
 	f:close()
 end
@@ -351,6 +333,14 @@ local function think()
 				end
 			end
 			
+			--Check for ties
+			local winList = playerOrder[1][1]
+			for i=2,5,1 do
+				if playerOrder[1][i] ~= nil then
+					winList = winList.." & "..playerOrder[1][i]
+				end
+			end
+			
 			for p in players.iterate do
 				if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
 					if globalTimeData[tostring(gamemap)] == nil then
@@ -359,7 +349,7 @@ local function think()
 					if driftmodValue == 1 then
 						if p.realtime < tonumber(globalTimeData[tostring(gamemap)][7]) then
 							rTimeHolder = p.realtime
-							rPlayerHolder = p.name
+							rPlayerHolder = winList
 							rSkinHolder = p.mo.skin
 							rSkinColorHolder = p.skincolor
 							slideRun = "left"
@@ -369,7 +359,7 @@ local function think()
 					elseif juiceboxValue == 1 then
 						if p.realtime < tonumber(globalTimeData[tostring(gamemap)][4]) then
 							rTimeHolder = p.realtime
-							rPlayerHolder = p.name
+							rPlayerHolder = winList
 							rSkinHolder = p.mo.skin
 							rSkinColorHolder = p.skincolor
 							slideRun = "left"
@@ -379,7 +369,7 @@ local function think()
 					else
 						if p.realtime < tonumber(globalTimeData[tostring(gamemap)][1]) then
 							rTimeHolder = p.realtime
-							rPlayerHolder = p.name
+							rPlayerHolder = winList
 							rSkinHolder = p.mo.skin
 							rSkinColorHolder = p.skincolor
 							slideRun = "left"
@@ -486,10 +476,40 @@ local function intThink()
 
 	--Data maintenance
 	if didMaint == false then
+		--Repopulate the skin sheet using the player skin usage sheet
+		globalSkinData = {}
+		--globalPlayerSkinUseData["PlayerName"]["SkinName"]
+		local playerSkinUseReference = globalPlayerSkinUseData
+		for k, v in pairs(playerSkinUseReference)
+			--I need the skin's name here
+			for k2, v2 in pairs(playerSkinUseReference[k])
+				if skins[k2] == nil then
+					--This skin doesn't exist anymore and can be removed
+					globalPlayerSkinUseData[k][k2] = nil
+				else
+					--calculate the weighted uses			
+					local weightedUse = FixedFloor((v2 / 5) * FRACUNIT) / FRACUNIT
+					if weightedUse > 10 then
+						weightedUse = 10
+					else if v2 < 5 and v2 > 0 then
+						weightedUse = 1
+					end			
+					
+					if globalSkinData[k2] == nil then
+						globalSkinData[k2] = {weightedUse, skins[k2].realname, v2}
+					else
+						globalSkinData[k2][1] = $ + weightedUse
+						globalSkinData[k2][3] = $ + v2
+					end
+				end
+				
+			end
+		end
+	
 		--Add new skins that aren't represented in data yet
 		for s in skins.iterate do
 			if globalSkinData[s.name] == nil then
-				globalSkinData[s.name] = {0, s.realname}
+				globalSkinData[s.name] = {0, s.realname, 0}
 			end
 		end
 		--Delete removed skins
@@ -545,18 +565,26 @@ local function intThink()
 					local shouldIncrement = false
 					if globalPlayerSkinUseData[p.name][p.mo.skin] == 1 then
 						shouldIncrement = true
-					elseif globalPlayerSkinUseData[p.name][p.mo.skin] <= 50 and globalPlayerSkinUseData[p.name][p.mo.skin] % 5 == 0 then
+					elseif globalPlayerSkinUseData[p.name][p.mo.skin] <= 45 and globalPlayerSkinUseData[p.name][p.mo.skin] % 5 == 0 then
 						shouldIncrement = true
 					end
 					
-					--realname
+					--Tick up weighted total
 					if shouldIncrement then
 						if globalSkinData[p.mo.skin] == nil then
-							globalSkinData[p.mo.skin] = {1, skins[p.mo.skin].realname}
+							globalSkinData[p.mo.skin] = {1, skins[p.mo.skin].realname, 1}
 						else
 							globalSkinData[p.mo.skin][1] = globalSkinData[p.mo.skin][1] + 1
 						end
 					end
+					
+					--Tick up total count
+					if globalSkinData[p.mo.skin] == nil then
+						globalSkinData[p.mo.skin] = {1, skins[p.mo.skin].realname, 1}					
+					else
+						globalSkinData[p.mo.skin][3] = globalSkinData[p.mo.skin][3] + 1
+					end
+					
 				end
 			end
 		end
@@ -605,66 +633,67 @@ local function intThink()
 			end
 					
 			for pos, thisPlayer in pairs(playerOrder) do
-				--If there's more than a 5 way tie I'm legitimately impressed
-				for i=1,5,1 do
-					if thisPlayer[i] ~= nil then
-						checkNilPlayer(thisPlayer[i])
-						--Increment play count
-						globalPlayerData[thisPlayer[i]][1] = globalPlayerData[thisPlayer[i]][1] + 1
-						
-						--Increment 1st,2nd,3rd finish where appropriate
-						if pos == 1 then
-							globalPlayerData[thisPlayer[i]][2] = globalPlayerData[thisPlayer[i]][2] + 1
-							if globalPlayerData[thisPlayer[i]][2] % 100 == 0 then
-								chatprint('\130'..thisPlayer..' has won '..tostring(globalPlayerData[thisPlayer[i]][2])..' times!', true)
-							end
-						elseif pos == 2 then
-							globalPlayerData[thisPlayer[i]][8] = globalPlayerData[thisPlayer[i]][8] + 1
-						elseif pos == 3 then
-							globalPlayerData[thisPlayer[i]][9] = globalPlayerData[thisPlayer[i]][9] + 1
+				--for i=1,5,1 do
+				for k, v in pairs(thisPlayer) do
+					print(k)
+					print(v)
+					checkNilPlayer(v)
+					--Increment play count
+					globalPlayerData[v][1] = globalPlayerData[v][1] + 1
+					
+					--Increment 1st,2nd,3rd finish where appropriate
+					if pos == 1 then
+						globalPlayerData[v][2] = globalPlayerData[v][2] + 1
+						if globalPlayerData[v][2] % 100 == 0 then
+							chatprint('\130'..v..' has won '..tostring(globalPlayerData[v][2])..' times!', true)
 						end
-						
-						--Calculate ELO changes and store to save at the end
-						eloChanges[thisPlayer[i]] = 0				
-						for ePos, ePlayers in pairs(playerOrder) do
-							for e=1,5,1 do
-								--Ignore the same position
-								if ePlayers[e] ~= nil and pos ~= ePos then		
-									checkNilPlayer(ePlayers[e])
-									
-									if pos < ePos then
-										--Players you beat
-										--positive = lower rank, negative = higher rank
-										--NEED TO VERIFY - For calcuations with decimals, this assumes that SRB2 strips decimal places without rounding
-										local rankDif = (globalPlayerData[thisPlayer[i]][gameModeIndex] - globalPlayerData[ePlayers[e]][gameModeIndex]) / 100
-										local rankChange = 5						
-										if rankDif > 0 then
-											rankChange = rankChange - rankDif
-											if rankChange < 0 then
-												rankChange = 0
-											end
-										elseif rankDif < 0 then
-											--Absolute value of rankDif
-											rankChange = rankChange + abs(rankDif)
+					elseif pos == 2 then
+						globalPlayerData[v][8] = globalPlayerData[v][8] + 1
+					elseif pos == 3 then
+						globalPlayerData[v][9] = globalPlayerData[v][9] + 1
+					end
+					
+					--Calculate ELO changes and store to save at the end
+					eloChanges[v] = 0				
+					for ePos, ePlayers in pairs(playerOrder) do
+						--for e=1,5,1 do
+						for eK, eV in pairs(ePlayers)
+							--Ignore the same position
+							if eV ~= nil and pos ~= ePos then		
+								checkNilPlayer(eV)
+								
+								if pos < ePos then
+									--Players you beat
+									--positive = lower rank, negative = higher rank
+									--NEED TO VERIFY - For calcuations with decimals, this assumes that SRB2 strips decimal places without rounding
+									local rankDif = (globalPlayerData[v][gameModeIndex] - globalPlayerData[eV][gameModeIndex]) / 100
+									local rankChange = 5						
+									if rankDif > 0 then
+										rankChange = rankChange - rankDif
+										if rankChange < 0 then
+											rankChange = 0
 										end
-										
-										eloChanges[thisPlayer[i]] = eloChanges[thisPlayer[i]] + rankChange
-									else
-										--players you lost to
-										local rankDif = (globalPlayerData[thisPlayer[i]][gameModeIndex] - globalPlayerData[ePlayers[e]][gameModeIndex]) / 100
-										local rankChange = -5						
-										if rankDif > 0 then
-											rankChange = rankChange - rankDif
-										elseif rankDif < 0 then
-											--Lost to someone with higher rank, cap max change at 500 diff							
-											rankChange = rankChange + abs(rankDif)
-											if rankChange > 0 then
-												rankChange = 0
-											end
-										end
-										
-										eloChanges[thisPlayer[i]] = eloChanges[thisPlayer[i]] + rankChange
+									elseif rankDif < 0 then
+										--Absolute value of rankDif
+										rankChange = rankChange + abs(rankDif)
 									end
+									
+									eloChanges[v] = eloChanges[v] + rankChange
+								else
+									--players you lost to
+									local rankDif = (globalPlayerData[v][gameModeIndex] - globalPlayerData[eV][gameModeIndex]) / 100
+									local rankChange = -5						
+									if rankDif > 0 then
+										rankChange = rankChange - rankDif
+									elseif rankDif < 0 then
+										--Lost to someone with higher rank, cap max change at 500 diff							
+										rankChange = rankChange + abs(rankDif)
+										if rankChange > 0 then
+											rankChange = 0
+										end
+									end
+									
+									eloChanges[v] = eloChanges[v] + rankChange
 								end
 							end
 						end
@@ -739,13 +768,23 @@ local function intThink()
 			end
 			
 			if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
-				--There's no handling for ties here and I don't really care all that much tbh
+				--Loop though the first position to condense names in case of ties
+				local winList = ""
+				--for i=2,5,1 do
+				for k, v in pairs(playerOrder[1])
+					if winList == "" then
+						winList = v
+					else
+						winList = $.." & "..v
+					end				
+				end
+				
 				for p in players.iterate do
 					if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
 						if driftmodValue == 1 then
 							if p.realtime < tonumber(globalTimeData[tostring(gamemap)][7]) then
 								globalTimeData[tostring(gamemap)][7] = p.realtime
-								globalTimeData[tostring(gamemap)][8] = p.name
+								globalTimeData[tostring(gamemap)][8] = winList
 								globalTimeData[tostring(gamemap)][9] = p.mo.skin
 								--recordSkinColor = p.skincolor
 								--slideRun = "left"
@@ -755,7 +794,7 @@ local function intThink()
 						elseif juiceboxValue == 1 then
 							if p.realtime < tonumber(globalTimeData[tostring(gamemap)][4]) then
 								globalTimeData[tostring(gamemap)][4] = p.realtime
-								globalTimeData[tostring(gamemap)][5] = p.name
+								globalTimeData[tostring(gamemap)][5] = winList
 								globalTimeData[tostring(gamemap)][6] = p.mo.skin
 								--recordSkinColor = p.skincolor
 								--slideRun = "left"
@@ -765,7 +804,7 @@ local function intThink()
 						else
 							if p.realtime < tonumber(globalTimeData[tostring(gamemap)][1]) then
 								globalTimeData[tostring(gamemap)][1] = p.realtime
-								globalTimeData[tostring(gamemap)][2] = p.name
+								globalTimeData[tostring(gamemap)][2] = winList
 								globalTimeData[tostring(gamemap)][3] = p.mo.skin
 								--recordSkinColor = p.skincolor
 								--slideRun = "left"
@@ -1210,7 +1249,7 @@ local function st_skindata(p, ...)
 			CONS_Printf(p, "\x82"..sTarget)
 		end
 		
-		CONS_Printf(p, tostring(globalSkinData[sTarget][1]).." weighted uses")
+		CONS_Printf(p, tostring(globalSkinData[sTarget][1]).." weighted uses, "..tostring(globalSkinData[sTarget][3]).." total uses")
 	end
 end
 COM_AddCommand("st_skindata", st_skindata)
