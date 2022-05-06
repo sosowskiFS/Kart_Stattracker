@@ -1,9 +1,5 @@
 rawset(_G, "sTrack", {}) -- Stat Tracker global namespace
 
---This is only ever set to true so it runs once. 
---When server restarts, data maintence will happen on next intermission.
-sTrack.didMaint = false
-
 sTrack.globalSkinData = {}
 sTrack.globalMapData = {}
 sTrack.globalPlayerData = {}

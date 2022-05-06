@@ -125,16 +125,18 @@ local function think()
 	
 	--Handles showing the sliding new record popup
 	--This would be better suited for intermission but there's no hud lua hook in there :(
-	if sTrack.cv_recordpopup == 1 and notSpecialMode and completedRun and slideRun == "stop" then
+	if sTrack.cv_recordpopup == 1 and sTrack.cv_enablerecords == 1 and notSpecialMode and completedRun and slideRun == "stop" then
 		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
 			local cMode = sTrack.findCurrentMode()
 			
 			--Check for ties
-			local winList = playerOrder[1][1]
-			for i=2,5,1 do
-				if playerOrder[1][i] ~= nil then
-					winList = winList.." & "..playerOrder[1][i]
-				end
+			local winList = ""
+			for k, v in pairs(playerOrder[1])
+				if winList == "" then
+					winList = v
+				else
+					winList = $.." & "..v
+				end				
 			end
 			
 			for p in players.iterate do
@@ -201,11 +203,14 @@ local function durMapChange()
 end
 addHook("MapChange", durMapChange)
 
+--This is only ever set to true so it runs once. 
+local didMaint = false
+
 --This is where all the calculations and saving happens
 local function intThink()
 	if sTrack.cv_enabled == 0 then return end
 	--Data maintenance
-	if sTrack.didMaint == false then
+	if didMaint == false then
 		--Repopulate the skin sheet using the player skin usage sheet
 		sTrack.globalSkinData = {}
 		--globalPlayerSkinUseData["PlayerName"]["SkinName"]
@@ -389,7 +394,7 @@ local function intThink()
 					sTrack.globalPlayerData[v][9] = sTrack.globalPlayerData[v][9] + 1
 				end
 				
-				if notSpecialMode then							
+				if notSpecialMode and sTrack.cv_enableks == 1 then							
 					--Calculate ELO changes and store to save at the end
 					eloChanges[v] = 0				
 					for ePos, ePlayers in pairs(playerOrder) do
@@ -469,7 +474,7 @@ local function intThink()
 	if not didSaveTime then
 		didSaveTime = true
 		--Make sure no special game type is running
-		if notSpecialMode then
+		if notSpecialMode and sTrack.cv_enablerecords == 1 then
 			if sTrack.globalTimeData[tostring(gamemap)] == nil then
 				sTrack.globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
 			end

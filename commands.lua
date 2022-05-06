@@ -8,15 +8,30 @@ sTrack.cv_enabled = CV_RegisterVar({
 	PossibleValue = CV_OnOff,
 })
 
---Shows/Hides record time popup for all players
---Possibly needs to be a netvar idk
+--Toggle for calculating KS
+sTrack.cv_enableks = CV_RegisterVar({
+	name = "st_enableks",
+	defaultvalue = 1,
+	flags = CV_NETVAR,
+	PossibleValue = CV_OnOff,
+})
+
+--Toggle for recording time records
+sTrack.cv_enablerecords = CV_RegisterVar({
+	name = "st_enablerecords",
+	defaultvalue = 1,
+	flags = CV_NETVAR,
+	PossibleValue = CV_OnOff,
+})
+
+--Player commands
+--Shows/Hides record time popup
 sTrack.cv_recordpopup = CV_RegisterVar({
 	name = "st_recordpopup",
 	defaultvalue = 1,
 	PossibleValue = CV_OnOff,
 })
 
---Player commands
 --Hides KS updates in player's chat
 sTrack.cv_showks = CV_RegisterVar ({
 	name = "st_showks"
@@ -46,8 +61,12 @@ local function st_playerdata(p, ...)
 		local gameModeIndex = sTrack.getModeIndex()
 		
 		for pl in players.iterate do
-			if pl.valid and sTrack.globalPlayerData[pl.name] ~= nil then			
-				CONS_Printf(p, "\x82"..pl.name.."\x84 "..sTrack.globalPlayerData[pl.name][gameModeIndex].." KS \x80|\x83 "..sTrack.globalPlayerData[pl.name][2].." wins \x80| "..sTrack.globalPlayerData[pl.name][1].." races")
+			if pl.valid and sTrack.globalPlayerData[pl.name] ~= nil then
+				if sTrack.cv_enableks == 1 then
+					CONS_Printf(p, "\x82"..pl.name.."\x84 "..sTrack.globalPlayerData[pl.name][gameModeIndex].." KS \x80|\x83 "..sTrack.globalPlayerData[pl.name][2].." wins \x80| "..sTrack.globalPlayerData[pl.name][1].." races")
+				else
+					CONS_Printf(p, "\x83 "..sTrack.globalPlayerData[pl.name][2].." wins \x80| "..sTrack.globalPlayerData[pl.name][1].." races")
+				end		
 			end
 		end
 	elseif pTarget=="top" or pTarget == "top wins" then
@@ -63,19 +82,23 @@ local function st_playerdata(p, ...)
 			if forCounter > 10 then break end
 		end
 	elseif pTarget == "top ks" then
-		--Uses the current mode's ELO
-		local gameModeIndex = sTrack.getModeIndex()
-		
-		local stuffToSort = {}
-		for k, v in pairs(sTrack.globalPlayerData) do
-			stuffToSort[k] = tonumber(v[gameModeIndex])
-		end
-		local forCounter = 1
-		for k,v in sTrack.spairs(stuffToSort, function(t,a,b) return t[b] < t[a] end) do
-			CONS_Printf(p, tostring(forCounter).." - \x83"..k.." \x82 "..tostring(v).." KartScore")
+		if sTrack.cv_enableks == 0 then
+			CONS_Printf(p, "This server has disabled KartScore.")
+		else
+			--Uses the current mode's KS
+			local gameModeIndex = sTrack.getModeIndex()
 			
-			forCounter = forCounter + 1
-			if forCounter > 10 then break end
+			local stuffToSort = {}
+			for k, v in pairs(sTrack.globalPlayerData) do
+				stuffToSort[k] = tonumber(v[gameModeIndex])
+			end
+			local forCounter = 1
+			for k,v in sTrack.spairs(stuffToSort, function(t,a,b) return t[b] < t[a] end) do
+				CONS_Printf(p, tostring(forCounter).." - \x83"..k.." \x82 "..tostring(v).." KartScore")
+				
+				forCounter = forCounter + 1
+				if forCounter > 10 then break end
+			end
 		end
 	elseif sTrack.globalPlayerData[pTarget] == nil then
 		CONS_Printf(p, "Could not find player! (It's case sensitive or leave blank to see your stats)")
@@ -88,7 +111,9 @@ local function st_playerdata(p, ...)
 		local minutes = FixedFloor(((playtime % 3600) / 60) * FRACUNIT) / FRACUNIT
 		CONS_Printf(p, "\x83"..pTarget.." \x80- "..tostring(sTrack.globalPlayerData[pTarget][1]).." races")
 		CONS_Printf(p, "\x82"..tostring(sTrack.globalPlayerData[pTarget][2]).." 1st places \x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][8]).." 2nd places \x80| \x8D"..tostring(sTrack.globalPlayerData[pTarget][9]).." 3rd places")
-		CONS_Printf(p, "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." Vanilla/Tech \x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][11]).." Juicebox \x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." Nitro")
+		if sTrack.cv_enableks == 1 then
+			CONS_Printf(p, "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." Vanilla/Tech \x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][11]).." Juicebox \x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." Nitro")
+		end
 		CONS_Printf(p, tostring(sTrack.globalPlayerData[pTarget][3]).." item hits | \x85"..tostring(sTrack.globalPlayerData[pTarget][4]).." self or enviroment hits")
 		CONS_Printf(p, "\x82"..tostring(sTrack.globalPlayerData[pTarget][5]).." spinouts | \x87"..tostring(sTrack.globalPlayerData[pTarget][6]).." times exploded | \x84"..tostring(sTrack.globalPlayerData[pTarget][7]).." times squished")
 		CONS_Printf(p, "Total playtime : "..tostring(hours).." hours, "..tostring(minutes).." minutes (est.)")
@@ -141,7 +166,7 @@ local function st_mapdata(p, ...)
 		CONS_Printf(p, "\x82"..tostring(mapheaderinfo[mTarget].lvlttl).." ("..tostring(mTarget)..")")
 		CONS_Printf(p, "\x83"..tostring(sTrack.globalMapData[mTarget][1]).." plays | \x85"..tostring(sTrack.globalMapData[mTarget][2]).." RTVs")
 		
-		if sTrack.globalTimeData[mTarget] ~= nil then
+		if sTrack.globalTimeData[mTarget] ~= nil and sTrack.cv_enablerecords == 1 then
 			if sTrack.globalTimeData[mTarget][2] ~= "placeholder" then
 				CONS_Printf(p, "Vanilla/Tech Record : "..buildTimeString(globalTimeData[mTarget][1]).." by "..tostring(sTrack.globalTimeData[mTarget][2]))
 			end
