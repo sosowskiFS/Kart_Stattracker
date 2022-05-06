@@ -144,7 +144,7 @@ local function _savePSkinUseFunc()
 		if key:find(";") then continue end -- no no no no no
 		local assembledString = ""
 		for key2, value2 in pairs(value) do
-			if key2:find("/") or key2:find("|") then continue end -- if you're putting this into a skin ID, you're an asshole
+			if key2:find("/") or key2:find("|") then continue end -- Can't let seperators into the string, sorry.
 		    if assembledString ~= "" then assembledString = assembledString .. "|" end
 		    assembledString = assembledString .. key2 .. "/" .. value2
 		end

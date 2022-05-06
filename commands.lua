@@ -1,50 +1,35 @@
+--Admin commands
+--Global enable, if checking to see if this addon exists, look at this.
+--Will disable all hooks and leave commands running
+sTrack.cv_enabled = CV_RegisterVar({
+	name = "st_enabled",
+	defaultvalue = 1,
+	flags = CV_NETVAR,
+	PossibleValue = CV_OnOff,
+})
+
+--Shows/Hides record time popup for all players
+--Possibly needs to be a netvar idk
+sTrack.cv_recordpopup = CV_RegisterVar({
+	name = "st_recordpopup",
+	defaultvalue = 1,
+	PossibleValue = CV_OnOff,
+})
+
 --Player commands
 --Hides KS updates in player's chat
-COM_AddCommand("st_showks", function(p, text)
-	if (p.showKSChange ~= nil) then
-		if ((text == "off") or (text == "0") or (text == "no"))
-			p.showKSChange = 0
-			CONS_Printf(p, "\n".."\x82".."Disabled end of race KS display")
-		elseif ((text == "on") or (text == "1") or (text == "yes"))
-			p.showKSChange = 1
-			CONS_Printf(p, "\n".."\x82".."Enabled end of race KS display")
-		end
-	else
-		CONS_Printf(p, "\nNot ready yet, try again shortly.")
-	end
- end, 0)
- 
---Hides record time per player in game HUD
-COM_AddCommand("st_showtime", function(p, text)
-	if (p.hasRecordHUD ~= nil) then
-		if ((text == "off") or (text == "0") or (text == "no"))
-			p.hasRecordHUD = 0
-			CONS_Printf(p, "\n".."\x82".."Disabled record time display")
-		elseif ((text == "on") or (text == "1") or (text == "yes"))
-			p.hasRecordHUD = 1
-			CONS_Printf(p, "\n".."\x82".."Enabled record time display")
-		end
-	else
-		CONS_Printf(p, "\nNot ready yet, try again shortly.")
-	end
- end, 0)
- 
- --All of the above
- COM_AddCommand("st_showall", function(p, text)
-	if (p.hasRecordHUD ~= nil and p.showKSChange ~= nil) then
-		if ((text == "off") or (text == "0") or (text == "no"))
-			p.hasRecordHUD = 0
-			p.showKSChange = 0
-			CONS_Printf(p, "\n".."\x82".."Disabled all StatTracker notifications")
-		elseif ((text == "on") or (text == "1") or (text == "yes"))
-			p.hasRecordHUD = 1
-			p.showKSChange = 1
-			CONS_Printf(p, "\n".."\x82".."Enabled all StatTracker notifications")
-		end
-	else
-		CONS_Printf(p, "\nNot ready yet, try again shortly.")
-	end
- end, 0)
+sTrack.cv_showks = CV_RegisterVar ({
+	name = "st_showks"
+	defaultvalue = 1,
+	PossibleValue = CV_OnOff
+})
+
+--Hides time on HUD
+sTrack.cv_showtime = CV_RegisterVar ({
+	name = "st_showtime"
+	defaultvalue = 1,
+	PossibleValue = CV_OnOff
+})
  
 --In game player data lookups
 local function st_playerdata(p, ...)

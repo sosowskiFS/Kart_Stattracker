@@ -1,58 +1,64 @@
 --Keep track of player damage
 local function playerSpin(p, i, s)
-	--player hit = p.name
-	--player who threw item = s.player.name (nil - enviroment, matches p - self hit)
-	sTrack.checkNilPlayer(p.name)
-	sTrack.globalPlayerData[p.name][5] = sTrack.globalPlayerData[p.name][5] + 1
-	
-	if s ~= nil and s.player ~= nil then
-		if s.player.name == p.name then
-			--Self hit
-			sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
+	if sTrack.cv_enabled == 1 then
+		--player hit = p.name
+		--player who threw item = s.player.name (nil - enviroment, matches p - self hit)
+		sTrack.checkNilPlayer(p.name)
+		sTrack.globalPlayerData[p.name][5] = sTrack.globalPlayerData[p.name][5] + 1
+		
+		if s ~= nil and s.player ~= nil then
+			if s.player.name == p.name then
+				--Self hit
+				sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
+			else
+				sTrack.checkNilPlayer(s.player.name)
+				sTrack.globalPlayerData[s.player.name][3] = sTrack.globalPlayerData[s.player.name][3] + 1		
+			end
 		else
-			sTrack.checkNilPlayer(s.player.name)
-			sTrack.globalPlayerData[s.player.name][3] = sTrack.globalPlayerData[s.player.name][3] + 1		
+			--Self hit (enviromental hazard probably)
+			sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
 		end
-	else
-		--Self hit (enviromental hazard probably)
-		sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
 	end
 end
 addHook("PlayerSpin", playerSpin)
 
 local function playerExplode(p, i, s)
-	sTrack.checkNilPlayer(p.name)
-	sTrack.globalPlayerData[p.name][6] = sTrack.globalPlayerData[p.name][6] + 1
-	
-	if s ~= nil and s.player ~= nil then
-		if s.player.name == p.name then
-			--Self hit
-			sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
+	if sTrack.cv_enabled == 1 then
+		sTrack.checkNilPlayer(p.name)
+		sTrack.globalPlayerData[p.name][6] = sTrack.globalPlayerData[p.name][6] + 1
+		
+		if s ~= nil and s.player ~= nil then
+			if s.player.name == p.name then
+				--Self hit
+				sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
+			else
+				sTrack.checkNilPlayer(s.player.name)
+				sTrack.globalPlayerData[s.player.name][3] = sTrack.globalPlayerData[s.player.name][3] + 1		
+			end
 		else
-			sTrack.checkNilPlayer(s.player.name)
-			sTrack.globalPlayerData[s.player.name][3] = sTrack.globalPlayerData[s.player.name][3] + 1		
+			sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
 		end
-	else
-		sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
 	end
 end
 addHook("PlayerExplode", playerExplode)
 
 local function playerSquish(p, i, s)
-	sTrack.checkNilPlayer(p.name)
-	sTrack.globalPlayerData[p.name][7] = sTrack.globalPlayerData[p.name][7] + 1
-	
-	if s ~= nil and s.player ~= nil then
-		if s.player.name == p.name then
-			--Self hit
-			sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
+	if sTrack.cv_enabled == 1 then
+		sTrack.checkNilPlayer(p.name)
+		sTrack.globalPlayerData[p.name][7] = sTrack.globalPlayerData[p.name][7] + 1
+		
+		if s ~= nil and s.player ~= nil then
+			if s.player.name == p.name then
+				--Self hit
+				sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
+			else
+				sTrack.checkNilPlayer(s.player.name)
+				sTrack.globalPlayerData[s.player.name][3] = sTrack.globalPlayerData[s.player.name][3] + 1
+				
+			end
 		else
-			sTrack.checkNilPlayer(s.player.name)
-			sTrack.globalPlayerData[s.player.name][3] = sTrack.globalPlayerData[s.player.name][3] + 1
-			
+			sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
 		end
-	else
-		sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
 	end
 end
 addHook("PlayerSquish", playerSquish)
@@ -76,6 +82,8 @@ local rSkinHolder = nil
 local rSkinColorHolder = nil
 
 local function think()
+	if sTrack.cv_enabled == 0 then return end
+	
 	if not completedRun then
 		local allStopped = true
 		
@@ -117,7 +125,7 @@ local function think()
 	
 	--Handles showing the sliding new record popup
 	--This would be better suited for intermission but there's no hud lua hook in there :(
-	if notSpecialMode and completedRun and slideRun == "stop" then
+	if sTrack.cv_recordpopup == 1 and notSpecialMode and completedRun and slideRun == "stop" then
 		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
 			local cMode = sTrack.findCurrentMode()
 			
@@ -169,15 +177,6 @@ local function think()
 			end	
 		end
 	end
-	
-	for p in players.iterate
-		if p.hasRecordHUD == nil and p.showKSChange == nil then
-			p.hasRecordHUD = 1
-			p.showKSChange = 1
-		else
-			continue
-		end
-	end
 end
 addHook("ThinkFrame", think)
 
@@ -204,6 +203,7 @@ addHook("MapChange", durMapChange)
 
 --This is where all the calculations and saving happens
 local function intThink()
+	if sTrack.cv_enabled == 0 then return end
 	--Data maintenance
 	if sTrack.didMaint == false then
 		--Repopulate the skin sheet using the player skin usage sheet
@@ -232,8 +232,7 @@ local function intThink()
 						sTrack.globalSkinData[k2][1] = $ + weightedUse
 						sTrack.globalSkinData[k2][3] = $ + v2
 					end
-				end
-				
+				end				
 			end
 		end
 	
@@ -456,7 +455,7 @@ local function intThink()
 		--Notify players
 		for p in players.iterate do
 			if p.valid and p.mo ~= nil and p.mo.valid and eloChanges[p.name] ~= nil then
-				if p.showKSChange == 0 then return end					
+				if sTrack.cv_showks == 0 then return end					
 				local changeFormatted = "\x85"..tostring(eloChanges[p.name])
 				if tonumber(eloChanges[p.name]) > 0 then
 					changeFormatted = "\x83+"..tostring(eloChanges[p.name])
@@ -516,7 +515,6 @@ local function intThink()
 			
 			saveFiles("Time")	
 		end
-	
 	end
 end
 addHook("IntermissionThinker", intThink)
@@ -536,7 +534,8 @@ addHook("NetVars", netvars)
 --Intermission isn't a set up hud hook for Kart, so this will have to do without jamming in crazy hacks
 --If you do have crazy hacks, however, that concept may interest you
 local function interShowNewRecord(v)
-	if slideRun ~= "stop" then
+	if sTrack.cv_enabled == 0 then return end
+	if sTrack.cv_recordpopup == 1 and slideRun ~= "stop" then
 		local gameModeIndex = 10
 		if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
 			gameModeIndex = 12
@@ -619,7 +618,7 @@ hud.add(interShowNewRecord, game)
 
 --Draw map + mode's record below current time (if it exists)
 local function drawRecordTime(v, p)
-	if p.hasRecordHUD == 0 then return end
+	if sTrack.cv_enabled == 0 or sTrack.cv_showtime == 0 then return end
 	
 	local gameModeIndex = 10
 	if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
