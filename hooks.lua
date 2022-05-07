@@ -1,6 +1,6 @@
 --Keep track of player damage
 local function playerSpin(p, i, s)
-	if sTrack.cv_enabled == 1 then
+	if sTrack.cv_enabled.value == 1 then
 		--player hit = p.name
 		--player who threw item = s.player.name (nil - enviroment, matches p - self hit)
 		sTrack.checkNilPlayer(p.name)
@@ -23,7 +23,7 @@ end
 addHook("PlayerSpin", playerSpin)
 
 local function playerExplode(p, i, s)
-	if sTrack.cv_enabled == 1 then
+	if sTrack.cv_enabled.value == 1 then
 		sTrack.checkNilPlayer(p.name)
 		sTrack.globalPlayerData[p.name][6] = sTrack.globalPlayerData[p.name][6] + 1
 		
@@ -43,7 +43,7 @@ end
 addHook("PlayerExplode", playerExplode)
 
 local function playerSquish(p, i, s)
-	if sTrack.cv_enabled == 1 then
+	if sTrack.cv_enabled.value == 1 then
 		sTrack.checkNilPlayer(p.name)
 		sTrack.globalPlayerData[p.name][7] = sTrack.globalPlayerData[p.name][7] + 1
 		
@@ -82,7 +82,7 @@ local rSkinHolder = nil
 local rSkinColorHolder = nil
 
 local function think()
-	if sTrack.cv_enabled == 0 then return end
+	if sTrack.cv_enabled.value == 0 then return end
 	
 	if not completedRun then
 		local allStopped = true
@@ -125,7 +125,7 @@ local function think()
 	
 	--Handles showing the sliding new record popup
 	--This would be better suited for intermission but there's no hud lua hook in there :(
-	if sTrack.cv_recordpopup == 1 and sTrack.cv_enablerecords == 1 and notSpecialMode and completedRun and slideRun == "stop" then
+	if sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.notRunningSpecialGameType() and completedRun and slideRun == "stop" then
 		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
 			local cMode = sTrack.findCurrentMode()
 			
@@ -208,7 +208,7 @@ local didMaint = false
 
 --This is where all the calculations and saving happens
 local function intThink()
-	if sTrack.cv_enabled == 0 then return end
+	if sTrack.cv_enabled.value == 0 then return end
 	--Data maintenance
 	if didMaint == false then
 		--Repopulate the skin sheet using the player skin usage sheet
@@ -357,7 +357,7 @@ local function intThink()
 				sTrack.globalMapData[tostring(gamemap)][2] = sTrack.globalMapData[tostring(gamemap)][2] + 1
 			end
 		end
-		saveFiles("Map")	
+		sTrack.saveFiles("Map")	
 	end
 	
 	--Track player data
@@ -365,16 +365,7 @@ local function intThink()
 		didSavePlayer = true
 		
 		local eloChanges = {}
-		local gameModeIndex = 10
-		if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
-			gameModeIndex = 12
-		elseif CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
-			if CV_FindVar("techonly") and CV_FindVar("techonly").value == 1 then
-				gameModeIndex = 10
-			else
-				gameModeIndex = 11
-			end				
-		end
+		local gameModeIndex = sTrack.getModeIndex()
 				
 		for pos, thisPlayer in pairs(playerOrder) do
 			for k, v in pairs(thisPlayer) do
@@ -394,7 +385,7 @@ local function intThink()
 					sTrack.globalPlayerData[v][9] = sTrack.globalPlayerData[v][9] + 1
 				end
 				
-				if notSpecialMode and sTrack.cv_enableks == 1 then							
+				if notSpecialMode and sTrack.cv_enableks.value == 1 then							
 					--Calculate ELO changes and store to save at the end
 					eloChanges[v] = 0				
 					for ePos, ePlayers in pairs(playerOrder) do
@@ -460,7 +451,7 @@ local function intThink()
 		--Notify players
 		for p in players.iterate do
 			if p.valid and p.mo ~= nil and p.mo.valid and eloChanges[p.name] ~= nil then
-				if sTrack.cv_showks == 0 then return end					
+				if sTrack.cv_showks.value == 0 then return end					
 				local changeFormatted = "\x85"..tostring(eloChanges[p.name])
 				if tonumber(eloChanges[p.name]) > 0 then
 					changeFormatted = "\x83+"..tostring(eloChanges[p.name])
@@ -468,13 +459,13 @@ local function intThink()
 				chatprintf(p, "\x82KS - "..tostring(sTrack.globalPlayerData[p.name][gameModeIndex]).." ("..changeFormatted.."\x82)", false)
 			end
 		end
-		saveFiles("Player")	
+		sTrack.saveFiles("Player")	
 	end
 	
 	if not didSaveTime then
 		didSaveTime = true
 		--Make sure no special game type is running
-		if notSpecialMode and sTrack.cv_enablerecords == 1 then
+		if notSpecialMode and sTrack.cv_enablerecords.value == 1 then
 			if sTrack.globalTimeData[tostring(gamemap)] == nil then
 				sTrack.globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
 			end
@@ -518,7 +509,7 @@ local function intThink()
 				end
 			end
 			
-			saveFiles("Time")	
+			sTrack.saveFiles("Time")	
 		end
 	end
 end
@@ -539,18 +530,9 @@ addHook("NetVars", netvars)
 --Intermission isn't a set up hud hook for Kart, so this will have to do without jamming in crazy hacks
 --If you do have crazy hacks, however, that concept may interest you
 local function interShowNewRecord(v)
-	if sTrack.cv_enabled == 0 then return end
-	if sTrack.cv_recordpopup == 1 and slideRun ~= "stop" then
-		local gameModeIndex = 10
-		if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
-			gameModeIndex = 12
-		elseif CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
-			if CV_FindVar("techonly") and CV_FindVar("techonly").value == 1 then
-				gameModeIndex = 10
-			else
-				gameModeIndex = 11
-			end				
-		end
+	if sTrack.cv_enabled.value == 0 or sTrack.cv_enablerecords.value == 0 then return end
+	if sTrack.cv_recordpopup.value == 1 and slideRun ~= "stop" then
+		local gameModeIndex = sTrack.getModeIndex()
 		
 		local stringTime = nil
 		local recordHolder = nil
@@ -623,33 +605,24 @@ hud.add(interShowNewRecord, game)
 
 --Draw map + mode's record below current time (if it exists)
 local function drawRecordTime(v, p)
-	if sTrack.cv_enabled == 0 or sTrack.cv_showtime == 0 then return end
+	if sTrack.cv_enabled.value == 0 or sTrack.cv_showtime.value == 0 or sTrack.cv_enablerecords.value == 0 then return end
 	
-	local gameModeIndex = 10
-	if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
-		gameModeIndex = 12
-	elseif CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
-		if CV_FindVar("techonly") and CV_FindVar("techonly").value == 1 then
-			gameModeIndex = 10
-		else
-			gameModeIndex = 11
-		end				
-	end
+	local gameModeIndex = sTrack.getModeIndex()
 	
 	local stringTime = nil
 	local recordHolder = nil
 	local recordSkin = nil
 	if sTrack.globalTimeData[tostring(gamemap)] ~= nil then
 		if gameModeIndex == 10 then
-			stringTime = buildTimeStringTable(sTrack.globalTimeData[tostring(gamemap)][1])
+			stringTime = sTrack.buildTimeStringTable(sTrack.globalTimeData[tostring(gamemap)][1])
 			recordHolder = sTrack.globalTimeData[tostring(gamemap)][2]
 			recordSkin = sTrack.globalTimeData[tostring(gamemap)][3]
 		elseif gameModeIndex == 11 then
-			stringTime = buildTimeStringTable(sTrack.globalTimeData[tostring(gamemap)][4])
+			stringTime = sTrack.buildTimeStringTable(sTrack.globalTimeData[tostring(gamemap)][4])
 			recordHolder = sTrack.globalTimeData[tostring(gamemap)][5]
 			recordSkin = sTrack.globalTimeData[tostring(gamemap)][6]
 		elseif gameModeIndex == 12 then
-			stringTime = buildTimeStringTable(sTrack.globalTimeData[tostring(gamemap)][7])
+			stringTime = sTrack.buildTimeStringTable(sTrack.globalTimeData[tostring(gamemap)][7])
 			recordHolder = sTrack.globalTimeData[tostring(gamemap)][8]
 			recordSkin = sTrack.globalTimeData[tostring(gamemap)][9]
 		end

@@ -316,7 +316,7 @@ local function think()
 		completedRun = allStopped	
 	end
 	
-	if notSpecialMode and completedRun and slideRun == "stop" then		
+	if notRunningSpecialGameType() and completedRun and slideRun == "stop" then		
 		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
 			local driftmodValue = 0
 			if CV_FindVar("driftnitro") then
@@ -543,15 +543,12 @@ local function intThink()
 		didMaint = true
 	end
 	
-	local notSpecialMode = true
+	local notSpecialMode = notRunningSpecialGameType()
 	
 	--Track skin usage
 	if not didSaveSkins then
 		--print("Updating skin use count...")
 		didSaveSkins = true
-		
-		--This gets set once here, and then checked by everything else
-		notSpecialMode = notRunningSpecialGameType()
 		
 		if notSpecialMode then
 			for p in players.iterate do

@@ -34,16 +34,16 @@ sTrack.cv_recordpopup = CV_RegisterVar({
 
 --Hides KS updates in player's chat
 sTrack.cv_showks = CV_RegisterVar ({
-	name = "st_showks"
+	name = "st_showks",
 	defaultvalue = 1,
-	PossibleValue = CV_OnOff
+	PossibleValue = CV_OnOff,
 })
 
 --Hides time on HUD
 sTrack.cv_showtime = CV_RegisterVar ({
-	name = "st_showtime"
+	name = "st_showtime",
 	defaultvalue = 1,
-	PossibleValue = CV_OnOff
+	PossibleValue = CV_OnOff,
 })
  
 --In game player data lookups
@@ -62,7 +62,7 @@ local function st_playerdata(p, ...)
 		
 		for pl in players.iterate do
 			if pl.valid and sTrack.globalPlayerData[pl.name] ~= nil then
-				if sTrack.cv_enableks == 1 then
+				if sTrack.cv_enableks.value == 1 then
 					CONS_Printf(p, "\x82"..pl.name.."\x84 "..sTrack.globalPlayerData[pl.name][gameModeIndex].." KS \x80|\x83 "..sTrack.globalPlayerData[pl.name][2].." wins \x80| "..sTrack.globalPlayerData[pl.name][1].." races")
 				else
 					CONS_Printf(p, "\x83 "..sTrack.globalPlayerData[pl.name][2].." wins \x80| "..sTrack.globalPlayerData[pl.name][1].." races")
@@ -82,7 +82,7 @@ local function st_playerdata(p, ...)
 			if forCounter > 10 then break end
 		end
 	elseif pTarget == "top ks" then
-		if sTrack.cv_enableks == 0 then
+		if sTrack.cv_enableks.value == 0 then
 			CONS_Printf(p, "This server has disabled KartScore.")
 		else
 			--Uses the current mode's KS
@@ -111,8 +111,15 @@ local function st_playerdata(p, ...)
 		local minutes = FixedFloor(((playtime % 3600) / 60) * FRACUNIT) / FRACUNIT
 		CONS_Printf(p, "\x83"..pTarget.." \x80- "..tostring(sTrack.globalPlayerData[pTarget][1]).." races")
 		CONS_Printf(p, "\x82"..tostring(sTrack.globalPlayerData[pTarget][2]).." 1st places \x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][8]).." 2nd places \x80| \x8D"..tostring(sTrack.globalPlayerData[pTarget][9]).." 3rd places")
-		if sTrack.cv_enableks == 1 then
-			CONS_Printf(p, "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." Vanilla/Tech \x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][11]).." Juicebox \x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." Nitro")
+		if sTrack.cv_enableks.value == 1 then
+			local kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." Vanilla/Tech"
+			if CV_FindVar("juicebox") then
+				kString = $ + "\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][11]).." Juicebox"
+			end
+			if CV_FindVar("driftnitro") then
+				kString = $ + "\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." Nitro"
+			end
+			CONS_Printf(p, kString)
 		end
 		CONS_Printf(p, tostring(sTrack.globalPlayerData[pTarget][3]).." item hits | \x85"..tostring(sTrack.globalPlayerData[pTarget][4]).." self or enviroment hits")
 		CONS_Printf(p, "\x82"..tostring(sTrack.globalPlayerData[pTarget][5]).." spinouts | \x87"..tostring(sTrack.globalPlayerData[pTarget][6]).." times exploded | \x84"..tostring(sTrack.globalPlayerData[pTarget][7]).." times squished")
@@ -166,15 +173,15 @@ local function st_mapdata(p, ...)
 		CONS_Printf(p, "\x82"..tostring(mapheaderinfo[mTarget].lvlttl).." ("..tostring(mTarget)..")")
 		CONS_Printf(p, "\x83"..tostring(sTrack.globalMapData[mTarget][1]).." plays | \x85"..tostring(sTrack.globalMapData[mTarget][2]).." RTVs")
 		
-		if sTrack.globalTimeData[mTarget] ~= nil and sTrack.cv_enablerecords == 1 then
+		if sTrack.globalTimeData[mTarget] ~= nil and sTrack.cv_enablerecords.value == 1 then
 			if sTrack.globalTimeData[mTarget][2] ~= "placeholder" then
-				CONS_Printf(p, "Vanilla/Tech Record : "..buildTimeString(globalTimeData[mTarget][1]).." by "..tostring(sTrack.globalTimeData[mTarget][2]))
+				CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(sTrack.globalTimeData[mTarget][1]).." by "..tostring(sTrack.globalTimeData[mTarget][2]))
 			end
 			if sTrack.globalTimeData[mTarget][5] ~= "placeholder" then
-				CONS_Printf(p, "Juicebox Record : "..buildTimeString(sTrack.globalTimeData[mTarget][4]).." by "..tostring(sTrack.globalTimeData[mTarget][5]))
+				CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(sTrack.globalTimeData[mTarget][4]).." by "..tostring(sTrack.globalTimeData[mTarget][5]))
 			end
 			if sTrack.globalTimeData[mTarget][8] ~= "placeholder" then
-				CONS_Printf(p, "Nitro Record : "..buildTimeString(sTrack.globalTimeData[mTarget][7]).." by "..tostring(sTrack.globalTimeData[mTarget][8]))
+				CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(sTrack.globalTimeData[mTarget][7]).." by "..tostring(sTrack.globalTimeData[mTarget][8]))
 			end
 		end
 	end
