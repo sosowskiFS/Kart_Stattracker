@@ -239,6 +239,7 @@ sTrack.notRunningSpecialGameType = function()
 		return false
 	end
 	
+	--SPB Attack is always "on" so this needs to check for more than 1 player playing
 	if CV_FindVar("spbatk") and CV_FindVar("spbatk").value == 1 then
 		local foundP = 0
 		for p in players.iterate do

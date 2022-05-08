@@ -1,9 +1,4 @@
---Add total unweighted use column to skin data
---Make data maintence check player skin use sheet and replace the entirety of the general skin data sheet
---Try to make multiple names save in the event of a tie record
-Ignore battle mode for time records at a minimum
-Add admin parameters to disable sections of code, or all of it.
---Clear out code that imports old versions of datasheets
-
-487 - use pairs on player tie checks
---Verify that k and eK are actually the player name, and that doesn't reside in v
+Add player's personal skin playcount to skin lookup
+minimize amount of lines that player console commands manipulate
+--silent mode - 0 disabled, 1 HUD disabled, 2 HUD & lookup commands disabled
+Test the rest of that shit

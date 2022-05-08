@@ -125,7 +125,7 @@ local function think()
 	
 	--Handles showing the sliding new record popup
 	--This would be better suited for intermission but there's no hud lua hook in there :(
-	if sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.notRunningSpecialGameType() and completedRun and slideRun == "stop" then
+	if sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.cv_silentmode.value == 0 and sTrack.notRunningSpecialGameType() and completedRun and slideRun == "stop" then
 		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
 			local cMode = sTrack.findCurrentMode()
 			
@@ -376,7 +376,7 @@ local function intThink()
 				--Increment 1st,2nd,3rd finish where appropriate
 				if pos == 1 then
 					sTrack.globalPlayerData[v][2] = sTrack.globalPlayerData[v][2] + 1
-					if sTrack.globalPlayerData[v][2] % 100 == 0 then
+					if sTrack.globalPlayerData[v][2] % 100 == 0 and sTrack.cv_silentmode.value == 0 then
 						chatprint('\130'..v..' has won '..tostring(globalPlayerData[v][2])..' times!', true)
 					end
 				elseif pos == 2 then
@@ -451,7 +451,7 @@ local function intThink()
 		--Notify players
 		for p in players.iterate do
 			if p.valid and p.mo ~= nil and p.mo.valid and eloChanges[p.name] ~= nil then
-				if sTrack.cv_showks.value == 0 then return end					
+				if sTrack.cv_showks.value == 0 or sTrack.cv_silentmode.value >= 1 then return end					
 				local changeFormatted = "\x85"..tostring(eloChanges[p.name])
 				if tonumber(eloChanges[p.name]) > 0 then
 					changeFormatted = "\x83+"..tostring(eloChanges[p.name])
@@ -530,8 +530,8 @@ addHook("NetVars", netvars)
 --Intermission isn't a set up hud hook for Kart, so this will have to do without jamming in crazy hacks
 --If you do have crazy hacks, however, that concept may interest you
 local function interShowNewRecord(v)
-	if sTrack.cv_enabled.value == 0 or sTrack.cv_enablerecords.value == 0 then return end
-	if sTrack.cv_recordpopup.value == 1 and slideRun ~= "stop" then
+	if sTrack.cv_recordpopup.value == 0 or sTrack.cv_enabled.value == 0 or sTrack.cv_enablerecords.value == 0 or sTrack.cv_silentmode.value >= 1 then return end
+	if slideRun ~= "stop" then
 		local gameModeIndex = sTrack.getModeIndex()
 		
 		local stringTime = nil
@@ -605,7 +605,7 @@ hud.add(interShowNewRecord, game)
 
 --Draw map + mode's record below current time (if it exists)
 local function drawRecordTime(v, p)
-	if sTrack.cv_enabled.value == 0 or sTrack.cv_showtime.value == 0 or sTrack.cv_enablerecords.value == 0 then return end
+	if sTrack.cv_enabled.value == 0 or sTrack.cv_showtime.value == 0 or sTrack.cv_enablerecords.value == 0 or sTrack.cv_silentmode.value >= 1 then return end
 	
 	local gameModeIndex = sTrack.getModeIndex()
 	

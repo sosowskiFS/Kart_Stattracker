@@ -24,6 +24,15 @@ sTrack.cv_enablerecords = CV_RegisterVar({
 	PossibleValue = CV_OnOff,
 })
 
+--0 - disabled, 1 - Hides HUD elements, 2 - Hides HUD elements and blocks data lookup commands
+sTrack.cv_silentmode = CV_RegisterVar({
+	name = "st_silentmode",
+	defaultvalue = 0,
+	flags = CV_NETVAR,
+	PossibleValue = {MIN = 0, MAX = 2},
+})
+
+
 --Player commands
 --Shows/Hides record time popup
 sTrack.cv_recordpopup = CV_RegisterVar({
@@ -48,6 +57,7 @@ sTrack.cv_showtime = CV_RegisterVar ({
  
 --In game player data lookups
 local function st_playerdata(p, ...)
+	if sTrack.cv_silentmode.value == 2 then return end
 	local pTarget = nil
 	if not ... then
 		--assume player is looking up themself
@@ -112,12 +122,15 @@ local function st_playerdata(p, ...)
 		CONS_Printf(p, "\x83"..pTarget.." \x80- "..tostring(sTrack.globalPlayerData[pTarget][1]).." races")
 		CONS_Printf(p, "\x82"..tostring(sTrack.globalPlayerData[pTarget][2]).." 1st places \x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][8]).." 2nd places \x80| \x8D"..tostring(sTrack.globalPlayerData[pTarget][9]).." 3rd places")
 		if sTrack.cv_enableks.value == 1 then
-			local kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." Vanilla/Tech"
+			local kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." Vanilla "
+			if CV_FindVar("techonly") then
+				kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." Vanilla/Tech "
+			end
 			if CV_FindVar("juicebox") then
-				kString = $ + "\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][11]).." Juicebox"
+				kString = $ + "\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][11]).." Juicebox "
 			end
 			if CV_FindVar("driftnitro") then
-				kString = $ + "\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." Nitro"
+				kString = $ + "\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." Nitro "
 			end
 			CONS_Printf(p, kString)
 		end
@@ -129,6 +142,7 @@ end
 COM_AddCommand("st_playerdata", st_playerdata)
 
 local function st_mapdata(p, ...)
+	if sTrack.cv_silentmode.value == 2 then return end
 	local mTarget = nil
 	if not ... then
 		--assume player is looking up current map
@@ -175,7 +189,11 @@ local function st_mapdata(p, ...)
 		
 		if sTrack.globalTimeData[mTarget] ~= nil and sTrack.cv_enablerecords.value == 1 then
 			if sTrack.globalTimeData[mTarget][2] ~= "placeholder" then
-				CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(sTrack.globalTimeData[mTarget][1]).." by "..tostring(sTrack.globalTimeData[mTarget][2]))
+				if CV_FindVar("techonly") then
+					CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(sTrack.globalTimeData[mTarget][1]).." by "..tostring(sTrack.globalTimeData[mTarget][2]))
+				else
+					CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(sTrack.globalTimeData[mTarget][1]).." by "..tostring(sTrack.globalTimeData[mTarget][2]))
+				end				
 			end
 			if sTrack.globalTimeData[mTarget][5] ~= "placeholder" then
 				CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(sTrack.globalTimeData[mTarget][4]).." by "..tostring(sTrack.globalTimeData[mTarget][5]))
@@ -189,6 +207,7 @@ end
 COM_AddCommand("st_mapdata", st_mapdata)
 
 local function st_skindata(p, ...)
+	if sTrack.cv_silentmode.value == 2 then return end
 	local sTarget = nil
 	if not ... then
 		--assume player is looking at their current skin
@@ -227,6 +246,9 @@ local function st_skindata(p, ...)
 		end
 		
 		CONS_Printf(p, tostring(sTrack.globalSkinData[sTarget][1]).." weighted uses, "..tostring(sTrack.globalSkinData[sTarget][3]).." total uses")
+		if sTrack.globalPlayerSkinUseData[p.name] ~= nil and sTrack.globalPlayerSkinUseData[p.name][sTarget] ~= nil then
+			CONS_Printf(p, "You've used this character "..tostring(sTrack.globalPlayerSkinUseData[p.name][sTarget]).." times")
+		end
 	end
 end
 COM_AddCommand("st_skindata", st_skindata)
