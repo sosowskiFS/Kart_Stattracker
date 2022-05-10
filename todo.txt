@@ -1,4 +1,2 @@
-Add player's personal skin playcount to skin lookup
-minimize amount of lines that player console commands manipulate
---silent mode - 0 disabled, 1 HUD disabled, 2 HUD & lookup commands disabled
-Test the rest of that shit
+Seperated time saves for encore mode runs
+Put disconnectors/rage speccers into the ELO calculations (toggleable)
