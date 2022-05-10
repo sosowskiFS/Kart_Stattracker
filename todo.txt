@@ -1,2 +1,3 @@
 Seperated time saves for encore mode runs
 Put disconnectors/rage speccers into the ELO calculations (toggleable)
+Make ELO minimum exchange 1 instead of 0
