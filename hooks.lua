@@ -211,14 +211,18 @@ local function intThink()
 	if sTrack.cv_enabled.value == 0 then return end
 	--Data maintenance
 	if didMaint == false then
-		--Repopulate the skin sheet using the player skin usage sheet
-		sTrack.globalSkinData = {}
+		--Reset use values to 0 in globalSkinData, repopulate it from player skin use data
+		for k, v in pairs(sTrack.globalSkinData)
+			sTrack.globalSkinData[k][1] = 0
+			sTrack.globalSkinData[k][3] = 0
+		end
+		
 		--globalPlayerSkinUseData["PlayerName"]["SkinName"]
 		local playerSkinUseReference = sTrack.globalPlayerSkinUseData
 		for k, v in pairs(playerSkinUseReference)
 			--I need the skin's name here
 			for k2, v2 in pairs(playerSkinUseReference[k])
-				if skins[k2] == nil then
+				if sTrack.cv_wiperemovedaddons.value == 1 and skins[k2] == nil then
 					--This skin doesn't exist anymore and can be removed
 					sTrack.globalPlayerSkinUseData[k][k2] = nil
 				else
@@ -232,11 +236,15 @@ local function intThink()
 					end			
 					
 					if sTrack.globalSkinData[k2] == nil then
-						sTrack.globalSkinData[k2] = {weightedUse, skins[k2].realname, v2}
+						if skins[k2] == nil then
+							sTrack.globalSkinData[k2] = {weightedUse, "Removed Skin", v2}
+						else
+							sTrack.globalSkinData[k2] = {weightedUse, skins[k2].realname, v2}
+						end					
 					else
 						sTrack.globalSkinData[k2][1] = $ + weightedUse
 						sTrack.globalSkinData[k2][3] = $ + v2
-					end
+					end		
 				end				
 			end
 		end
@@ -250,7 +258,7 @@ local function intThink()
 		--Delete removed skins
 		local skinReference = sTrack.globalSkinData
 		for k, v in pairs(skinReference) do
-			if skins[k] == nil then
+			if sTrack.cv_wiperemovedaddons.value == 1 and skins[k] == nil then
 				sTrack.globalSkinData[k] = nil
 			elseif skins[k] ~= nil and v[2] == "Removed Skin" then
 				--Fix broken record
@@ -262,7 +270,7 @@ local function intThink()
 		for i=1,1035,1 do
 			if mapheaderinfo[tostring(i)] ~= nil and sTrack.globalMapData[tostring(i)] == nil then
 				sTrack.globalMapData[tostring(i)] = {0, 0, mapheaderinfo[tostring(i)].lvlttl}
-			elseif mapheaderinfo[tostring(i)] == nil and sTrack.globalMapData[tostring(i)] ~= nil then
+			elseif sTrack.cv_wiperemovedaddons.value == 1 and mapheaderinfo[tostring(i)] == nil and sTrack.globalMapData[tostring(i)] ~= nil then
 				sTrack.globalMapData[tostring(i)] = nil
 			end
 			

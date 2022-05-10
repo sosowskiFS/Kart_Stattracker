@@ -32,6 +32,14 @@ sTrack.cv_silentmode = CV_RegisterVar({
 	PossibleValue = {MIN = 0, MAX = 2},
 })
 
+--Toggle to remove wiped characters/maps during data maintenance
+sTrack.cv_wiperemovedaddons = CV_RegisterVar({
+	name = "st_wiperemovedaddons",
+	defaultvalue = 0,
+	flags = CV_NETVAR,
+	PossibleValue = CV_OnOff,
+})
+
 
 --Player commands
 --Shows/Hides record time popup
