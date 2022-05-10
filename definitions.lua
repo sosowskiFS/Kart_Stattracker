@@ -146,6 +146,7 @@ local function _savePSkinUseFunc()
 		end
 		f:write(key, ";", assembledString, "\n")
 	end
+	f:close()
 end
 
 --Global functions
