@@ -220,7 +220,6 @@ local function intThink()
 		--globalPlayerSkinUseData["PlayerName"]["SkinName"]
 		local playerSkinUseReference = sTrack.globalPlayerSkinUseData
 		for k, v in pairs(playerSkinUseReference)
-			--I need the skin's name here
 			for k2, v2 in pairs(playerSkinUseReference[k])
 				if sTrack.cv_wiperemovedaddons.value == 1 and skins[k2] == nil then
 					--This skin doesn't exist anymore and can be removed
@@ -397,7 +396,6 @@ local function intThink()
 					--Calculate ELO changes and store to save at the end
 					eloChanges[v] = 0				
 					for ePos, ePlayers in pairs(playerOrder) do
-						--for e=1,5,1 do
 						for eK, eV in pairs(ePlayers)
 							--Ignore the same position
 							if eV ~= nil and pos ~= ePos then		
