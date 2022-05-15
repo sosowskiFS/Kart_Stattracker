@@ -89,6 +89,10 @@ local function think()
 		
 		for p in players.iterate do
 			if p.valid and p.mo ~= nil and p.mo.valid then
+				--Note player as currently racing
+				if p.inRace == nil or p.inRace == false then
+					p.inRace = true
+				end			
 				if p.exiting == 0 then
 					if p.pflags & PF_TIMEOVER then
 						--Someone DNF'd. Mark them down.
@@ -118,6 +122,16 @@ local function think()
 						recordedPlayers[p.name] = 1
 					end		
 				end
+			elseif p.valid and p.mo == nil and p.inRace == true and leveltime > 6*TICRATE + (3*TICRATE/4) + (20*TICRATE) then
+				--This looks like a ragespec
+				if playerOrder[40] == nil then
+					playerOrder[40] = {p.name}
+				elseif playerOrder[40] ~= nil then
+					table.insert(playerOrder[40], p.name)
+				end
+				p.inRace = false
+			elseif p.valid and p.mo == nil then
+				p.inRace = false
 			end
 		end		
 		completedRun = allStopped	
@@ -125,8 +139,8 @@ local function think()
 	
 	--Handles showing the sliding new record popup
 	--This would be better suited for intermission but there's no hud lua hook in there :(
-	if sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.cv_silentmode.value == 0 and sTrack.notRunningSpecialGameType() and completedRun and slideRun == "stop" then
-		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
+	if sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.cv_silentmode.value == 0 and completedRun and slideRun == "stop" then
+		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil and sTrack.notRunningSpecialGameType(playerOrder) then
 			local cMode = sTrack.findCurrentMode()
 			
 			--Check for ties
@@ -200,6 +214,14 @@ local function durMapChange()
 	rPlayerHolder = nil
 	rSkinHolder = nil
 	rSkinColorHolder = nil
+	
+	for p in players.iterate do
+		if p.valid and p.mo ~= nil then
+			p.inRace = true
+		elseif p.valid then
+			p.inRace = false
+		end
+	end
 end
 addHook("MapChange", durMapChange)
 
@@ -282,7 +304,7 @@ local function intThink()
 		sTrack.didMaint = true
 	end
 	
-	local notSpecialMode = sTrack.notRunningSpecialGameType()
+	local notSpecialMode = sTrack.notRunningSpecialGameType(playerOrder)
 	
 	--Track skin usage
 	if not didSaveSkins then
@@ -398,9 +420,8 @@ local function intThink()
 					for ePos, ePlayers in pairs(playerOrder) do
 						for eK, eV in pairs(ePlayers)
 							--Ignore the same position
-							if eV ~= nil and pos ~= ePos then		
-								sTrack.checkNilPlayer(eV)
-								
+							if eV ~= nil and pos ~= ePos then						
+								sTrack.checkNilPlayer(eV)							
 								if pos < ePos then
 									--Players you beat
 									--positive = lower rank, negative = higher rank
@@ -408,8 +429,8 @@ local function intThink()
 									local rankChange = 5						
 									if rankDif > 0 then
 										rankChange = rankChange - rankDif
-										if rankChange < 0 then
-											rankChange = 0
+										if rankChange < 1 then
+											rankChange = 1
 										end
 									elseif rankDif < 0 then
 										--Absolute value of rankDif
@@ -426,8 +447,8 @@ local function intThink()
 									elseif rankDif < 0 then
 										--Lost to someone with higher rank, cap max change at 500 diff							
 										rankChange = rankChange + abs(rankDif)
-										if rankChange > 0 then
-											rankChange = 0
+										if rankChange > 1 then
+											rankChange = 1
 										end
 									end
 									

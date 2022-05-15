@@ -216,7 +216,7 @@ sTrack.getModeIndex = function()
 	return gameModeIndex
 end
 
-sTrack.notRunningSpecialGameType = function()
+sTrack.notRunningSpecialGameType = function(pOrder)
 	--These are gamemodes that abuse the race timer and make messy records
 	
 	if G_BattleGametype() then
@@ -240,21 +240,22 @@ sTrack.notRunningSpecialGameType = function()
 		return false
 	end
 	
-	--SPB Attack is always "on" so this needs to check for more than 1 player playing
-	if CV_FindVar("spbatk") and CV_FindVar("spbatk").value == 1 then
-		local foundP = 0
-		for p in players.iterate do
-			if p.valid and p.mo ~= nil and p.mo.valid then
-				foundP = foundP + 1
-				if foundP > 1 then
-					--print("More than 1 playing, exiting")
-					break
-				end
-			end	
-		end
-		if foundP <= 1 then
-			return false
-		end
+	--Freeplay gets boots every item.....that's not quite fair for a multiplayer record now is it
+	local foundP = 0
+	if pOrder and pOrder[40] ~= nil then
+		--Make sure ragespeccer is accounted for if only 2 were playing
+		foundP = $ + 1
+	end
+	for p in players.iterate do
+		if p.valid and p.mo ~= nil and p.mo.valid then
+			foundP = $ + 1
+			if foundP > 1 then
+				return true
+			end
+		end	
+	end
+	if foundP == 1 then
+		return false
 	end
 	
 	return true
