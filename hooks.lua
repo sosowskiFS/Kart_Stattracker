@@ -406,7 +406,7 @@ local function intThink()
 				if pos == 1 then
 					sTrack.globalPlayerData[v][2] = sTrack.globalPlayerData[v][2] + 1
 					if sTrack.globalPlayerData[v][2] % 100 == 0 and sTrack.cv_silentmode.value == 0 then
-						chatprint('\130'..v..' has won '..tostring(globalPlayerData[v][2])..' times!', true)
+						chatprint('\130'..v..' has won '..tostring(sTrack.globalPlayerData[v][2])..' times!', true)
 					end
 				elseif pos == 2 then
 					sTrack.globalPlayerData[v][8] = sTrack.globalPlayerData[v][8] + 1
