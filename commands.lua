@@ -150,6 +150,12 @@ local function st_playerdata(p, ...)
 			if CV_FindVar("driftnitro") then
 				kString = $ + "\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." Nitro "
 			end
+			if CV_FindVar("elimination") then
+				kString = $ + "\x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][13]).." Elimination "
+			end
+			if CV_FindVar("combi_active") then
+				kString = $ + "\x80| \x87"..tostring(sTrack.globalPlayerData[pTarget][14]).." Combi "
+			end
 			CONS_Printf(p, kString)
 		end
 		CONS_Printf(p, tostring(sTrack.globalPlayerData[pTarget][3]).." item hits | \x85"..tostring(sTrack.globalPlayerData[pTarget][4]).." self or enviroment hits")

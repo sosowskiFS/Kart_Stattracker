@@ -44,17 +44,17 @@ local p = io.open("Playerdata.txt", "r")
 if p then
 	--do I really have to explain this to you three times
 	for l in p:lines() do
-		local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, bElo, eElo, cElo = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+		local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 
 		--print(pName)
 		if pName then
 			--print("in")
-			sTrack.globalPlayerData[pName] = {mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, bElo, eElo, cElo}
+			sTrack.globalPlayerData[pName] = {mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo}
 		else
 			--Attempt to parse & update old record
 			local LpName, LmapsPlayed, Lwins, Lhits, LselfHits, Lspinned, Lexploded, Lsquished, Lsecond, Lthird, Lelo, LjElo, LnElo = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 			if LpName then
-				sTrack.globalPlayerData[LpName] = {LmapsPlayed, Lwins, Lhits, LselfHits, Lspinned, Lexploded, Lsquished, Lsecond, Lthird, Lelo, LjElo, LnElo, 1500, 1500, 1500}
+				sTrack.globalPlayerData[LpName] = {LmapsPlayed, Lwins, Lhits, LselfHits, Lspinned, Lexploded, Lsquished, Lsecond, Lthird, Lelo, LjElo, LnElo, 1500, 1500}
 			end
 		end
 	end
@@ -123,10 +123,10 @@ end
 
 local function _savePlayerFunc()
 	local f = assert(io.open("Playerdata.txt", "w"))
-	--{mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo}
+	--{mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo}
 	for key, value in pairs(sTrack.globalPlayerData) do
 		if key:find(";") then continue end -- sanity check
-		f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], ";", value[10], ";", value[11], ";", value[12], "\n")
+		f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], ";", value[10], ";", value[11], ";", value[12], ";", value[13], ";", value[14], "\n")
 	end
 	f:close()	
 end
@@ -191,7 +191,7 @@ end
 sTrack.checkNilPlayer = function(name)
 	--Cleaner to just throw this here since I have to do it so much
 	if sTrack.globalPlayerData[name] == nil then
-		sTrack.globalPlayerData[name] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1500, 1500, 1500, 1500, 1500, 1500}
+		sTrack.globalPlayerData[name] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1500, 1500, 1500, 1500, 1500}
 	end
 end
 
@@ -227,12 +227,11 @@ sTrack.getModeIndex = function()
 	
 	--These modes override the above modes
 	if CV_FindVar("elimination") and CV_FindVar("elimination").value == 1 then
-		gameModeIndex = 14	
-	elseif CV_FindVar("combi_active") and CV_FindVar("combi_active").value == 1 then
-		gameModeIndex = 15
-	elseif G_BattleGametype() then
 		gameModeIndex = 13
+	elseif CV_FindVar("combi_active") and CV_FindVar("combi_active").value == 1 then
+		gameModeIndex = 14
 	end
+	print("Index - "..tostring(gameModeIndex))
 	return gameModeIndex
 end
 
@@ -276,7 +275,7 @@ end
 
 sTrack.isKSSupportedMode = function()
 	--These are things that aren't supported with the current position calculation
-	if battleplus ~= nil and G_BattleGametype() then
+	if G_BattleGametype() then
 		return false
 	end
 	

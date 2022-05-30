@@ -450,32 +450,18 @@ local function think()
 	--Race is over, recalculate everyone's position in case of jankpoints
 	if completedRun and playerOrder[1] == nil then
 		local posPointer = 0
-		if G_BattleGametype() then
-			--Special consideration for battle mode
-			for p in players.iterate do
-				if p.valid and p.mo ~= nil and p.mo.valid then
-					if playerOrder[p.kartstuff[k_position]] == nil then
-						playerOrder[p.kartstuff[k_position]] = {p.name}
-					elseif playerOrder[p.kartstuff[k_position]] ~= nil then
-						--This is a tie, for some reason
-						table.insert(playerOrder[p.kartstuff[k_position]], p.name)
-					end		
-				end
-			end
-		else
-			local lastTime = 0
-			for k,v in sTrack.spairs(timeList, function(t,a,b) return tonumber(t[b]) > tonumber(t[a]) end) do
-				--k = playername, v = realtime
-				if lastTime == v and playerOrder[posPointer] ~= nil then
-					--This is a tie
-					table.insert(playerOrder[posPointer], k)
-				else
-					posPointer = $ + 1
-					playerOrder[posPointer] = {k}	
-				end		
-				lastTime = v
-				print(tostring(posPointer).." - "..k)
-			end
+		local lastTime = 0
+		for k,v in sTrack.spairs(timeList, function(t,a,b) return tonumber(t[b]) > tonumber(t[a]) end) do
+			--k = playername, v = realtime
+			if lastTime == v and playerOrder[posPointer] ~= nil then
+				--This is a tie
+				table.insert(playerOrder[posPointer], k)
+			else
+				posPointer = $ + 1
+				playerOrder[posPointer] = {k}	
+			end		
+			lastTime = v
+			--print(tostring(posPointer).." - "..k)
 		end
 		
 		--Add DNFs		
@@ -490,7 +476,7 @@ local function think()
 			else
 				table.insert(playerOrder[posPointer], k)
 			end
-			print("DNF - "..k)
+			--print("DNF - "..k)
 		end
 		
 		--Add Ragespecs
@@ -505,7 +491,7 @@ local function think()
 			if CV_FindVar("elimination") and CV_FindVar("elimination").value == 1 then
 				posPointer = $ + 1
 			end
-			print("Rage - "..k)
+			--print("Rage - "..k)
 		end
 	end
 	
