@@ -162,7 +162,8 @@ local function intThink()
 		sTrack.didMaint = true
 	end
 	
-	local notSpecialMode = sTrack.notRunningSpecialGameType(playerOrder)
+	local hasTimeSupport = sTrack.isTimeSupportedMode(playerOrder)
+	local hasKSSupport = sTrack.isKSSupportedMode()
 	
 	--Track skin usage
 	if not didSaveSkins then
@@ -269,7 +270,7 @@ local function intThink()
 					sTrack.globalPlayerData[v][9] = sTrack.globalPlayerData[v][9] + 1
 				end
 				
-				if notSpecialMode and sTrack.cv_enableks.value == 1 then							
+				if hasKSSupport and sTrack.cv_enableks.value == 1 then							
 					--Calculate ELO changes and store to save at the end
 					sTrack.ksChanges[v] = 0				
 					for ePos, ePlayers in pairs(playerOrder) do
@@ -347,7 +348,7 @@ local function intThink()
 	if not didSaveTime then
 		didSaveTime = true
 		--Make sure no special game type is running
-		if notSpecialMode and sTrack.cv_enablerecords.value == 1 then
+		if hasTimeSupport and sTrack.cv_enablerecords.value == 1 then
 			if sTrack.globalTimeData[tostring(gamemap)] == nil then
 				sTrack.globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
 			end
@@ -449,21 +450,35 @@ local function think()
 	--Race is over, recalculate everyone's position in case of jankpoints
 	if completedRun and playerOrder[1] == nil then
 		local posPointer = 0
-		local lastTime = 0
-		for k,v in sTrack.spairs(timeList, function(t,a,b) return tonumber(t[b]) > tonumber(t[a]) end) do
-			--k = playername, v = realtime
-			if lastTime == v and playerOrder[posPointer] ~= nil then
-				--This is a tie
-				table.insert(playerOrder[posPointer], k)
-			else
-				posPointer = $ + 1
-				playerOrder[posPointer] = {k}	
-			end		
-			lastTime = v
+		if G_BattleGametype() then
+			--Special consideration for battle mode
+			for p in players.iterate do
+				if p.valid and p.mo ~= nil and p.mo.valid then
+					if playerOrder[p.kartstuff[k_position]] == nil then
+						playerOrder[p.kartstuff[k_position]] = {p.name}
+					elseif playerOrder[p.kartstuff[k_position]] ~= nil then
+						--This is a tie, for some reason
+						table.insert(playerOrder[p.kartstuff[k_position]], p.name)
+					end		
+				end
+			end
+		else
+			local lastTime = 0
+			for k,v in sTrack.spairs(timeList, function(t,a,b) return tonumber(t[b]) > tonumber(t[a]) end) do
+				--k = playername, v = realtime
+				if lastTime == v and playerOrder[posPointer] ~= nil then
+					--This is a tie
+					table.insert(playerOrder[posPointer], k)
+				else
+					posPointer = $ + 1
+					playerOrder[posPointer] = {k}	
+				end		
+				lastTime = v
+				print(tostring(posPointer).." - "..k)
+			end
 		end
 		
-		--Add DNFs
-		
+		--Add DNFs		
 		local dnfAdded = false
 		for k, v in pairs(DNFList)
 			if dnfAdded == false then
@@ -475,6 +490,7 @@ local function think()
 			else
 				table.insert(playerOrder[posPointer], k)
 			end
+			print("DNF - "..k)
 		end
 		
 		--Add Ragespecs
@@ -488,14 +504,15 @@ local function think()
 			end
 			if CV_FindVar("elimination") and CV_FindVar("elimination").value == 1 then
 				posPointer = $ + 1
-			end		
+			end
+			print("Rage - "..k)
 		end
 	end
 	
 	--Handles showing the sliding new record popup
 	--This would be better suited for intermission but there's no hud lua hook in there :(
 	if sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.cv_silentmode.value == 0 and completedRun and slideRun == "stop" and hmIntermission == false then
-		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil and sTrack.notRunningSpecialGameType(playerOrder) then
+		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil and sTrack.isTimeSupportedMode(playerOrder) then
 			--Check for ties
 			local winList = ""
 			for k, v in pairs(playerOrder[1])

@@ -44,12 +44,18 @@ local p = io.open("Playerdata.txt", "r")
 if p then
 	--do I really have to explain this to you three times
 	for l in p:lines() do
-		local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+		local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, bElo, eElo, cElo = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 
 		--print(pName)
 		if pName then
 			--print("in")
-			sTrack.globalPlayerData[pName] = {mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo}
+			sTrack.globalPlayerData[pName] = {mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, bElo, eElo, cElo}
+		else
+			--Attempt to parse & update old record
+			local LpName, LmapsPlayed, Lwins, Lhits, LselfHits, Lspinned, Lexploded, Lsquished, Lsecond, Lthird, Lelo, LjElo, LnElo = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+			if LpName then
+				sTrack.globalPlayerData[LpName] = {LmapsPlayed, Lwins, Lhits, LselfHits, Lspinned, Lexploded, Lsquished, Lsecond, Lthird, Lelo, LjElo, LnElo, 1500, 1500, 1500}
+			end
 		end
 	end
 	p:close()
@@ -185,7 +191,7 @@ end
 sTrack.checkNilPlayer = function(name)
 	--Cleaner to just throw this here since I have to do it so much
 	if sTrack.globalPlayerData[name] == nil then
-		sTrack.globalPlayerData[name] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1500, 1500, 1500}
+		sTrack.globalPlayerData[name] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1500, 1500, 1500, 1500, 1500, 1500}
 	end
 end
 
@@ -206,6 +212,8 @@ sTrack.findCurrentMode = function()
 end
 
 sTrack.getModeIndex = function()
+	--returns a pointer to the current mode's KS
+	--bElo 13, eElo 14, cElo 15
 	local gameModeIndex = 10
 	if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
 		gameModeIndex = 12
@@ -216,12 +224,20 @@ sTrack.getModeIndex = function()
 			gameModeIndex = 11
 		end				
 	end
+	
+	--These modes override the above modes
+	if CV_FindVar("elimination") and CV_FindVar("elimination").value == 1 then
+		gameModeIndex = 14	
+	elseif CV_FindVar("combi_active") and CV_FindVar("combi_active").value == 1 then
+		gameModeIndex = 15
+	elseif G_BattleGametype() then
+		gameModeIndex = 13
+	end
 	return gameModeIndex
 end
 
-sTrack.notRunningSpecialGameType = function(pOrder)
-	--These are gamemodes that abuse the race timer and make messy records
-	
+sTrack.isTimeSupportedMode = function(pOrder)
+	--Check for gamemodes that mess with the timer
 	if G_BattleGametype() then
 		return false
 	end
@@ -252,6 +268,24 @@ sTrack.notRunningSpecialGameType = function(pOrder)
 		end
 	end
 	if foundP == 1 then
+		return false
+	end
+	
+	return true
+end
+
+sTrack.isKSSupportedMode = function()
+	--These are things that aren't supported with the current position calculation
+	if battleplus ~= nil and G_BattleGametype() then
+		return false
+	end
+	
+	--Friendmod
+	if CV_FindVar("fr_enabled") and CV_FindVar("fr_enabled").value == 1 then
+		return false
+	end
+	
+	if CV_FindVar("frontrun_enabled") and CV_FindVar("frontrun_enabled").value == 1 then
 		return false
 	end
 	
