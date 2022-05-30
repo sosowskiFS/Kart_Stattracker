@@ -231,7 +231,6 @@ sTrack.getModeIndex = function()
 	elseif CV_FindVar("combi_active") and CV_FindVar("combi_active").value == 1 then
 		gameModeIndex = 14
 	end
-	print("Index - "..tostring(gameModeIndex))
 	return gameModeIndex
 end
 
