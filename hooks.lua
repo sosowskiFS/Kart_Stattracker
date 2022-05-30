@@ -67,10 +67,15 @@ addHook("PlayerSquish", playerSquish)
 local completedRun = false
 local didSaveSkins = false
 local playerOrder = {}
-local recordedPlayers = {}
+local timeList = {}
+local DNFList = {}
+local RSList = {}
+local hmIntermission = false
 local didSaveMap = false
 local didSavePlayer = false
 local didSaveTime = false
+local cMode = sTrack.findCurrentMode()
+local gameModeIndex = sTrack.getModeIndex()
 
 --HUD Display stuff
 local recordSkinColor = nil
@@ -80,153 +85,6 @@ local rTimeHolder = nil
 local rPlayerHolder = nil
 local rSkinHolder = nil
 local rSkinColorHolder = nil
-
-local function think()
-	if sTrack.cv_enabled.value == 0 then return end
-	
-	if not completedRun then
-		local allStopped = true
-		
-		for p in players.iterate do
-			if p.valid and p.mo ~= nil and p.mo.valid then
-				--Note player as currently racing
-				if p.inRace == nil or p.inRace == false then
-					p.inRace = true
-				end			
-				if p.exiting == 0 then
-					if p.pflags & PF_TIMEOVER then
-						--Someone DNF'd. Mark them down.
-						if recordedPlayers[p.name] == nil then
-							if playerOrder[p.kartstuff[k_position]] == nil then
-								playerOrder[p.kartstuff[k_position]] = {p.name}
-							elseif playerOrder[p.kartstuff[k_position]] ~= nil then
-								--2 players finished on the same tic, this is a tie
-								table.insert(playerOrder[p.kartstuff[k_position]], p.name)
-							end					
-							recordedPlayers[p.name] = 1
-						end
-					else
-						--Someone is still running
-						allStopped = false
-					end
-				elseif p.exiting ~= 0 then
-					--Someone stopped. Determine if winner and mark finished players.
-					--Store names for each position as a table in case of ties
-					if recordedPlayers[p.name] == nil then
-						if playerOrder[p.kartstuff[k_position]] == nil then
-							playerOrder[p.kartstuff[k_position]] = {p.name}
-						elseif playerOrder[p.kartstuff[k_position]] ~= nil then
-							--2 players finished on the same tic, this is a tie
-							table.insert(playerOrder[p.kartstuff[k_position]], p.name)
-						end					
-						recordedPlayers[p.name] = 1
-					end		
-				end
-			elseif p.valid and p.mo == nil and p.inRace == true and leveltime > 6*TICRATE + (3*TICRATE/4) + (20*TICRATE) then
-				--This looks like a ragespec
-				if playerOrder[40] == nil then
-					playerOrder[40] = {p.name}
-				elseif playerOrder[40] ~= nil then
-					table.insert(playerOrder[40], p.name)
-				end
-				p.inRace = false
-			elseif p.valid and p.mo == nil then
-				p.inRace = false
-			end
-		end		
-		completedRun = allStopped	
-	end
-	
-	--Handles showing the sliding new record popup
-	--This would be better suited for intermission but there's no hud lua hook in there :(
-	if sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.cv_silentmode.value == 0 and completedRun and slideRun == "stop" then
-		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil and sTrack.notRunningSpecialGameType(playerOrder) then
-			local cMode = sTrack.findCurrentMode()
-			
-			--Check for ties
-			local winList = ""
-			for k, v in pairs(playerOrder[1])
-				if winList == "" then
-					winList = v
-				else
-					winList = $.." & "..v
-				end				
-			end
-			
-			for p in players.iterate do
-				if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
-					if sTrack.globalTimeData[tostring(gamemap)] == nil then
-						sTrack.globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
-					end
-					if cMode == 2 then
-						if p.realtime < tonumber(sTrack.globalTimeData[tostring(gamemap)][7]) then
-							rTimeHolder = p.realtime
-							rPlayerHolder = winList
-							rSkinHolder = p.mo.skin
-							rSkinColorHolder = p.skincolor
-							slideRun = "left"
-							--chatprint('\130NEW NITRO MAP RECORD!', true)
-							K_PlayPowerGloatSound(p.mo)
-						end	
-					elseif cMode == 1 then
-						if p.realtime < tonumber(sTrack.globalTimeData[tostring(gamemap)][4]) then
-							rTimeHolder = p.realtime
-							rPlayerHolder = winList
-							rSkinHolder = p.mo.skin
-							rSkinColorHolder = p.skincolor
-							slideRun = "left"
-							--chatprint('\130NEW JUICEBOX MAP RECORD!', true)
-							K_PlayPowerGloatSound(p.mo)
-						end	
-					else
-						if p.realtime < tonumber(sTrack.globalTimeData[tostring(gamemap)][1]) then
-							rTimeHolder = p.realtime
-							rPlayerHolder = winList
-							rSkinHolder = p.mo.skin
-							rSkinColorHolder = p.skincolor
-							slideRun = "left"
-							--chatprint('\130NEW MAP RECORD!', true)
-							K_PlayPowerGloatSound(p.mo)
-						end
-					end
-				end
-			end	
-		end
-	end
-end
-addHook("ThinkFrame", think)
-
---Reset all vars on map change
-local function durMapChange()
-	didSaveSkins = false
-	completedRun = false
-	playerOrder = {}
-	recordedPlayers = {}
-	didSaveMap = false
-	didSavePlayer = false
-	didSaveTime = false
-	
-	recordSkinColor = nil
-	slideValue = -50
-	slideRun = "stop"
-	
-	rTimeHolder = nil
-	rPlayerHolder = nil
-	rSkinHolder = nil
-	rSkinColorHolder = nil
-	
-	for p in players.iterate do
-		if p.valid and p.mo ~= nil then
-			p.inRace = true
-		elseif p.valid then
-			p.inRace = false
-		end
-	end
-end
-addHook("MapChange", durMapChange)
-
---This is only ever set to true so it runs once. 
-local didMaint = false
 
 --This is where all the calculations and saving happens
 local function intThink()
@@ -392,9 +250,6 @@ local function intThink()
 	--Track player data
 	if not didSavePlayer then
 		didSavePlayer = true
-		
-		local eloChanges = {}
-		local gameModeIndex = sTrack.getModeIndex()
 				
 		for pos, thisPlayer in pairs(playerOrder) do
 			for k, v in pairs(thisPlayer) do
@@ -416,7 +271,7 @@ local function intThink()
 				
 				if notSpecialMode and sTrack.cv_enableks.value == 1 then							
 					--Calculate ELO changes and store to save at the end
-					eloChanges[v] = 0				
+					sTrack.ksChanges[v] = 0				
 					for ePos, ePlayers in pairs(playerOrder) do
 						for eK, eV in pairs(ePlayers)
 							--Ignore the same position
@@ -437,7 +292,7 @@ local function intThink()
 										rankChange = rankChange + abs(rankDif)
 									end
 									
-									eloChanges[v] = eloChanges[v] + rankChange
+									sTrack.ksChanges[v] = sTrack.ksChanges[v] + rankChange
 								else
 									--players you lost to
 									local rankDif = (sTrack.globalPlayerData[v][gameModeIndex] - sTrack.globalPlayerData[eV][gameModeIndex]) / 100
@@ -452,7 +307,7 @@ local function intThink()
 										end
 									end
 									
-									eloChanges[v] = eloChanges[v] + rankChange
+									sTrack.ksChanges[v] = sTrack.ksChanges[v] + rankChange
 								end
 							end
 						end
@@ -461,8 +316,8 @@ local function intThink()
 			end			
 		end
 		
-		--Loop through and apply all ELO changes
-		for player, change in pairs(eloChanges) do
+		--Loop through and apply all KartScore changes
+		for player, change in pairs(sTrack.ksChanges) do
 			if player ~= nil then
 				--muh sanity
 				sTrack.checkNilPlayer(player)
@@ -477,11 +332,11 @@ local function intThink()
 		
 		--Notify players
 		for p in players.iterate do
-			if p.valid and p.mo ~= nil and p.mo.valid and eloChanges[p.name] ~= nil then
+			if p.valid and p.mo ~= nil and p.mo.valid and sTrack.ksChanges[p.name] ~= nil then
 				if sTrack.cv_showks.value == 0 or sTrack.cv_silentmode.value >= 1 then return end					
-				local changeFormatted = "\x85"..tostring(eloChanges[p.name])
-				if tonumber(eloChanges[p.name]) > 0 then
-					changeFormatted = "\x83+"..tostring(eloChanges[p.name])
+				local changeFormatted = "\x85"..tostring(sTrack.ksChanges[p.name])
+				if tonumber(sTrack.ksChanges[p.name]) > 0 then
+					changeFormatted = "\x83+"..tostring(sTrack.ksChanges[p.name])
 				end
 				chatprintf(p, "\x82KS - "..tostring(sTrack.globalPlayerData[p.name][gameModeIndex]).." ("..changeFormatted.."\x82)", false)
 			end
@@ -497,9 +352,6 @@ local function intThink()
 				sTrack.globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
 			end
 			
-			--Determine what mods are running
-			local thisMode = sTrack.findCurrentMode()
-			
 			if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
 				--Loop though the first position to condense names in case of ties
 				local winList = ""
@@ -513,13 +365,13 @@ local function intThink()
 				
 				for p in players.iterate do
 					if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
-						if thisMode == 2 then
+						if cMode == 2 then
 							if p.realtime < tonumber(sTrack.globalTimeData[tostring(gamemap)][7]) then
 								sTrack.globalTimeData[tostring(gamemap)][7] = p.realtime
 								sTrack.globalTimeData[tostring(gamemap)][8] = winList
 								sTrack.globalTimeData[tostring(gamemap)][9] = p.mo.skin
 							end	
-						elseif thisMode == 1 then
+						elseif cMode == 1 then
 							if p.realtime < tonumber(sTrack.globalTimeData[tostring(gamemap)][4]) then
 								sTrack.globalTimeData[tostring(gamemap)][4] = p.realtime
 								sTrack.globalTimeData[tostring(gamemap)][5] = winList
@@ -542,6 +394,205 @@ local function intThink()
 end
 addHook("IntermissionThinker", intThink)
 
+local function think()
+	if sTrack.cv_enabled.value == 0 then return end
+	
+	if not completedRun then
+		local allStopped = true
+		
+		for p in players.iterate do
+			if p.valid and p.mo ~= nil and p.mo.valid then
+				--Note player as currently racing
+				if p.inRace == nil or p.inRace == false then
+					p.inRace = true
+				end			
+				if p.exiting == 0 then
+					if p.pflags & PF_TIMEOVER then
+						--Someone DNF'd. Mark them down.
+						if timeList[p.name] == nil and DNFList[p.name] == nil then
+							DNFList[p.name] = true
+						end
+					else
+						--Someone is still running
+						allStopped = false
+					end
+				elseif p.exiting ~= 0 then
+					--Someone stopped. Determine if winner and mark finished players.
+					if timeList[p.name] == nil then
+						timeList[p.name] = p.realtime
+					end		
+				end
+			elseif p.valid and p.mo == nil and p.inRace == true and leveltime > 6*TICRATE + (3*TICRATE/4) + (20*TICRATE) then
+				--This looks like a ragespec
+				if RSList[p.name] == nil then
+					--Save time since elimination triggers this for the guy that blew up in last
+					RSList[p.name] = p.realtime
+				end
+				p.inRace = false
+			elseif p.valid and p.mo == nil then
+				p.inRace = false
+			end
+			
+			--Intermission score increase is hardcoded, the add won't match in vanilla
+			--[[			
+			if sTrack.cv_scoreboardKS.value == 1 and p.scoreSet == nil then
+				--Replace player's score with the current mode's KS
+				sTrack.checkNilPlayer(p.name)
+				p.score = sTrack.globalPlayerData[p.name][gameModeIndex]
+				p.scoreSet = true
+			end
+			]]--
+		end		
+		completedRun = allStopped
+	end
+	
+	--Race is over, recalculate everyone's position in case of jankpoints
+	if completedRun and playerOrder[1] == nil then
+		local posPointer = 0
+		local lastTime = 0
+		for k,v in sTrack.spairs(timeList, function(t,a,b) return tonumber(t[b]) > tonumber(t[a]) end) do
+			--k = playername, v = realtime
+			if lastTime == v and playerOrder[posPointer] ~= nil then
+				--This is a tie
+				table.insert(playerOrder[posPointer], k)
+			else
+				posPointer = $ + 1
+				playerOrder[posPointer] = {k}	
+			end		
+			lastTime = v
+		end
+		
+		--Add DNFs
+		
+		local dnfAdded = false
+		for k, v in pairs(DNFList)
+			if dnfAdded == false then
+				posPointer = $ + 1
+				dnfAdded = true
+			end
+			if playerOrder[posPointer] == nil then
+				playerOrder[posPointer] = {k}
+			else
+				table.insert(playerOrder[posPointer], k)
+			end
+		end
+		
+		--Add Ragespecs
+		--Some special considerations for elim here
+		posPointer = $ + 1
+		for k, v in sTrack.spairs(RSList, function(t,a,b) return tonumber(t[b]) < tonumber(t[a]) end) do
+			if playerOrder[posPointer] == nil then
+				playerOrder[posPointer] = {k}
+			else
+				table.insert(playerOrder[posPointer], k)
+			end
+			if CV_FindVar("elimination") and CV_FindVar("elimination").value == 1 then
+				posPointer = $ + 1
+			end		
+		end
+	end
+	
+	--Handles showing the sliding new record popup
+	--This would be better suited for intermission but there's no hud lua hook in there :(
+	if sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.cv_silentmode.value == 0 and completedRun and slideRun == "stop" and hmIntermission == false then
+		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil and sTrack.notRunningSpecialGameType(playerOrder) then
+			--Check for ties
+			local winList = ""
+			for k, v in pairs(playerOrder[1])
+				if winList == "" then
+					winList = v
+				else
+					winList = $.." & "..v
+				end				
+			end
+			
+			for p in players.iterate do
+				if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
+					if sTrack.globalTimeData[tostring(gamemap)] == nil then
+						sTrack.globalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+					end
+					if cMode == 2 then
+						if p.realtime < tonumber(sTrack.globalTimeData[tostring(gamemap)][7]) then
+							rTimeHolder = p.realtime
+							rPlayerHolder = winList
+							rSkinHolder = p.mo.skin
+							rSkinColorHolder = p.skincolor
+							slideRun = "left"
+							--chatprint('\130NEW NITRO MAP RECORD!', true)
+							K_PlayPowerGloatSound(p.mo)
+						end	
+					elseif cMode == 1 then
+						if p.realtime < tonumber(sTrack.globalTimeData[tostring(gamemap)][4]) then
+							rTimeHolder = p.realtime
+							rPlayerHolder = winList
+							rSkinHolder = p.mo.skin
+							rSkinColorHolder = p.skincolor
+							slideRun = "left"
+							--chatprint('\130NEW JUICEBOX MAP RECORD!', true)
+							K_PlayPowerGloatSound(p.mo)
+						end	
+					else
+						if p.realtime < tonumber(sTrack.globalTimeData[tostring(gamemap)][1]) then
+							rTimeHolder = p.realtime
+							rPlayerHolder = winList
+							rSkinHolder = p.mo.skin
+							rSkinColorHolder = p.skincolor
+							slideRun = "left"
+							--chatprint('\130NEW MAP RECORD!', true)
+							K_PlayPowerGloatSound(p.mo)
+						end
+					end
+				end
+			end	
+		end
+	end
+	
+	--Special handling for fake intermission
+	if not (hm_intermissioncalc and hm_intermissioncalc()) then return end
+	hmIntermission = true
+    intThink()
+end
+addHook("ThinkFrame", think)
+
+--Reset all vars on map change
+local function durMapChange()
+	didSaveSkins = false
+	completedRun = false
+	playerOrder = {}
+	timeList = {}
+	DNFList = {}
+	RSList = {}
+	hmIntermission = false
+	didSaveMap = false
+	didSavePlayer = false
+	didSaveTime = false	
+	
+	recordSkinColor = nil
+	slideValue = -50
+	slideRun = "stop"
+	
+	rTimeHolder = nil
+	rPlayerHolder = nil
+	rSkinHolder = nil
+	rSkinColorHolder = nil
+	
+	for p in players.iterate do
+		if p.valid and p.mo ~= nil then
+			p.inRace = true
+		elseif p.valid then
+			p.inRace = false
+		end
+	end
+	
+	sTrack.ksChanges = {}
+	cMode = sTrack.findCurrentMode()
+	gameModeIndex = sTrack.getModeIndex()
+end
+addHook("MapChange", durMapChange)
+
+--This is only ever set to true so it runs once. 
+local didMaint = false
+
 --This makes data accessable by players
 local function netvars(net)
 	sTrack.globalSkinData = net($)
@@ -558,9 +609,8 @@ addHook("NetVars", netvars)
 --If you do have crazy hacks, however, that concept may interest you
 local function interShowNewRecord(v)
 	if sTrack.cv_recordpopup.value == 0 or sTrack.cv_enabled.value == 0 or sTrack.cv_enablerecords.value == 0 or sTrack.cv_silentmode.value >= 1 then return end
-	if slideRun ~= "stop" then
-		local gameModeIndex = sTrack.getModeIndex()
-		
+	if slideRun ~= "stop" and hmIntermission == true then slideRun = "stop" end
+	if slideRun ~= "stop" then		
 		local stringTime = nil
 		local recordHolder = nil
 		local recordSkin = nil
@@ -633,8 +683,6 @@ hud.add(interShowNewRecord, game)
 --Draw map + mode's record below current time (if it exists)
 local function drawRecordTime(v, p)
 	if sTrack.cv_enabled.value == 0 or sTrack.cv_showtime.value == 0 or sTrack.cv_enablerecords.value == 0 or sTrack.cv_silentmode.value >= 1 then return end
-	
-	local gameModeIndex = sTrack.getModeIndex()
 	
 	local stringTime = nil
 	local recordHolder = nil

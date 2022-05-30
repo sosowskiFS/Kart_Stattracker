@@ -40,6 +40,16 @@ sTrack.cv_wiperemovedaddons = CV_RegisterVar({
 	PossibleValue = CV_OnOff,
 })
 
+--Toggle to replace in game score count with KartScore
+--Intermission score increase is hardcoded, the add won't match in vanilla
+--[[
+sTrack.cv_scoreboardKS = CV_RegisterVar({
+	name = "st_scoreboardKS",
+	defaultvalue = 0,
+	flags = CV_NETVAR,
+	PossibleValue = CV_OnOff,
+})
+]]--
 
 --Player commands
 --Shows/Hides record time popup
