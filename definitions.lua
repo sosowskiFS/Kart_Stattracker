@@ -8,6 +8,7 @@ sTrack.globalPlayerSkinUseData = {}
 --This table is only populated during intermission, code wisely.
 --sTrack.ksChanges[playerName] = totalChange (numeric)
 sTrack.ksChanges = {}
+sTrack.lastGamespeed = gamespeed
 
 --Load data into tables
 local f = io.open("Skincounter.txt", "r")
@@ -60,17 +61,7 @@ if p then
 	end
 	p:close()
 end
-local f = io.open("Timerecords.txt", "r")
-if f then
-	--Vanilla/Tech records, juicebox records, Nitro records
-	for l in f:lines() do
-		local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-		if mapName then
-			sTrack.globalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
-		end
-	end
-	f:close()
-end
+
 local f = io.open("pSkinUse.txt", "r")
 if f then
 	--Skin usage per player
@@ -133,13 +124,65 @@ end
 
 local function _saveTimeFunc()
 	--{time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
-	local f = assert(io.open("Timerecords.txt", "w"))
+	--local f = assert(io.open("Timerecords.txt", "w"))
+	local f = nil
+	if sTrack.lastGamespeed  == 0 then
+		f = assert(io.open("EasyRecords.txt", "w"))
+	elseif sTrack.lastGamespeed  == 1 then
+		f = assert(io.open("NormalRecords.txt", "w"))
+	elseif sTrack.lastGamespeed  == 2 then
+		f = assert(io.open("HardRecords.txt", "w"))
+	end
 	for key, value in pairs(sTrack.globalTimeData) do
 		if value[2]:find(";") or value[5]:find(";") or value[8]:find(";") then continue end -- sanity check
 		f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
 	end
 	f:close()
 end
+
+--This is randomly in this section since it calls the above function
+sTrack.reloadTimeRecords = function()
+	print("in reloadTimeRecords")
+	
+	sTrack.globalTimeData = {}
+	local f = nil
+	if gamespeed == 0 then
+		f = io.open("EasyRecords.txt", "r")
+	elseif gamespeed == 1 then
+		f = io.open("NormalRecords.txt", "r")
+	elseif gamespeed == 2 then
+		f = io.open("HardRecords.txt", "r")
+	end
+
+	local didLegacyRecordLoad = false
+	if f == nil then
+		--Attempt to load depreciated record file
+		f = io.open("Timerecords.txt", "r")
+		didLegacyRecordLoad = true
+	end
+	if f then
+		--Vanilla/Tech records, juicebox records, Nitro records
+		for l in f:lines() do
+			local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+			if mapName then
+				sTrack.globalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+			end
+		end
+		f:close()
+		
+		if didLegacyRecordLoad then
+			--Save the old records as hard speed
+			if consoleplayer ~= server then return end
+			sTrack.lastGamespeed = 2
+			if not pcall(_saveTimeFunc) then
+				print("Failed to save legacy time file!")
+			end	
+			sTrack.lastGamespeed = gamespeed
+		end
+	end
+end
+--Call it once immediately
+sTrack.reloadTimeRecords()
 
 local function _savePSkinUseFunc()
 	--{player, {SkinData}}

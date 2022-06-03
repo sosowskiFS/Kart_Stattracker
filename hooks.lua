@@ -587,6 +587,14 @@ local function durMapChange()
 		end
 	end
 	
+	if sTrack.lastGamespeed ~= gamespeed then
+		--Save records as old gamespeed
+		sTrack.saveFiles("Time")
+		sTrack.lastGamespeed = gamespeed
+		--Load file of new gamespeed
+		sTrack.reloadTimeRecords()	
+	end
+	
 	sTrack.ksChanges = {}
 	cMode = sTrack.findCurrentMode()
 	gameModeIndex = sTrack.getModeIndex()
