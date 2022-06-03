@@ -522,7 +522,10 @@ local function think()
 							rSkinColorHolder = p.skincolor
 							slideRun = "left"
 							--chatprint('\130NEW NITRO MAP RECORD!', true)
-							K_PlayPowerGloatSound(p.mo)
+							--K_PlayPowerGloatSound(p.mo)
+							--p.mo.skin.soundsid[SKSGLOAT] or p.mo.skin.soundsid[sfx_kgloat]?
+							--sfx_kgloat? Check a character pack for skin sounds, maybe the variable name is in there.
+							S_StartSound(nil, p.mo.skin.soundsid[sfx_kgloat])
 						end	
 					elseif cMode == 1 then
 						if p.realtime < tonumber(sTrack.globalTimeData[tostring(gamemap)][4]) then
@@ -532,7 +535,8 @@ local function think()
 							rSkinColorHolder = p.skincolor
 							slideRun = "left"
 							--chatprint('\130NEW JUICEBOX MAP RECORD!', true)
-							K_PlayPowerGloatSound(p.mo)
+							--K_PlayPowerGloatSound(p.mo)
+							S_StartSound(nil, p.mo.skin.soundsid[sfx_kgloat])
 						end	
 					else
 						if p.realtime < tonumber(sTrack.globalTimeData[tostring(gamemap)][1]) then
@@ -542,7 +546,8 @@ local function think()
 							rSkinColorHolder = p.skincolor
 							slideRun = "left"
 							--chatprint('\130NEW MAP RECORD!', true)
-							K_PlayPowerGloatSound(p.mo)
+							--K_PlayPowerGloatSound(p.mo)
+							S_StartSound(nil, p.mo.skin.soundsid[sfx_kgloat])
 						end
 					end
 				end
