@@ -524,8 +524,8 @@ local function think()
 							--chatprint('\130NEW NITRO MAP RECORD!', true)
 							--K_PlayPowerGloatSound(p.mo)
 							--p.mo.skin.soundsid[SKSGLOAT] or p.mo.skin.soundsid[sfx_kgloat]?
-							--sfx_kgloat? Check a character pack for skin sounds, maybe the variable name is in there.
-							S_StartSound(nil, p.mo.skin.soundsid[sfx_kgloat])
+							--SKSKPOWR from the source code
+							S_StartSound(nil, p.mo.skin.soundsid[SKSKPOWR])
 						end	
 					elseif cMode == 1 then
 						if p.realtime < tonumber(sTrack.globalTimeData[tostring(gamemap)][4]) then
@@ -536,7 +536,7 @@ local function think()
 							slideRun = "left"
 							--chatprint('\130NEW JUICEBOX MAP RECORD!', true)
 							--K_PlayPowerGloatSound(p.mo)
-							S_StartSound(nil, p.mo.skin.soundsid[sfx_kgloat])
+							S_StartSound(nil, p.mo.skin.soundsid[SKSKPOWR])
 						end	
 					else
 						if p.realtime < tonumber(sTrack.globalTimeData[tostring(gamemap)][1]) then
@@ -547,7 +547,7 @@ local function think()
 							slideRun = "left"
 							--chatprint('\130NEW MAP RECORD!', true)
 							--K_PlayPowerGloatSound(p.mo)
-							S_StartSound(nil, p.mo.skin.soundsid[sfx_kgloat])
+							S_StartSound(nil, p.mo.skin.soundsid[SKSKPOWR])
 						end
 					end
 				end
