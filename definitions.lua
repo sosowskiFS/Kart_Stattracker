@@ -126,11 +126,11 @@ local function _saveTimeFunc()
 	--{time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
 	--local f = assert(io.open("Timerecords.txt", "w"))
 	local f = nil
-	if sTrack.lastGamespeed  == 0 then
+	if sTrack.lastGamespeed == 0 then
 		f = assert(io.open("EasyRecords.txt", "w"))
-	elseif sTrack.lastGamespeed  == 1 then
+	elseif sTrack.lastGamespeed == 1 then
 		f = assert(io.open("NormalRecords.txt", "w"))
-	elseif sTrack.lastGamespeed  == 2 then
+	elseif sTrack.lastGamespeed == 2 then
 		f = assert(io.open("HardRecords.txt", "w"))
 	end
 	for key, value in pairs(sTrack.globalTimeData) do
@@ -142,8 +142,6 @@ end
 
 --This is randomly in this section since it calls the above function
 sTrack.reloadTimeRecords = function()
-	print("in reloadTimeRecords")
-	
 	sTrack.globalTimeData = {}
 	local f = nil
 	if gamespeed == 0 then
@@ -159,6 +157,15 @@ sTrack.reloadTimeRecords = function()
 		--Attempt to load depreciated record file
 		f = io.open("Timerecords.txt", "r")
 		didLegacyRecordLoad = true
+		
+		--Write blank placeholders for each speed so this block isn't hit again
+		if consoleplayer ~= server then return end
+		local g = assert(io.open("EasyRecords.txt", "w"))
+		g:close()
+		local h = assert(io.open("NormalRecords.txt", "w"))
+		h:close()
+		local j = assert(io.open("HardRecords.txt", "w"))
+		j:close()
 	end
 	if f then
 		--Vanilla/Tech records, juicebox records, Nitro records
