@@ -1,1 +1,7 @@
-Test combi, elim, and normal battle for KS
+Don't use MapLoad in general
+[2:46 PM]
+Detect for tic 1 in a thinkframe (edited)
+[2:47 PM]
+MapLoad was the source of strange desync bugs since iirc if you spectate and rejoin that can cause funkiness
+[2:47 PM]
+Since at the time MapLoad is called players.iterate doesn't think they're a valid mobj
