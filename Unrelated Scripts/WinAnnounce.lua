@@ -1,3 +1,5 @@
+rawset(_G, "gxChar", {}) --Global namespace so other scripts can see some stuff
+
 --CHANGE ME
 --Write in all of your sounds here
 --ex your sound file in the pack is DSLAST1, write "sfx_last1" here
@@ -6,7 +8,7 @@ freeslot("sfx_sdndth","sfx_last1","sfx_last2","sfx_last3","sfx_last4","sfx_last5
 --CHANGE ME
 --Remember, use the internal skin name here! Not the display name. Find it in a skin's S_SKIN file in their respective package. You want the stuff after "name = "
 --Format: name = soundID
-local announceList = {sonic = sfx_kc3d, racer2 = sfx_kc3d, racer3 = sfx_kc3d }
+gxChar.announceList = {sonic = sfx_kc3d, racer2 = sfx_kc3d, racer3 = sfx_kc3d }
 	
 --Variables to make this do the thing
 local announcedRaceWinner = false
@@ -88,9 +90,9 @@ local function think()
 		--Have to loop through players again to find our winner
 		for p in players.iterate do
 			--Check if this is the player and also if there's a sound file for their skin
-			if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name and announceList[p.mo.skin] ~= nil
-				S_StartSound(nil, announceList[p.mo.skin], p)
-				S_StartSoundAtVolume(nil, announceList[p.mo.skin], 155)
+			if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name and gxChar.announceList[p.mo.skin] ~= nil
+				S_StartSound(nil, gxChar.announceList[p.mo.skin], p)
+				S_StartSoundAtVolume(nil, gxChar.announceList[p.mo.skin], 155)
 			end
 		end
 	end
