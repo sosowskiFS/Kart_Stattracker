@@ -16,7 +16,7 @@ local timeToAnnounce = nil
 
 --CHANGE ME
 --Play around with this to change when the win announcement happens!
-local announceDelay = 1000
+local announceDelay = 3*TICRATE
 	
 --Sorts data in a table
 local function spairs(t, order)
@@ -82,7 +82,7 @@ local function think()
 	end
 
 	--If winner found, announce it
-	if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil and announcedRaceWinner == false and leveltime < timeToAnnounce then
+	if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil and announcedRaceWinner == false and leveltime >= timeToAnnounce then
 		--Set this immediately so in case of error it doesn't blow people's ears out
 		announcedRaceWinner = true
 		--Have to loop through players again to find our winner
