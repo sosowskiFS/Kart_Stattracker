@@ -303,8 +303,8 @@ local function intThink()
 									elseif rankDif < 0 then
 										--Lost to someone with higher rank, cap max change at 500 diff							
 										rankChange = rankChange + abs(rankDif)
-										if rankChange > 1 then
-											rankChange = 1
+										if rankChange > -1 then
+											rankChange = -1
 										end
 									end
 									

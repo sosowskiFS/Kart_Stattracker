@@ -351,8 +351,8 @@ local function intThink()
 									elseif rankDif < 0 then
 										--Lost to someone with higher rank, cap max change at 500 diff							
 										rankChange = rankChange + abs(rankDif)
-										if rankChange > 1 then
-											rankChange = 1
+										if rankChange > -1 then
+											rankChange = -1
 										end
 									end
 									
@@ -376,7 +376,7 @@ local function intThink()
 				--add the increment, update the score
 				for p in players.iterate do
 					if p.valid and p.mo ~= nil and p.mo.valid and p.name == player					
-						p.score = sTrack.globalPlayerData[player][gameModeIndex]
+						p.score = sTrack.globalPlayerData[player][gameModeIndex] - change
 						p.interpoints = change
 						--print(p.name.." - Score : "..tostring(p.score).." - Increase : "..tostring(p.interpoints))
 					end
@@ -494,7 +494,7 @@ local function think()
 				p.inRace = false
 			end
 			
-			if p.scoreSet == nil then
+			if p.valid and p.mo ~= nil and p.mo.valid and p.scoreSet == nil then
 				--Replace player's score with the current mode's KS
 				sTrack.checkNilPlayer(p.name)
 				p.score = sTrack.globalPlayerData[p.name][gameModeIndex]
