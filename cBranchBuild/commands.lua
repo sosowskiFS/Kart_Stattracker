@@ -40,6 +40,14 @@ sTrack.cv_wiperemovedaddons = CV_RegisterVar({
 	PossibleValue = CV_OnOff,
 })
 
+--KS Calculations debug display
+sTrack.cv_ksdebug = CV_RegisterVar({
+	name = "st_ksdebug",
+	defaultvalue = 0,
+	flags = CV_NETVAR,
+	PossibleValue = CV_OnOff,
+})
+
 --Toggle to replace in game score count with KartScore
 --Intermission score increase is hardcoded, the add won't match in vanilla
 --[[

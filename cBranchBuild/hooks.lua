@@ -320,7 +320,9 @@ local function intThink()
 				
 				if hasKSSupport and sTrack.cv_enableks.value == 1 then							
 					--Calculate ELO changes and store to save at the end
-					sTrack.ksChanges[v] = 0				
+					sTrack.ksChanges[v] = 0
+					local beatPlayers = ""
+					local lostPlayers = ""
 					for ePos, ePlayers in pairs(playerOrder) do
 						for eK, eV in pairs(ePlayers)
 							--Ignore the same position
@@ -342,6 +344,7 @@ local function intThink()
 									end
 									
 									sTrack.ksChanges[v] = sTrack.ksChanges[v] + rankChange
+									beatPlayers = beatPlayers.." "..eV.." "..tostring(sTrack.globalPlayerData[eV][gameModeIndex]).."("..tostring(rankChange)..")"
 								else
 									--players you lost to
 									local rankDif = (sTrack.globalPlayerData[v][gameModeIndex] - sTrack.globalPlayerData[eV][gameModeIndex]) / 100
@@ -357,10 +360,14 @@ local function intThink()
 									end
 									
 									sTrack.ksChanges[v] = sTrack.ksChanges[v] + rankChange
+									lostPlayers = lostPlayers.." "..eV.." "..tostring(sTrack.globalPlayerData[eV][gameModeIndex]).."("..tostring(rankChange)..")"
 								end
 							end
 						end
 					end
+					if sTrack.cv_ksdebug.value == 1 then
+						print(v..","..tostring(sTrack.globalPlayerData[v][gameModeIndex]).."("..tostring(sTrack.ksChanges[v])..") | \x83"..beatPlayers.." | \x85"..lostPlayers)
+					end				
 				end
 			end			
 		end
@@ -370,17 +377,19 @@ local function intThink()
 			if player ~= nil then
 				--muh sanity
 				sTrack.checkNilPlayer(player)
-				--print(player.." - "..tostring(change))
-				sTrack.globalPlayerData[player][gameModeIndex] = sTrack.globalPlayerData[player][gameModeIndex] + change
-				
+				--print(player.." - "..tostring(change))	
 				--add the increment, update the score
 				for p in players.iterate do
 					if p.valid and p.mo ~= nil and p.mo.valid and p.name == player					
-						p.score = sTrack.globalPlayerData[player][gameModeIndex] - change
-						p.interpoints = change
+						p.interpoints = change					
+						if p.score ~= sTrack.globalPlayerData[p.name][gameModeIndex] then
+							p.score = sTrack.globalPlayerData[p.name][gameModeIndex]
+						end
 						--print(p.name.." - Score : "..tostring(p.score).." - Increase : "..tostring(p.interpoints))
 					end
 				end
+				
+				sTrack.globalPlayerData[player][gameModeIndex] = sTrack.globalPlayerData[player][gameModeIndex] + change
 				
 				if sTrack.globalPlayerData[player][gameModeIndex] < 0 then
 					--If you manage to hit 0 in an ELO system I'm legitimately impressed
