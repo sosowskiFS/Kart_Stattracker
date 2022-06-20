@@ -3,12 +3,13 @@ rawset(_G, "sTrack", {}) -- Stat Tracker global namespace
 sTrack.globalSkinData = {}
 sTrack.globalMapData = {}
 sTrack.globalPlayerData = {}
-sTrack.globalTimeData = {}
+sTrack.globalEasyTimeData = {}
+sTrack.globalNormalTimeData = {}
+sTrack.globalHardTimeData = {}
 sTrack.globalPlayerSkinUseData = {}
 --This table is only populated during intermission, code wisely.
 --sTrack.ksChanges[playerName] = totalChange (numeric)
 sTrack.ksChanges = {}
-sTrack.lastGamespeed = gamespeed
 
 --Load data into tables
 local f = io.open("Skincounter.txt", "r")
@@ -92,46 +93,40 @@ if q then
 	q:close()
 end
 
-local t = nil
-if gamespeed == 0 then
-	t = io.open("EasyRecords.txt", "r")
-elseif gamespeed == 1 then
-	t = io.open("NormalRecords.txt", "r")
-elseif gamespeed == 2 then
-	t = io.open("HardRecords.txt", "r")
-end
+local t = io.open("EasyRecords.txt", "r")
 if t then
 	--Vanilla/Tech records, juicebox records, Nitro records
 	for l in t:lines() do
 		local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 		if mapName then
-			sTrack.globalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+			sTrack.globalEasyTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
 		end
 	end
 	t:close()
 end
 
-sTrack.reloadTimeRecords = function()
-	sTrack.globalTimeData = {}
-	local m = nil
-	if gamespeed == 0 then
-		m = io.open("EasyRecords.txt", "r")
-	elseif gamespeed == 1 then
-		m = io.open("NormalRecords.txt", "r")
-	elseif gamespeed == 2 then
-		m = io.open("HardRecords.txt", "r")
-	end
-
-	if m then
-		--Vanilla/Tech records, juicebox records, Nitro records
-		for l in m:lines() do
-			local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			if mapName then
-				sTrack.globalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
-			end
+local n = io.open("NormalRecords.txt", "r")
+if n then
+	--Vanilla/Tech records, juicebox records, Nitro records
+	for l in n:lines() do
+		local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+		if mapName then
+			sTrack.globalNormalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
 		end
-		m:close()
 	end
+	n:close()
+end
+
+local h = io.open("HardRecords.txt", "r")
+if h then
+	--Vanilla/Tech records, juicebox records, Nitro records
+	for l in h:lines() do
+		local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+		if mapName then
+			sTrack.globalHardTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+		end
+	end
+	h:close()
 end
 
 --You can't pcall functions with parameters unless the function is written inside of that, I guess
@@ -164,24 +159,6 @@ local function _savePlayerFunc()
 	f:close()	
 end
 
-local function _saveTimeFunc()
-	--{time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
-	--local f = assert(io.open("Timerecords.txt", "w"))
-	local f = nil
-	if sTrack.lastGamespeed == 0 then
-		f = assert(io.open("EasyRecords.txt", "w"))
-	elseif sTrack.lastGamespeed == 1 then
-		f = assert(io.open("NormalRecords.txt", "w"))
-	elseif sTrack.lastGamespeed == 2 then
-		f = assert(io.open("HardRecords.txt", "w"))
-	end
-	for key, value in pairs(sTrack.globalTimeData) do
-		if value[2]:find(";") or value[5]:find(";") or value[8]:find(";") then continue end -- sanity check
-		f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
-	end
-	f:close()
-end
-
 local function _savePSkinUseFunc()
 	--{player, {SkinData}}
 	--SkinData is reformatted to be stored as plaintext
@@ -196,6 +173,33 @@ local function _savePSkinUseFunc()
 		end
 		f:write(key, ";", assembledString, "\n")
 	end
+	f:close()
+end
+
+local function _saveTimeFunc()
+	--{time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+	--local f = assert(io.open("Timerecords.txt", "w"))
+	local f = nil
+	if gamespeed == 0 then
+		f = assert(io.open("EasyRecords.txt", "w"))
+		for key, value in pairs(sTrack.globalEasyTimeData) do
+			if value[2]:find(";") or value[5]:find(";") or value[8]:find(";") then continue end -- sanity check
+			f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
+		end
+	elseif gamespeed == 1 then
+		f = assert(io.open("NormalRecords.txt", "w"))
+		for key, value in pairs(sTrack.globalNormalTimeData) do
+			if value[2]:find(";") or value[5]:find(";") or value[8]:find(";") then continue end -- sanity check
+			f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
+		end
+	elseif gamespeed == 2 then
+		f = assert(io.open("HardRecords.txt", "w"))
+		for key, value in pairs(sTrack.globalHardTimeData) do
+			if value[2]:find(";") or value[5]:find(";") or value[8]:find(";") then continue end -- sanity check
+			f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
+		end
+	end
+	
 	f:close()
 end
 
