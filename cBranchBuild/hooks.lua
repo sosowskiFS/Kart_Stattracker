@@ -162,6 +162,17 @@ local function intThink()
 		sTrack.didMaint = true
 	end
 	
+	--checks to see if more than 1 player is playing for various increments
+	local foundP = 0
+	for p in players.iterate do
+		if p.valid and p.mo ~= nil and p.mo.valid then
+			foundP = foundP + 1
+			if foundP > 1 then
+				break
+			end
+		end	
+	end
+	
 	--Figures out if a record popup should display
 	if sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.cv_silentmode.value == 0 and slideRun == "stop" then
 		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil and sTrack.isTimeSupportedMode(playerOrder) then
@@ -272,16 +283,6 @@ local function intThink()
 		--doing an isolated check here for SPBAttack because this inflates RTV count quite a bit
 		local doUseSaves = true
 		if CV_FindVar("spbatk") and CV_FindVar("spbatk").value == 1 then
-			local foundP = 0
-			for p in players.iterate do
-				if p.valid and p.mo ~= nil and p.mo.valid then
-					foundP = foundP + 1
-					if foundP > 1 then
-						--print("More than 1 playing, exiting")
-						break
-					end
-				end	
-			end
 			if foundP <= 1 then
 				doUseSaves = false
 			end
@@ -314,15 +315,17 @@ local function intThink()
 				sTrack.globalPlayerData[v][1] = sTrack.globalPlayerData[v][1] + 1
 				
 				--Increment 1st,2nd,3rd finish where appropriate
-				if pos == 1 then
-					sTrack.globalPlayerData[v][2] = sTrack.globalPlayerData[v][2] + 1
-					if sTrack.globalPlayerData[v][2] % 100 == 0 and sTrack.cv_silentmode.value == 0 then
-						chatprint('\130'..v..' has won '..tostring(sTrack.globalPlayerData[v][2])..' times!', true)
+				if foundP > 1 then
+					if pos == 1 then
+						sTrack.globalPlayerData[v][2] = sTrack.globalPlayerData[v][2] + 1
+						if sTrack.globalPlayerData[v][2] % 100 == 0 and sTrack.cv_silentmode.value == 0 then
+							chatprint('\130'..v..' has won '..tostring(sTrack.globalPlayerData[v][2])..' times!', true)
+						end
+					elseif pos == 2 then
+						sTrack.globalPlayerData[v][8] = sTrack.globalPlayerData[v][8] + 1
+					elseif pos == 3 then
+						sTrack.globalPlayerData[v][9] = sTrack.globalPlayerData[v][9] + 1
 					end
-				elseif pos == 2 then
-					sTrack.globalPlayerData[v][8] = sTrack.globalPlayerData[v][8] + 1
-				elseif pos == 3 then
-					sTrack.globalPlayerData[v][9] = sTrack.globalPlayerData[v][9] + 1
 				end
 				
 				if hasKSSupport and sTrack.cv_enableks.value == 1 then							
@@ -501,6 +504,40 @@ end
 local function think()
 	if sTrack.cv_enabled.value == 0 then return end
 	
+	if leveltime < 3 then
+		didSaveSkins = false
+		completedRun = false
+		playerOrder = {}
+		timeList = {}
+		DNFList = {}
+		RSList = {}
+		didSaveMap = false
+		didSavePlayer = false
+		didSaveTime = false	
+		
+		recordSkinColor = nil
+		slideValue = -50
+		slideRun = "stop"
+		slideDelay = 0
+		
+		rTimeHolder = nil
+		rPlayerHolder = nil
+		rSkinHolder = nil
+		rSkinColorHolder = nil
+		
+		for p in players.iterate do
+			if p.valid and p.mo ~= nil then
+				p.inRace = true
+			elseif p.valid then
+				p.inRace = false
+			end
+		end
+		
+		sTrack.ksChanges = {}
+		cMode = sTrack.findCurrentMode()
+		gameModeIndex = sTrack.getModeIndex()
+	end
+	
 	if not completedRun then
 		local allStopped = true
 		
@@ -534,7 +571,7 @@ local function think()
 					RSList[p.name] = p.realtime
 				end
 				p.inRace = false
-			elseif p.valid and p.mo == nil then
+			elseif p.valid and p.inRace == nil and p.mo == nil then
 				p.inRace = false
 			end
 			
@@ -600,42 +637,6 @@ local function think()
 	end
 end
 addHook("ThinkFrame", think)
-
---Reset all vars on map change
-local function durMapChange()
-	didSaveSkins = false
-	completedRun = false
-	playerOrder = {}
-	timeList = {}
-	DNFList = {}
-	RSList = {}
-	didSaveMap = false
-	didSavePlayer = false
-	didSaveTime = false	
-	
-	recordSkinColor = nil
-	slideValue = -50
-	slideRun = "stop"
-	slideDelay = 0
-	
-	rTimeHolder = nil
-	rPlayerHolder = nil
-	rSkinHolder = nil
-	rSkinColorHolder = nil
-	
-	for p in players.iterate do
-		if p.valid and p.mo ~= nil then
-			p.inRace = true
-		elseif p.valid then
-			p.inRace = false
-		end
-	end
-	
-	sTrack.ksChanges = {}
-	cMode = sTrack.findCurrentMode()
-	gameModeIndex = sTrack.getModeIndex()
-end
-addHook("MapChange", durMapChange)
 
 --This is only ever set to true so it runs once. 
 local didMaint = false

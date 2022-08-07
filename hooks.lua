@@ -162,6 +162,17 @@ local function intThink()
 		sTrack.didMaint = true
 	end
 	
+	--checks to see if more than 1 player is playing for various increments
+	local foundP = 0
+	for p in players.iterate do
+		if p.valid and p.mo ~= nil and p.mo.valid then
+			foundP = foundP + 1
+			if foundP > 1 then
+				break
+			end
+		end	
+	end
+	
 	local hasTimeSupport = sTrack.isTimeSupportedMode(playerOrder)
 	local hasKSSupport = sTrack.isKSSupportedMode()
 	
@@ -217,16 +228,6 @@ local function intThink()
 		--doing an isolated check here for SPBAttack because this inflates RTV count quite a bit
 		local doUseSaves = true
 		if CV_FindVar("spbatk") and CV_FindVar("spbatk").value == 1 then
-			local foundP = 0
-			for p in players.iterate do
-				if p.valid and p.mo ~= nil and p.mo.valid then
-					foundP = foundP + 1
-					if foundP > 1 then
-						--print("More than 1 playing, exiting")
-						break
-					end
-				end	
-			end
 			if foundP <= 1 then
 				doUseSaves = false
 			end
@@ -259,15 +260,17 @@ local function intThink()
 				sTrack.globalPlayerData[v][1] = sTrack.globalPlayerData[v][1] + 1
 				
 				--Increment 1st,2nd,3rd finish where appropriate
-				if pos == 1 then
-					sTrack.globalPlayerData[v][2] = sTrack.globalPlayerData[v][2] + 1
-					if sTrack.globalPlayerData[v][2] % 100 == 0 and sTrack.cv_silentmode.value == 0 then
-						chatprint('\130'..v..' has won '..tostring(sTrack.globalPlayerData[v][2])..' times!', true)
-					end
-				elseif pos == 2 then
-					sTrack.globalPlayerData[v][8] = sTrack.globalPlayerData[v][8] + 1
-				elseif pos == 3 then
-					sTrack.globalPlayerData[v][9] = sTrack.globalPlayerData[v][9] + 1
+				if foundP > 1 then
+					if pos == 1 then
+						sTrack.globalPlayerData[v][2] = sTrack.globalPlayerData[v][2] + 1
+						if sTrack.globalPlayerData[v][2] % 100 == 0 and sTrack.cv_silentmode.value == 0 then
+							chatprint('\130'..v..' has won '..tostring(sTrack.globalPlayerData[v][2])..' times!', true)
+						end
+					elseif pos == 2 then
+						sTrack.globalPlayerData[v][8] = sTrack.globalPlayerData[v][8] + 1
+					elseif pos == 3 then
+						sTrack.globalPlayerData[v][9] = sTrack.globalPlayerData[v][9] + 1
+					end				
 				end
 				
 				if hasKSSupport and sTrack.cv_enableks.value == 1 then							
@@ -426,6 +429,40 @@ addHook("IntermissionThinker", intThink)
 local function think()
 	if sTrack.cv_enabled.value == 0 then return end
 	
+	if leveltime < 3 then
+		didSaveSkins = false
+		completedRun = false
+		playerOrder = {}
+		timeList = {}
+		DNFList = {}
+		RSList = {}
+		hmIntermission = false
+		didSaveMap = false
+		didSavePlayer = false
+		didSaveTime = false	
+		
+		recordSkinColor = nil
+		slideValue = -50
+		slideRun = "stop"
+		
+		rTimeHolder = nil
+		rPlayerHolder = nil
+		rSkinHolder = nil
+		rSkinColorHolder = nil
+		
+		for p in players.iterate do
+			if p.valid and p.mo ~= nil then
+				p.inRace = true
+			elseif p.valid then
+				p.inRace = false
+			end
+		end
+		
+		sTrack.ksChanges = {}
+		cMode = sTrack.findCurrentMode()
+		gameModeIndex = sTrack.getModeIndex()
+	end
+	
 	if not completedRun then
 		local allStopped = true
 		
@@ -451,14 +488,14 @@ local function think()
 						timeList[p.name] = p.realtime
 					end		
 				end
-			elseif p.valid and p.mo == nil and p.inRace == true and leveltime > 6*TICRATE + (3*TICRATE/4) + (20*TICRATE) then
+			elseif p.valid and p.inRace == true and p.mo == nil and leveltime > 6*TICRATE + (3*TICRATE/4) + (20*TICRATE) then
 				--This looks like a ragespec
 				if RSList[p.name] == nil then
 					--Save time since elimination triggers this for the guy that blew up in last
 					RSList[p.name] = p.realtime
 				end
 				p.inRace = false
-			elseif p.valid and p.mo == nil then
+			elseif p.valid and p.inRace == nil and p.mo == nil then
 				p.inRace = false
 			end
 			
@@ -525,7 +562,7 @@ local function think()
 	
 	--Handles showing the sliding new record popup
 	--This would be better suited for intermission but there's no hud lua hook in there :(
-	if sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.cv_silentmode.value == 0 and completedRun and slideRun == "stop" and hmIntermission == false then
+	if completedRun and sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.cv_silentmode.value == 0 and slideRun == "stop" and hmIntermission == false then
 		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil and sTrack.isTimeSupportedMode(playerOrder) then
 			--Check for ties
 			local winList = ""
@@ -588,42 +625,6 @@ local function think()
     intThink()
 end
 addHook("ThinkFrame", think)
-
---Reset all vars on map change
-local function durMapChange()
-	didSaveSkins = false
-	completedRun = false
-	playerOrder = {}
-	timeList = {}
-	DNFList = {}
-	RSList = {}
-	hmIntermission = false
-	didSaveMap = false
-	didSavePlayer = false
-	didSaveTime = false	
-	
-	recordSkinColor = nil
-	slideValue = -50
-	slideRun = "stop"
-	
-	rTimeHolder = nil
-	rPlayerHolder = nil
-	rSkinHolder = nil
-	rSkinColorHolder = nil
-	
-	for p in players.iterate do
-		if p.valid and p.mo ~= nil then
-			p.inRace = true
-		elseif p.valid then
-			p.inRace = false
-		end
-	end
-	
-	sTrack.ksChanges = {}
-	cMode = sTrack.findCurrentMode()
-	gameModeIndex = sTrack.getModeIndex()
-end
-addHook("MapChange", durMapChange)
 
 --This is only ever set to true so it runs once. 
 local didMaint = false

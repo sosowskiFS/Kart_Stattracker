@@ -1,4 +1,3 @@
-freeslot("sfx_stcrea", "sfx_stload")
 local loaded = false
 
 -- store commands, we'll iterate through this to create a config if necessary
@@ -25,13 +24,11 @@ addHook("ThinkFrame", do
 		end
 			
 		CONS_Printf(consoleplayer, "\x83NOTICE:\x80 stattracker.cfg not found, created a config in \x82/luafiles\x80.")
-		S_StartSound(nil, sfx_bpcrea, consoleplayer)
 	else	-- we got a config, load it!
 		for line in config:lines()
 			COM_BufInsertText(consoleplayer, line)
 		end
 		CONS_Printf(consoleplayer, "\x83NOTICE:\x80 Successfully loaded stattracker.cfg!")
-		S_StartSound(nil, sfx_bpload, consoleplayer)
 	end
 	config:close()
 		
