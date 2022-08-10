@@ -501,6 +501,15 @@ end
 --Don't need to do this anymore
 --addHook("IntermissionThinker", intThink)
 
+--Make sure that RTVs are caught and recorded
+local function inCaseOfRTV()
+	if completedRun == false then
+		intThink()
+		completedRun = true
+	end
+end
+addHook("IntermissionThinker", inCaseOfRTV)
+
 local function think()
 	if sTrack.cv_enabled.value == 0 then return end
 	
