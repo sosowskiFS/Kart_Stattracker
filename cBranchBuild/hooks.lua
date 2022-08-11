@@ -92,74 +92,77 @@ local function intThink()
 	--Data maintenance
 	if didMaint == false then
 		--Reset use values to 0 in globalSkinData, repopulate it from player skin use data
-		for k, v in pairs(sTrack.globalSkinData)
-			sTrack.globalSkinData[k][1] = 0
-			sTrack.globalSkinData[k][3] = 0
-		end
-		
-		--globalPlayerSkinUseData["PlayerName"]["SkinName"]
-		local playerSkinUseReference = sTrack.globalPlayerSkinUseData
-		for k, v in pairs(playerSkinUseReference)
-			for k2, v2 in pairs(playerSkinUseReference[k])
-				if sTrack.cv_wiperemovedaddons.value == 1 and skins[k2] == nil then
-					--This skin doesn't exist anymore and can be removed
-					sTrack.globalPlayerSkinUseData[k][k2] = nil
-				else
-					--calculate the weighted uses			
-					local weightedUse = FixedFloor((v2 / 5) * FRACUNIT) / FRACUNIT
-					if tonumber(v2) > 0 then
-						weightedUse = $ + 1
-					end
-					if weightedUse > 10 then
-						weightedUse = 10
-					end			
-					
-					if sTrack.globalSkinData[k2] == nil then
-						if skins[k2] == nil then
-							sTrack.globalSkinData[k2] = {weightedUse, "Removed Skin", v2}
-						else
-							sTrack.globalSkinData[k2] = {weightedUse, skins[k2].realname, v2}
-						end					
-					else
-						sTrack.globalSkinData[k2][1] = $ + weightedUse
-						sTrack.globalSkinData[k2][3] = $ + v2
-					end		
-				end				
-			end
-		end
-	
-		--Add new skins that aren't represented in data yet
-		for s in skins.iterate do
-			if sTrack.globalSkinData[s.name] == nil then
-				sTrack.globalSkinData[s.name] = {0, s.realname, 0}
-			end
-		end
-		--Delete removed skins
-		local skinReference = sTrack.globalSkinData
-		for k, v in pairs(skinReference) do
-			if sTrack.cv_wiperemovedaddons.value == 1 and skins[k] == nil then
-				sTrack.globalSkinData[k] = nil
-			elseif skins[k] ~= nil and v[2] == "Removed Skin" then
-				--Fix broken record
-				sTrack.globalSkinData[k][2] = skins[k].realname
-			end
-		end
-		--Add new maps that aren't in data yet & delete removed maps
-		--MAPZZ = 1035. If they extend this higher then update the max in the loop below.
-		for i=1,1035,1 do
-			if mapheaderinfo[tostring(i)] ~= nil and sTrack.globalMapData[tostring(i)] == nil then
-				sTrack.globalMapData[tostring(i)] = {0, 0, mapheaderinfo[tostring(i)].lvlttl}
-			elseif sTrack.cv_wiperemovedaddons.value == 1 and mapheaderinfo[tostring(i)] == nil and sTrack.globalMapData[tostring(i)] ~= nil then
-				sTrack.globalMapData[tostring(i)] = nil
+		if (sTrack.cv_limitnetvar and consoleplayer == server) or sTrack.cv_limitnetvar == 0 then
+			for k, v in pairs(sTrack.globalSkinData)
+				sTrack.globalSkinData[k][1] = 0
+				sTrack.globalSkinData[k][3] = 0
 			end
 			
-			if sTrack.globalMapData[tostring(i)] ~= nil and sTrack.globalMapData[tostring(i)][3] == "I am dead" and mapheaderinfo[tostring(i)] ~= nil then
-				--Try to correct any messed up data
-				sTrack.globalMapData[tostring(i)][3] = mapheaderinfo[tostring(i)].lvlttl
+			--globalPlayerSkinUseData["PlayerName"]["SkinName"]
+			local playerSkinUseReference = sTrack.globalPlayerSkinUseData
+			for k, v in pairs(playerSkinUseReference)
+				for k2, v2 in pairs(playerSkinUseReference[k])
+					if sTrack.cv_wiperemovedaddons.value == 1 and skins[k2] == nil then
+						--This skin doesn't exist anymore and can be removed
+						sTrack.globalPlayerSkinUseData[k][k2] = nil
+					else
+						--calculate the weighted uses			
+						local weightedUse = FixedFloor((v2 / 5) * FRACUNIT) / FRACUNIT
+						if tonumber(v2) > 0 then
+							weightedUse = $ + 1
+						end
+						if weightedUse > 10 then
+							weightedUse = 10
+						end			
+						
+						if sTrack.globalSkinData[k2] == nil then
+							if skins[k2] == nil then
+								sTrack.globalSkinData[k2] = {weightedUse, "Removed Skin", v2}
+							else
+								sTrack.globalSkinData[k2] = {weightedUse, skins[k2].realname, v2}
+							end					
+						else
+							sTrack.globalSkinData[k2][1] = $ + weightedUse
+							sTrack.globalSkinData[k2][3] = $ + v2
+						end		
+					end				
+				end
 			end
+		
+			--Add new skins that aren't represented in data yet
+			for s in skins.iterate do
+				if sTrack.globalSkinData[s.name] == nil then
+					sTrack.globalSkinData[s.name] = {0, s.realname, 0}
+				end
+			end
+			--Delete removed skins
+			local skinReference = sTrack.globalSkinData
+			for k, v in pairs(skinReference) do
+				if sTrack.cv_wiperemovedaddons.value == 1 and skins[k] == nil then
+					sTrack.globalSkinData[k] = nil
+				elseif skins[k] ~= nil and v[2] == "Removed Skin" then
+					--Fix broken record
+					sTrack.globalSkinData[k][2] = skins[k].realname
+				end
+			end
+		
+			--Add new maps that aren't in data yet & delete removed maps
+			--MAPZZ = 1035. If they extend this higher then update the max in the loop below.
+			for i=1,1035,1 do
+				if mapheaderinfo[tostring(i)] ~= nil and sTrack.globalMapData[tostring(i)] == nil then
+					sTrack.globalMapData[tostring(i)] = {0, 0, mapheaderinfo[tostring(i)].lvlttl}
+				elseif sTrack.cv_wiperemovedaddons.value == 1 and mapheaderinfo[tostring(i)] == nil and sTrack.globalMapData[tostring(i)] ~= nil then
+					sTrack.globalMapData[tostring(i)] = nil
+				end
+				
+				if sTrack.globalMapData[tostring(i)] ~= nil and sTrack.globalMapData[tostring(i)][3] == "I am dead" and mapheaderinfo[tostring(i)] ~= nil then
+					--Try to correct any messed up data
+					sTrack.globalMapData[tostring(i)][3] = mapheaderinfo[tostring(i)].lvlttl
+				end
+			end	
 		end
 		
-		sTrack.didMaint = true
+		didMaint = true
 	end
 	
 	--checks to see if more than 1 player is playing for various increments
@@ -234,74 +237,76 @@ local function intThink()
 	--Track skin usage
 	if not didSaveSkins then
 		--These vars are always set first in case something breaks
-		didSaveSkins = true
-		
-		for p in players.iterate do
-			if p.valid and p.mo ~= nil and p.mo.valid then
-				if sTrack.globalPlayerSkinUseData[p.name] == nil then
-					sTrack.globalPlayerSkinUseData[p.name] = {}
-					sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = 1
-				elseif sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] == nil then
-					sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = 1
-				else
-					sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] + 1
-				end
-				--Determine if this player's usage should increment global data
-				local shouldIncrement = false
-				if sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] == 1 then
-					shouldIncrement = true
-				elseif sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] <= 45 and sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] % 5 == 0 then
-					shouldIncrement = true
-				end
-				
-				--Tick up weighted total
-				if shouldIncrement then
-					if sTrack.globalSkinData[p.mo.skin] == nil then
-						sTrack.globalSkinData[p.mo.skin] = {1, skins[p.mo.skin].realname, 1}
+		didSaveSkins = true	
+		if (sTrack.cv_limitnetvar and consoleplayer == server) or sTrack.cv_limitnetvar == 0 then
+			for p in players.iterate do
+				if p.valid and p.mo ~= nil and p.mo.valid then
+					if sTrack.globalPlayerSkinUseData[p.name] == nil then
+						sTrack.globalPlayerSkinUseData[p.name] = {}
+						sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = 1
+					elseif sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] == nil then
+						sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = 1
 					else
-						sTrack.globalSkinData[p.mo.skin][1] = sTrack.globalSkinData[p.mo.skin][1] + 1
+						sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] + 1
 					end
+					--Determine if this player's usage should increment global data
+					local shouldIncrement = false
+					if sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] == 1 then
+						shouldIncrement = true
+					elseif sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] <= 45 and sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] % 5 == 0 then
+						shouldIncrement = true
+					end
+					
+					--Tick up weighted total
+					if shouldIncrement then
+						if sTrack.globalSkinData[p.mo.skin] == nil then
+							sTrack.globalSkinData[p.mo.skin] = {1, skins[p.mo.skin].realname, 1}
+						else
+							sTrack.globalSkinData[p.mo.skin][1] = sTrack.globalSkinData[p.mo.skin][1] + 1
+						end
+					end
+					
+					--Tick up total count
+					if sTrack.globalSkinData[p.mo.skin] == nil then
+						sTrack.globalSkinData[p.mo.skin] = {1, skins[p.mo.skin].realname, 1}					
+					else
+						sTrack.globalSkinData[p.mo.skin][3] = sTrack.globalSkinData[p.mo.skin][3] + 1
+					end
+					
 				end
-				
-				--Tick up total count
-				if sTrack.globalSkinData[p.mo.skin] == nil then
-					sTrack.globalSkinData[p.mo.skin] = {1, skins[p.mo.skin].realname, 1}					
-				else
-					sTrack.globalSkinData[p.mo.skin][3] = sTrack.globalSkinData[p.mo.skin][3] + 1
-				end
-				
 			end
-		end
 
-		sTrack.saveFiles("Skin")	
+			sTrack.saveFiles("Skin")	
+		end
 	end
 	
 	--Track Map Usage
 	if not didSaveMap then
-		didSaveMap = true
-		
-		--doing an isolated check here for SPBAttack because this inflates RTV count quite a bit
-		local doUseSaves = true
-		if CV_FindVar("spbatk") and CV_FindVar("spbatk").value == 1 then
-			if foundP <= 1 then
-				doUseSaves = false
+		didSaveMap = true	
+		if (sTrack.cv_limitnetvar and consoleplayer == server) or sTrack.cv_limitnetvar == 0 then
+			--doing an isolated check here for SPBAttack because this inflates RTV count quite a bit
+			local doUseSaves = true
+			if CV_FindVar("spbatk") and CV_FindVar("spbatk").value == 1 then
+				if foundP <= 1 then
+					doUseSaves = false
+				end
 			end
+			
+			if doUseSaves then
+				if sTrack.globalMapData[tostring(gamemap)] == nil then
+					sTrack.globalMapData[tostring(gamemap)] = {0, 0, mapheaderinfo[tostring(gamemap)].lvlttl}
+				end
+				if playerOrder[1] ~= nil then
+					--Map was completed
+					sTrack.globalMapData[tostring(gamemap)][1] = sTrack.globalMapData[tostring(gamemap)][1] + 1
+				else
+					--Nobody finished this race, assume it was RTV'd	
+					--print ("Adding an RTV count...")
+					sTrack.globalMapData[tostring(gamemap)][2] = sTrack.globalMapData[tostring(gamemap)][2] + 1
+				end
+			end
+			sTrack.saveFiles("Map")	
 		end
-		
-		if doUseSaves then
-			if sTrack.globalMapData[tostring(gamemap)] == nil then
-				sTrack.globalMapData[tostring(gamemap)] = {0, 0, mapheaderinfo[tostring(gamemap)].lvlttl}
-			end
-			if playerOrder[1] ~= nil then
-				--Map was completed
-				sTrack.globalMapData[tostring(gamemap)][1] = sTrack.globalMapData[tostring(gamemap)][1] + 1
-			else
-				--Nobody finished this race, assume it was RTV'd	
-				--print ("Adding an RTV count...")
-				sTrack.globalMapData[tostring(gamemap)][2] = sTrack.globalMapData[tostring(gamemap)][2] + 1
-			end
-		end
-		sTrack.saveFiles("Map")	
 	end
 	
 	--Track player data
@@ -652,13 +657,19 @@ local didMaint = false
 
 --This makes data accessable by players
 local function netvars(net)
-	sTrack.globalSkinData = net($)
-	sTrack.globalMapData = net($)
-	sTrack.globalPlayerData = net($)
 	sTrack.globalEasyTimeData = net($)
 	sTrack.globalNormalTimeData = net($)
 	sTrack.globalHardTimeData = net($)
-	sTrack.globalPlayerSkinUseData = net($)
+	sTrack.globalPlayerData = net($)
+	
+	--Experiment
+	didMaint = net($)
+	if sTrack.cv_limitnetvar == 0 then
+		--Extra data for only the player's benefit is loaded here.
+		sTrack.globalPlayerSkinUseData = net($)
+		sTrack.globalSkinData = net($)
+		sTrack.globalMapData = net($)	
+	end
 end
 addHook("NetVars", netvars)
 

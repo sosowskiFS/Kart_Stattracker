@@ -159,7 +159,7 @@ local function intThink()
 			end
 		end
 		
-		sTrack.didMaint = true
+		didMaint = true
 	end
 	
 	--checks to see if more than 1 player is playing for various increments
