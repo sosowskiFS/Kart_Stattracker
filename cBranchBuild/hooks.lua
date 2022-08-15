@@ -86,6 +86,9 @@ local rPlayerHolder = nil
 local rSkinHolder = nil
 local rSkinColorHolder = nil
 
+--This is only ever set to true so it runs once. 
+local didMaint = false
+
 --This is where all the calculations and saving happens
 local function intThink()
 	if sTrack.cv_enabled.value == 0 then return end
@@ -651,9 +654,6 @@ local function think()
 	end
 end
 addHook("ThinkFrame", think)
-
---This is only ever set to true so it runs once. 
-local didMaint = false
 
 --This makes data accessable by players
 local function netvars(net)
