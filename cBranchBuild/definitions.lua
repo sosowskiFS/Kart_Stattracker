@@ -98,9 +98,16 @@ if t then
 	--Vanilla/Tech records, juicebox records, Nitro records
 	for l in t:lines() do
 		local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-		if mapName then
-			sTrack.globalEasyTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+		if sTrack.cv_limitnetvar then
+			if mapName and gamemap == mapName then
+				sTrack.globalEasyTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+			end
+		else
+			if mapName then
+				sTrack.globalEasyTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+			end
 		end
+		
 	end
 	t:close()
 end
@@ -110,8 +117,14 @@ if n then
 	--Vanilla/Tech records, juicebox records, Nitro records
 	for l in n:lines() do
 		local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-		if mapName then
-			sTrack.globalNormalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+		if sTrack.cv_limitnetvar then
+			if mapName and gamemap == mapName then
+				sTrack.globalNormalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+			end
+		else
+			if mapName then
+				sTrack.globalNormalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+			end
 		end
 	end
 	n:close()
@@ -122,8 +135,14 @@ if h then
 	--Vanilla/Tech records, juicebox records, Nitro records
 	for l in h:lines() do
 		local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-		if mapName then
-			sTrack.globalHardTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+		if sTrack.cv_limitnetvar then
+			if mapName and gamemap == mapName then
+				sTrack.globalNormalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+			end
+		else
+			if mapName then
+				sTrack.globalNormalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
+			end
 		end
 	end
 	h:close()
@@ -337,13 +356,13 @@ end
 
 --Changes realtime to a time string
 sTrack.buildTimeString = function(x)
-	if x == nil or x == 99999999 then return "N/A" end
+	if x == nil or x == 20000 then return "N/A" end
 	return ""..string.format("%02d", G_TicsToMinutes(x)).."' "..string.format("%02d", G_TicsToSeconds(x))..'" '..string.format("%02d", G_TicsToCentiseconds(x))
 end
 
 --Same but each digit in table format for HUD record display
 sTrack.buildTimeStringTable = function(x)
-	if x == nil or x == 99999999 then return nil end
+	if x == nil or x == 20000 then return nil end
 	return {string.sub(string.format("%02d", G_TicsToMinutes(x)), 1, 1), string.sub(string.format("%02d", G_TicsToMinutes(x)), 2, 2), string.sub(string.format("%02d", G_TicsToSeconds(x)), 1, 1), string.sub(string.format("%02d", G_TicsToSeconds(x)), 2, 2), string.sub(string.format("%02d", G_TicsToCentiseconds(x)), 1, 1), string.sub(string.format("%02d", G_TicsToCentiseconds(x)), 2, 2)}
 end
 

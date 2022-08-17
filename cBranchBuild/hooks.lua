@@ -85,6 +85,9 @@ local rTimeHolder = nil
 local rPlayerHolder = nil
 local rSkinHolder = nil
 local rSkinColorHolder = nil
+local stringTime = nil
+local recordHolder = nil
+local recordSkin = nil
 
 --This is only ever set to true so it runs once. 
 local didMaint = false
@@ -196,7 +199,7 @@ local function intThink()
 				if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
 					if gamespeed == 0 then
 						if sTrack.globalEasyTimeData[tostring(gamemap)] == nil then
-							sTrack.globalEasyTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+							sTrack.globalEasyTimeData[tostring(gamemap)] = {20000, "placeholder", "sonic", 20000, "placeholder", "sonic", 20000, "placeholder", "sonic"}
 						end
 						if (cMode == 2 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][7])) or (cMode == 1 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][4])) or (cMode == 0 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][1])) then
 							rTimeHolder = p.realtime
@@ -207,7 +210,7 @@ local function intThink()
 						end
 					elseif gamespeed == 1 then
 						if sTrack.globalNormalTimeData[tostring(gamemap)] == nil then
-							sTrack.globalNormalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+							sTrack.globalNormalTimeData[tostring(gamemap)] = {20000, "placeholder", "sonic", 20000, "placeholder", "sonic", 20000, "placeholder", "sonic"}
 						end
 						if (cMode == 2 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][7])) or (cMode == 1 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][4])) or (cMode == 0 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][1])) then
 							rTimeHolder = p.realtime
@@ -218,7 +221,7 @@ local function intThink()
 						end
 					elseif gamespeed == 2 then
 						if sTrack.globalHardTimeData[tostring(gamemap)] == nil then
-							sTrack.globalHardTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+							sTrack.globalHardTimeData[tostring(gamemap)] = {20000, "placeholder", "sonic", 20000, "placeholder", "sonic", 20000, "placeholder", "sonic"}
 						end
 						if (cMode == 2 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][7])) or (cMode == 1 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][4])) or (cMode == 0 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][1])) then
 							rTimeHolder = p.realtime
@@ -435,11 +438,11 @@ local function intThink()
 		--Make sure no special game type is running
 		if hasTimeSupport and sTrack.cv_enablerecords.value == 1 then
 			if gamespeed == 0 and sTrack.globalEasyTimeData[tostring(gamemap)] == nil then
-				sTrack.globalEasyTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+				sTrack.globalEasyTimeData[tostring(gamemap)] = {20000, "placeholder", "sonic", 20000, "placeholder", "sonic", 20000, "placeholder", "sonic"}
 			elseif gamespeed == 1 and sTrack.globalNormalTimeData[tostring(gamemap)] == nil then
-				sTrack.globalNormalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+				sTrack.globalNormalTimeData[tostring(gamemap)] = {20000, "placeholder", "sonic", 20000, "placeholder", "sonic", 20000, "placeholder", "sonic"}
 			elseif gamespeed == 2 and sTrack.globalHardTimeData[tostring(gamemap)] == nil then
-				sTrack.globalHardTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+				sTrack.globalHardTimeData[tostring(gamemap)] = {20000, "placeholder", "sonic", 20000, "placeholder", "sonic", 20000, "placeholder", "sonic"}
 			end
 			
 			if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
@@ -542,6 +545,10 @@ local function think()
 		rSkinHolder = nil
 		rSkinColorHolder = nil
 		
+		stringTime = nil
+		recordHolder = nil
+		recordSkin = nil
+		
 		for p in players.iterate do
 			if p.valid and p.mo ~= nil then
 				p.inRace = true
@@ -552,7 +559,7 @@ local function think()
 		
 		sTrack.ksChanges = {}
 		cMode = sTrack.findCurrentMode()
-		gameModeIndex = sTrack.getModeIndex()
+		gameModeIndex = sTrack.getModeIndex()	
 	end
 	
 	if not completedRun then
@@ -743,56 +750,54 @@ hud.add(interShowNewRecord, "intermission")
 local function drawRecordTime(v, p)
 	if sTrack.cv_enabled.value == 0 or sTrack.cv_showtime.value == 0 or sTrack.cv_enablerecords.value == 0 or sTrack.cv_silentmode.value >= 1 then return end
 	
-	local stringTime = nil
-	local recordHolder = nil
-	local recordSkin = nil
-	--I'm not copying the correct table to a local variable here because that's initializing a HUGE variable every frame.
-	if gamespeed == 0 then
-		if sTrack.globalEasyTimeData[tostring(gamemap)] ~= nil then
-			if gameModeIndex == 10 then
-				stringTime = sTrack.buildTimeStringTable(sTrack.globalEasyTimeData[tostring(gamemap)][1])
-				recordHolder = sTrack.globalEasyTimeData[tostring(gamemap)][2]
-				recordSkin = sTrack.globalEasyTimeData[tostring(gamemap)][3]
-			elseif gameModeIndex == 11 then
-				stringTime = sTrack.buildTimeStringTable(sTrack.globalEasyTimeData[tostring(gamemap)][4])
-				recordHolder = sTrack.globalEasyTimeData[tostring(gamemap)][5]
-				recordSkin = sTrack.globalEasyTimeData[tostring(gamemap)][6]
-			elseif gameModeIndex == 12 then
-				stringTime = sTrack.buildTimeStringTable(sTrack.globalEasyTimeData[tostring(gamemap)][7])
-				recordHolder = sTrack.globalEasyTimeData[tostring(gamemap)][8]
-				recordSkin = sTrack.globalEasyTimeData[tostring(gamemap)][9]
+	if stringTime == nil then
+		if gamespeed == 0 then
+			if sTrack.globalEasyTimeData[tostring(gamemap)] ~= nil then
+				if gameModeIndex == 10 then
+					stringTime = sTrack.buildTimeStringTable(sTrack.globalEasyTimeData[tostring(gamemap)][1])
+					recordHolder = sTrack.globalEasyTimeData[tostring(gamemap)][2]
+					recordSkin = sTrack.globalEasyTimeData[tostring(gamemap)][3]
+				elseif gameModeIndex == 11 then
+					stringTime = sTrack.buildTimeStringTable(sTrack.globalEasyTimeData[tostring(gamemap)][4])
+					recordHolder = sTrack.globalEasyTimeData[tostring(gamemap)][5]
+					recordSkin = sTrack.globalEasyTimeData[tostring(gamemap)][6]
+				elseif gameModeIndex == 12 then
+					stringTime = sTrack.buildTimeStringTable(sTrack.globalEasyTimeData[tostring(gamemap)][7])
+					recordHolder = sTrack.globalEasyTimeData[tostring(gamemap)][8]
+					recordSkin = sTrack.globalEasyTimeData[tostring(gamemap)][9]
+				end
 			end
-		end
-	elseif gamespeed == 1 then
-		if sTrack.globalNormalTimeData[tostring(gamemap)] ~= nil then
-			if gameModeIndex == 10 then
-				stringTime = sTrack.buildTimeStringTable(sTrack.globalNormalTimeData[tostring(gamemap)][1])
-				recordHolder = sTrack.globalNormalTimeData[tostring(gamemap)][2]
-				recordSkin = sTrack.globalNormalTimeData[tostring(gamemap)][3]
-			elseif gameModeIndex == 11 then
-				stringTime = sTrack.buildTimeStringTable(sTrack.globalNormalTimeData[tostring(gamemap)][4])
-				recordHolder = sTrack.globalNormalTimeData[tostring(gamemap)][5]
-				recordSkin = sTrack.globalNormalTimeData[tostring(gamemap)][6]
-			elseif gameModeIndex == 12 then
-				stringTime = sTrack.buildTimeStringTable(sTrack.globalNormalTimeData[tostring(gamemap)][7])
-				recordHolder = sTrack.globalNormalTimeData[tostring(gamemap)][8]
-				recordSkin = sTrack.globalNormalTimeData[tostring(gamemap)][9]
+		elseif gamespeed == 1 then
+			if sTrack.globalNormalTimeData[tostring(gamemap)] ~= nil then
+				if gameModeIndex == 10 then
+					stringTime = sTrack.buildTimeStringTable(sTrack.globalNormalTimeData[tostring(gamemap)][1])
+					recordHolder = sTrack.globalNormalTimeData[tostring(gamemap)][2]
+					recordSkin = sTrack.globalNormalTimeData[tostring(gamemap)][3]
+				elseif gameModeIndex == 11 then
+					stringTime = sTrack.buildTimeStringTable(sTrack.globalNormalTimeData[tostring(gamemap)][4])
+					recordHolder = sTrack.globalNormalTimeData[tostring(gamemap)][5]
+					recordSkin = sTrack.globalNormalTimeData[tostring(gamemap)][6]
+				elseif gameModeIndex == 12 then
+					stringTime = sTrack.buildTimeStringTable(sTrack.globalNormalTimeData[tostring(gamemap)][7])
+					recordHolder = sTrack.globalNormalTimeData[tostring(gamemap)][8]
+					recordSkin = sTrack.globalNormalTimeData[tostring(gamemap)][9]
+				end
 			end
-		end
-	elseif gamespeed == 2 then
-		if sTrack.globalHardTimeData[tostring(gamemap)] ~= nil then
-			if gameModeIndex == 10 then
-				stringTime = sTrack.buildTimeStringTable(sTrack.globalHardTimeData[tostring(gamemap)][1])
-				recordHolder = sTrack.globalHardTimeData[tostring(gamemap)][2]
-				recordSkin = sTrack.globalHardTimeData[tostring(gamemap)][3]
-			elseif gameModeIndex == 11 then
-				stringTime = sTrack.buildTimeStringTable(sTrack.globalHardTimeData[tostring(gamemap)][4])
-				recordHolder = sTrack.globalHardTimeData[tostring(gamemap)][5]
-				recordSkin = sTrack.globalHardTimeData[tostring(gamemap)][6]
-			elseif gameModeIndex == 12 then
-				stringTime = sTrack.buildTimeStringTable(sTrack.globalHardTimeData[tostring(gamemap)][7])
-				recordHolder = sTrack.globalHardTimeData[tostring(gamemap)][8]
-				recordSkin = sTrack.globalHardTimeData[tostring(gamemap)][9]
+		elseif gamespeed == 2 then
+			if sTrack.globalHardTimeData[tostring(gamemap)] ~= nil then
+				if gameModeIndex == 10 then
+					stringTime = sTrack.buildTimeStringTable(sTrack.globalHardTimeData[tostring(gamemap)][1])
+					recordHolder = sTrack.globalHardTimeData[tostring(gamemap)][2]
+					recordSkin = sTrack.globalHardTimeData[tostring(gamemap)][3]
+				elseif gameModeIndex == 11 then
+					stringTime = sTrack.buildTimeStringTable(sTrack.globalHardTimeData[tostring(gamemap)][4])
+					recordHolder = sTrack.globalHardTimeData[tostring(gamemap)][5]
+					recordSkin = sTrack.globalHardTimeData[tostring(gamemap)][6]
+				elseif gameModeIndex == 12 then
+					stringTime = sTrack.buildTimeStringTable(sTrack.globalHardTimeData[tostring(gamemap)][7])
+					recordHolder = sTrack.globalHardTimeData[tostring(gamemap)][8]
+					recordSkin = sTrack.globalHardTimeData[tostring(gamemap)][9]
+				end
 			end
 		end
 	end
