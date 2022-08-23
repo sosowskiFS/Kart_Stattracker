@@ -98,14 +98,8 @@ if t then
 	--Vanilla/Tech records, juicebox records, Nitro records
 	for l in t:lines() do
 		local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-		if sTrack.cv_limitnetvar then
-			if mapName and gamemap == mapName then
-				sTrack.globalEasyTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
-			end
-		else
-			if mapName then
-				sTrack.globalEasyTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
-			end
+		if mapName then
+			sTrack.globalEasyTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
 		end
 		
 	end
@@ -117,14 +111,8 @@ if n then
 	--Vanilla/Tech records, juicebox records, Nitro records
 	for l in n:lines() do
 		local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-		if sTrack.cv_limitnetvar then
-			if mapName and gamemap == mapName then
-				sTrack.globalNormalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
-			end
-		else
-			if mapName then
-				sTrack.globalNormalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
-			end
+		if mapName then
+			sTrack.globalNormalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
 		end
 	end
 	n:close()
@@ -135,14 +123,8 @@ if h then
 	--Vanilla/Tech records, juicebox records, Nitro records
 	for l in h:lines() do
 		local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-		if sTrack.cv_limitnetvar then
-			if mapName and gamemap == mapName then
-				sTrack.globalNormalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
-			end
-		else
-			if mapName then
-				sTrack.globalNormalTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
-			end
+		if mapName then
+			sTrack.globalHardTimeData[mapName] = {time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
 		end
 	end
 	h:close()

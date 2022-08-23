@@ -98,7 +98,7 @@ local function intThink()
 	--Data maintenance
 	if didMaint == false then
 		--Reset use values to 0 in globalSkinData, repopulate it from player skin use data
-		if (sTrack.cv_limitnetvar and consoleplayer == server) or sTrack.cv_limitnetvar == 0 then
+		if (sTrack.cv_limitnetvar.value and consoleplayer == server) or sTrack.cv_limitnetvar.value == 0 then
 			for k, v in pairs(sTrack.globalSkinData)
 				sTrack.globalSkinData[k][1] = 0
 				sTrack.globalSkinData[k][3] = 0
@@ -199,7 +199,7 @@ local function intThink()
 				if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
 					if gamespeed == 0 then
 						if sTrack.globalEasyTimeData[tostring(gamemap)] == nil then
-							sTrack.globalEasyTimeData[tostring(gamemap)] = {20000, "placeholder", "sonic", 20000, "placeholder", "sonic", 20000, "placeholder", "sonic"}
+							sTrack.globalEasyTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
 						end
 						if (cMode == 2 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][7])) or (cMode == 1 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][4])) or (cMode == 0 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][1])) then
 							rTimeHolder = p.realtime
@@ -210,7 +210,7 @@ local function intThink()
 						end
 					elseif gamespeed == 1 then
 						if sTrack.globalNormalTimeData[tostring(gamemap)] == nil then
-							sTrack.globalNormalTimeData[tostring(gamemap)] = {20000, "placeholder", "sonic", 20000, "placeholder", "sonic", 20000, "placeholder", "sonic"}
+							sTrack.globalNormalTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
 						end
 						if (cMode == 2 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][7])) or (cMode == 1 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][4])) or (cMode == 0 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][1])) then
 							rTimeHolder = p.realtime
@@ -221,7 +221,7 @@ local function intThink()
 						end
 					elseif gamespeed == 2 then
 						if sTrack.globalHardTimeData[tostring(gamemap)] == nil then
-							sTrack.globalHardTimeData[tostring(gamemap)] = {20000, "placeholder", "sonic", 20000, "placeholder", "sonic", 20000, "placeholder", "sonic"}
+							sTrack.globalHardTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
 						end
 						if (cMode == 2 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][7])) or (cMode == 1 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][4])) or (cMode == 0 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][1])) then
 							rTimeHolder = p.realtime
@@ -244,7 +244,7 @@ local function intThink()
 	if not didSaveSkins then
 		--These vars are always set first in case something breaks
 		didSaveSkins = true	
-		if (sTrack.cv_limitnetvar and consoleplayer == server) or sTrack.cv_limitnetvar == 0 then
+		if (sTrack.cv_limitnetvar.value and consoleplayer == server) or sTrack.cv_limitnetvar.value == 0 then
 			for p in players.iterate do
 				if p.valid and p.mo ~= nil and p.mo.valid then
 					if sTrack.globalPlayerSkinUseData[p.name] == nil then
@@ -289,7 +289,7 @@ local function intThink()
 	--Track Map Usage
 	if not didSaveMap then
 		didSaveMap = true	
-		if (sTrack.cv_limitnetvar and consoleplayer == server) or sTrack.cv_limitnetvar == 0 then
+		if (sTrack.cv_limitnetvar.value and consoleplayer == server) or sTrack.cv_limitnetvar.value == 0 then
 			--doing an isolated check here for SPBAttack because this inflates RTV count quite a bit
 			local doUseSaves = true
 			if CV_FindVar("spbatk") and CV_FindVar("spbatk").value == 1 then
@@ -438,11 +438,11 @@ local function intThink()
 		--Make sure no special game type is running
 		if hasTimeSupport and sTrack.cv_enablerecords.value == 1 then
 			if gamespeed == 0 and sTrack.globalEasyTimeData[tostring(gamemap)] == nil then
-				sTrack.globalEasyTimeData[tostring(gamemap)] = {20000, "placeholder", "sonic", 20000, "placeholder", "sonic", 20000, "placeholder", "sonic"}
+				sTrack.globalEasyTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
 			elseif gamespeed == 1 and sTrack.globalNormalTimeData[tostring(gamemap)] == nil then
-				sTrack.globalNormalTimeData[tostring(gamemap)] = {20000, "placeholder", "sonic", 20000, "placeholder", "sonic", 20000, "placeholder", "sonic"}
+				sTrack.globalNormalTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
 			elseif gamespeed == 2 and sTrack.globalHardTimeData[tostring(gamemap)] == nil then
-				sTrack.globalHardTimeData[tostring(gamemap)] = {20000, "placeholder", "sonic", 20000, "placeholder", "sonic", 20000, "placeholder", "sonic"}
+				sTrack.globalHardTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
 			end
 			
 			if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
@@ -671,7 +671,7 @@ local function netvars(net)
 	
 	--Experiment
 	didMaint = net($)
-	if sTrack.cv_limitnetvar == 0 then
+	if sTrack.cv_limitnetvar.value == 0 then
 		--Extra data for only the player's benefit is loaded here.
 		sTrack.globalPlayerSkinUseData = net($)
 		sTrack.globalSkinData = net($)
@@ -803,7 +803,7 @@ local function drawRecordTime(v, p)
 	end
 	
 	--Hide temp stuff
-	if recordHolder == 'placeholder' then return end
+	if recordHolder == 'p' then return end
 	
 	if stringTime ~= nil then
 		local rgHudOffset = 138
