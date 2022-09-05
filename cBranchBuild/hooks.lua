@@ -412,6 +412,11 @@ local function intThink()
 				
 				sTrack.globalPlayerData[player][gameModeIndex] = sTrack.globalPlayerData[player][gameModeIndex] + change
 				
+				if tonumber(sTrack.globalPlayerData[player][gameModeIndex + 5]) < tonumber(sTrack.globalPlayerData[player][gameModeIndex]) then
+					--New personal highest KS for this mode
+					sTrack.globalPlayerData[player][gameModeIndex + 5] = sTrack.globalPlayerData[player][gameModeIndex]
+				end
+				
 				if sTrack.globalPlayerData[player][gameModeIndex] < 0 then
 					--If you manage to hit 0 in an ELO system I'm legitimately impressed
 					sTrack.globalPlayerData[player][gameModeIndex] = 0

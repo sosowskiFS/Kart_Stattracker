@@ -124,7 +124,7 @@ local function st_playerdata(p, ...)
 			CONS_Printf(p, tostring(forCounter).." - \x83"..k.." \x82 "..tostring(v).." wins")
 			
 			forCounter = forCounter + 1
-			if forCounter > 10 then break end
+			if forCounter > 15 then break end
 		end
 	elseif pTarget == "top ks" then
 		if sTrack.cv_enableks.value == 0 then
@@ -142,7 +142,7 @@ local function st_playerdata(p, ...)
 				CONS_Printf(p, tostring(forCounter).." - \x83"..k.." \x82 "..tostring(v).." KartScore")
 				
 				forCounter = forCounter + 1
-				if forCounter > 10 then break end
+				if forCounter > 15 then break end
 			end
 		end
 	elseif sTrack.globalPlayerData[pTarget] == nil then
@@ -154,24 +154,32 @@ local function st_playerdata(p, ...)
 		local playtime = 210 * tonumber(sTrack.globalPlayerData[pTarget][1])
 		local hours = FixedFloor((playtime / 3600) * FRACUNIT) / FRACUNIT
 		local minutes = FixedFloor(((playtime % 3600) / 60) * FRACUNIT) / FRACUNIT
-		CONS_Printf(p, "\x83"..pTarget.." \x80- "..tostring(sTrack.globalPlayerData[pTarget][1]).." races")
+		if tonumber(sTrack.globalPlayerData[pTarget][1]) > 0 then
+			local winPercent = FixedInt(FixedRound(FixedDiv(sTrack.globalPlayerData[pTarget][2], sTrack.globalPlayerData[pTarget][1]) * 100))
+			local podiumCount = sTrack.globalPlayerData[pTarget][2] + sTrack.globalPlayerData[pTarget][8] + sTrack.globalPlayerData[pTarget][9]
+			local podiumPercent = FixedInt(FixedRound(FixedDiv(podiumCount, sTrack.globalPlayerData[pTarget][1]) * 100))
+			CONS_Printf(p, "\x83"..pTarget.." \x80- "..tostring(sTrack.globalPlayerData[pTarget][1]).." races, ~"..tostring(winPercent).."% wins, ~"..tostring(podiumPercent).."% podium finishes")
+		else
+			CONS_Printf(p, "\x83"..pTarget.." \x80- "..tostring(sTrack.globalPlayerData[pTarget][1]).." races")
+		end
 		CONS_Printf(p, "\x82"..tostring(sTrack.globalPlayerData[pTarget][2]).." 1st places \x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][8]).." 2nd places \x80| \x8D"..tostring(sTrack.globalPlayerData[pTarget][9]).." 3rd places")
+
 		if sTrack.cv_enableks.value == 1 then
-			local kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." Vanilla "
+			local kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." ("..tostring(sTrack.globalPlayerData[pTarget][15]).." Max) Vanilla "
 			if CV_FindVar("techonly") then
-				kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." Vanilla/Tech "
+				kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." ("..tostring(sTrack.globalPlayerData[pTarget][15]).." Max) Vanilla/Tech "
 			end
 			if CV_FindVar("juicebox") then
-				kString = $ + "\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][11]).." Juicebox "
+				kString = $ + "\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][11]).." ("..tostring(sTrack.globalPlayerData[pTarget][16]).." Max) Juicebox "
 			end
 			if CV_FindVar("driftnitro") then
-				kString = $ + "\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." Nitro "
+				kString = $ + "\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." ("..tostring(sTrack.globalPlayerData[pTarget][17]).." Max) Nitro "
 			end
 			if CV_FindVar("elimination") then
-				kString = $ + "\x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][13]).." Elimination "
+				kString = $ + "\x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][13]).." ("..tostring(sTrack.globalPlayerData[pTarget][18]).." Max) Elimination "
 			end
 			if CV_FindVar("combi_active") then
-				kString = $ + "\x80| \x87"..tostring(sTrack.globalPlayerData[pTarget][14]).." Combi "
+				kString = $ + "\x80| \x87"..tostring(sTrack.globalPlayerData[pTarget][14]).." ("..tostring(sTrack.globalPlayerData[pTarget][19]).." Max) Combi "
 			end
 			CONS_Printf(p, kString)
 		end
@@ -205,7 +213,7 @@ local function st_mapdata(p, ...)
 					CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x83"..tostring(v).." plays | \x85"..tostring(sTrack.globalMapData[k][2]).." RTVs")
 				
 					forCounter = forCounter + 1
-					if forCounter > 10 then break end
+					if forCounter > 15 then break end
 				end
 			end
 		elseif mTarget == "bottom" then
@@ -219,7 +227,7 @@ local function st_mapdata(p, ...)
 					CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x85"..tostring(v).." RTVs | \x83"..tostring(sTrack.globalMapData[k][1]).." plays")
 					
 					forCounter = forCounter + 1
-					if forCounter > 10 then break end
+					if forCounter > 15 then break end
 				end
 			end
 		elseif sTrack.globalMapData[mTarget] == nil then
@@ -313,7 +321,7 @@ local function st_skindata(p, ...)
 					CONS_Printf(p, tostring(forCounter).." - \x82"..k.." - \x83"..tostring(v).." weighted uses")
 				end					
 				forCounter = forCounter + 1
-				if forCounter > 10 then break end
+				if forCounter > 15 then break end
 			end
 		elseif sTrack.globalSkinData[sTarget] == nil then
 			CONS_Printf(p, "Could not find skin (Use skin code or leave blank for current skin)")
