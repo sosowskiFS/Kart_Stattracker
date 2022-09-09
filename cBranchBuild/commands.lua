@@ -89,6 +89,13 @@ sTrack.cv_showtime = CV_RegisterVar ({
 	defaultvalue = 1,
 	PossibleValue = CV_OnOff,
 })
+
+--Stops new record gloat from playing
+sTrack.cv_recordsound = CV_RegisterVar ({
+	name = "st_recordsound",
+	defaultvalue = 1,
+	PossibleValue = CV_OnOff,
+})
  
 --In game player data lookups
 local function st_playerdata(p, ...)
@@ -183,9 +190,18 @@ local function st_playerdata(p, ...)
 			end
 			CONS_Printf(p, kString)
 		end
-		CONS_Printf(p, tostring(sTrack.globalPlayerData[pTarget][3]).." item hits | \x85"..tostring(sTrack.globalPlayerData[pTarget][4]).." self or enviroment hits")
+		
+		local uHitPerRace = 0
+		local gotHitTotal = 0
+		local gotHitPerRace = 0
+		if tonumber(sTrack.globalPlayerData[pTarget][1]) > 0 then
+			uHitPerRace = FixedInt(FixedRound(FixedDiv(sTrack.globalPlayerData[pTarget][3], sTrack.globalPlayerData[pTarget][1])))
+			gotHitTotal = sTrack.globalPlayerData[pTarget][5] + sTrack.globalPlayerData[pTarget][6] + sTrack.globalPlayerData[pTarget][7]
+			gotHitPerRace = FixedInt(FixedRound(FixedDiv(gotHitTotal, sTrack.globalPlayerData[pTarget][1])))
+		end	
+		CONS_Printf(p, tostring(sTrack.globalPlayerData[pTarget][3]).." item hits (~"..tostring(uHitPerRace).."per race) | \x85"..tostring(sTrack.globalPlayerData[pTarget][4]).." self or enviroment hits")
 		CONS_Printf(p, "\x82"..tostring(sTrack.globalPlayerData[pTarget][5]).." spinouts | \x87"..tostring(sTrack.globalPlayerData[pTarget][6]).." times exploded | \x84"..tostring(sTrack.globalPlayerData[pTarget][7]).." times squished")
-		CONS_Printf(p, "Total playtime : "..tostring(hours).." hours, "..tostring(minutes).." minutes (est.)")
+		CONS_Printf(p, "You get hit ~"..tostring(gotHitPerRace).." time(s) per race. Total playtime : "..tostring(hours).." hours, "..tostring(minutes).." minutes (est.)")
 	end
 end
 COM_AddCommand("st_playerdata", st_playerdata)
@@ -343,3 +359,56 @@ local function st_skindata(p, ...)
 	end
 end
 COM_AddCommand("st_skindata", st_skindata)
+
+--Admin Commands
+
+--Delete a map record (use this when a map updates and old records don't apply)
+--BE. CAREFUL.
+local function st_clearmaprecord(p, ...)
+	if (IsPlayerAdmin(player) or player == server) then
+		local mapID = table.concat({..})
+		if sTarget == nil or sTarget == '' then
+			CONS_Printf(p, "\nClears map time records and saves the changes to file immediately")
+			CONS_Printf(p, "\nUsage: st_clearmaprecord [mapID], mapID can be numeric or extended format")
+			CONS_Printf(p, "\n(DO NOT TYPO THE MAP ID - IT IS IRREVERSIBLY DESTRUCTIVE)")
+			return
+		end
+		mapID = sTrack.convertMapToInt(mapID)
+		if mapID == -1 then
+			CONS_Printf(p, "\nInvalid MapID format. No changes have been made.")
+		end
+		
+		local didWork = false
+		--mapheaderinfo[tostring(i)].lvlttl
+		if sTrack.globalEasyTimeData[tostring(mapID)] then
+			sTrack.globalEasyTimeData[tostring(mapID)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
+			didWork = true
+		end
+		if sTrack.globalNormalTimeData[tostring(mapID)] then
+			sTrack.globalNormalTimeData[tostring(mapID)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
+			didWork = true
+		end
+		if sTrack.globalHardTimeData[tostring(mapID)] then
+			sTrack.globalHardTimeData[tostring(mapID)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
+			didWork = true
+		end
+		
+		if didWork == false then
+			if mapheaderinfo[tostring(mapID)] then
+				CONS_Printf(p, "\nNo records found for "..mapheaderinfo[tostring(mapID)].lvlttl..". No changes made.")
+			else
+				CONS_Printf(p, "\nNo records found for ID "..tostring(mapID)". No changes made.")
+			end
+		else
+			sTrack.saveFiles("Time")
+			
+			if mapheaderinfo[tostring(mapID)] then
+				CONS_Printf(p, "\nRecords have been wiped for "..mapheaderinfo[tostring(mapID)].lvlttl..".")
+			else
+				CONS_Printf(p, "\nRecords have been wiped for unloaded map with ID "..tostring(mapID)".")
+			end
+		end		
+	else
+		CONS_Printf(p, "\nYou must be an admin to use this command.")
+	end
+end

@@ -712,7 +712,7 @@ local function interShowNewRecord(v)
 		--Left this here for example of popup sliding in and out
 		if slideRun == "left" then
 			slideValue = $ + 1
-			if slideValue == -25 then
+			if slideValue == -25 and sTrack.cv_recordsound == 1 then
 				--Play the skin sound
 				S_StartSound(nil, skins[recordSkin].soundsid[SKSKPOWR])
 			end
