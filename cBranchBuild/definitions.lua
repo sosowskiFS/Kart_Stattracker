@@ -230,13 +230,14 @@ sTrack.saveFiles = function(whatToSave)
 		--print('Saving time data...')
 		if not pcall(_saveTimeFunc) then
 			print("Failed to save time file!")
-		end	
+		end
+	end
 end
 
 sTrack.checkNilPlayer = function(name)
 	--Cleaner to just throw this here since I have to do it so much
 	if sTrack.globalPlayerData[name] == nil then
-		sTrack.globalPlayerData[name] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1500, 1500, 1500, 1500, 1500}
+		sTrack.globalPlayerData[name] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500}
 	end
 end
 
