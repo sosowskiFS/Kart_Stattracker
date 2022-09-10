@@ -192,7 +192,7 @@ local function st_playerdata(p, ...)
 			
 			kString = "\x85Highest KartScores \x80- \x83"..tostring(sTrack.globalPlayerData[pTarget][15]).." Vanilla "
 			if CV_FindVar("techonly") then
-				kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][15]).." Vanilla/Tech "
+				kString = "\x85Highest KartScores \x80- \x83"..tostring(sTrack.globalPlayerData[pTarget][15]).." Vanilla/Tech "
 			end
 			if CV_FindVar("juicebox") then
 				kString = $ + "\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][16]).." Juicebox "
