@@ -172,21 +172,39 @@ local function st_playerdata(p, ...)
 		CONS_Printf(p, "\x82"..tostring(sTrack.globalPlayerData[pTarget][2]).." 1st places \x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][8]).." 2nd places \x80| \x8D"..tostring(sTrack.globalPlayerData[pTarget][9]).." 3rd places")
 
 		if sTrack.cv_enableks.value == 1 then
-			local kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." ("..tostring(sTrack.globalPlayerData[pTarget][15]).." Max) Vanilla "
+			local kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." Vanilla "
 			if CV_FindVar("techonly") then
-				kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." ("..tostring(sTrack.globalPlayerData[pTarget][15]).." Max) Vanilla/Tech "
+				kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." Vanilla/Tech "
 			end
 			if CV_FindVar("juicebox") then
-				kString = $ + "\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][11]).." ("..tostring(sTrack.globalPlayerData[pTarget][16]).." Max) Juicebox "
+				kString = $ + "\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][11]).." Juicebox "
 			end
 			if CV_FindVar("driftnitro") then
-				kString = $ + "\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." ("..tostring(sTrack.globalPlayerData[pTarget][17]).." Max) Nitro "
+				kString = $ + "\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." Nitro "
 			end
 			if CV_FindVar("elimination") then
-				kString = $ + "\x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][13]).." ("..tostring(sTrack.globalPlayerData[pTarget][18]).." Max) Elimination "
+				kString = $ + "\x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][13]).." Elimination "
 			end
 			if CV_FindVar("combi_active") then
-				kString = $ + "\x80| \x87"..tostring(sTrack.globalPlayerData[pTarget][14]).." ("..tostring(sTrack.globalPlayerData[pTarget][19]).." Max) Combi "
+				kString = $ + "\x80| \x87"..tostring(sTrack.globalPlayerData[pTarget][14]).." Combi "
+			end
+			CONS_Printf(p, kString)
+			
+			kString = "\x85Highest KartScores \x80- \x83"..tostring(sTrack.globalPlayerData[pTarget][15]).." Vanilla "
+			if CV_FindVar("techonly") then
+				kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][15]).." Vanilla/Tech "
+			end
+			if CV_FindVar("juicebox") then
+				kString = $ + "\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][16]).." Juicebox "
+			end
+			if CV_FindVar("driftnitro") then
+				kString = $ + "\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][17]).." Nitro "
+			end
+			if CV_FindVar("elimination") then
+				kString = $ + "\x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][18]).." Elimination "
+			end
+			if CV_FindVar("combi_active") then
+				kString = $ + "\x80| \x87"..tostring(sTrack.globalPlayerData[pTarget][19]).." Combi "
 			end
 			CONS_Printf(p, kString)
 		end
@@ -199,7 +217,7 @@ local function st_playerdata(p, ...)
 			gotHitTotal = sTrack.globalPlayerData[pTarget][5] + sTrack.globalPlayerData[pTarget][6] + sTrack.globalPlayerData[pTarget][7]
 			gotHitPerRace = FixedInt(FixedRound(FixedDiv(gotHitTotal, sTrack.globalPlayerData[pTarget][1])))
 		end	
-		CONS_Printf(p, tostring(sTrack.globalPlayerData[pTarget][3]).." item hits (~"..tostring(uHitPerRace).."per race) | \x85"..tostring(sTrack.globalPlayerData[pTarget][4]).." self or enviroment hits")
+		CONS_Printf(p, tostring(sTrack.globalPlayerData[pTarget][3]).." item hits (~"..tostring(uHitPerRace).." per race) | \x85"..tostring(sTrack.globalPlayerData[pTarget][4]).." self or enviroment hits")
 		CONS_Printf(p, "\x82"..tostring(sTrack.globalPlayerData[pTarget][5]).." spinouts | \x87"..tostring(sTrack.globalPlayerData[pTarget][6]).." times exploded | \x84"..tostring(sTrack.globalPlayerData[pTarget][7]).." times squished")
 		CONS_Printf(p, "You get hit ~"..tostring(gotHitPerRace).." time(s) per race. Total playtime : "..tostring(hours).." hours, "..tostring(minutes).." minutes (est.)")
 	end
@@ -214,7 +232,7 @@ local function st_mapdata(p, ...)
 			--assume player is looking up current map
 			mTarget = gamemap
 		else
-			mTarget = table.concat({...}, " ")
+			mTarget = table.concat({...})
 		end
 		mTarget = tostring(mTarget)
 		
@@ -225,8 +243,8 @@ local function st_mapdata(p, ...)
 			end
 			local forCounter = 1
 			for k,v in sTrack.spairs(stuffToSort, function(t,a,b) return t[b] < t[a] end) do
-				if mapheaderinfo[k] and k ~= "1" then
-					CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x83"..tostring(v).." plays | \x85"..tostring(sTrack.globalMapData[k][2]).." RTVs")
+				if k ~= "1" then
+					CONS_Printf(p, tostring(forCounter).." - \x82"..sTrack.globalMapData[k][3].." |\x83"..tostring(v).." plays | \x85"..tostring(sTrack.globalMapData[k][2]).." RTVs")
 				
 					forCounter = forCounter + 1
 					if forCounter > 15 then break end
@@ -239,66 +257,73 @@ local function st_mapdata(p, ...)
 			end
 			local forCounter = 1
 			for k,v in sTrack.spairs(stuffToSort, function(t,a,b) return t[b] < t[a] end) do
-				if mapheaderinfo[k] and k ~= "1" then	
-					CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x85"..tostring(v).." RTVs | \x83"..tostring(sTrack.globalMapData[k][1]).." plays")
+				if k ~= "1" then	
+					CONS_Printf(p, tostring(forCounter).." - \x82"..sTrack.globalMapData[k][3].." |\x85"..tostring(v).." RTVs | \x83"..tostring(sTrack.globalMapData[k][1]).." plays")
 					
 					forCounter = forCounter + 1
 					if forCounter > 15 then break end
 				end
 			end
-		elseif sTrack.globalMapData[mTarget] == nil then
-			CONS_Printf(p, "Could not find map! (Use the map code or leave blank for current map)")
 		else
+			mTarget = sTrack.convertMapToInt(mTarget)
+			if mTarget == -1 then
+				CONS_Printf(p, "Invalid MapID")
+				return
+			end
+			if sTrack.globalMapData[tostring(mTarget)] == nil then
+				CONS_Printf(p, "Could not find map! (Use the map code or leave blank for current map)")
+				return
+			end
 			--timesPlayed, rtv
-			CONS_Printf(p, "\x82"..tostring(mapheaderinfo[mTarget].lvlttl).." ("..tostring(mTarget)..")")
-			CONS_Printf(p, "\x83"..tostring(sTrack.globalMapData[mTarget][1]).." plays | \x85"..tostring(sTrack.globalMapData[mTarget][2]).." RTVs")
+			CONS_Printf(p, "\x82"..tostring(sTrack.globalMapData[tostring(mTarget)][3]).." ("..tostring(mTarget)..")")
+			CONS_Printf(p, "\x83"..tostring(sTrack.globalMapData[tostring(mTarget)][1]).." plays | \x85"..tostring(sTrack.globalMapData[tostring(mTarget)][2]).." RTVs")
 			
 			if gamespeed == 0 then
-				if sTrack.globalEasyTimeData[mTarget] ~= nil and sTrack.cv_enablerecords.value == 1 then
-					if sTrack.globalEasyTimeData[mTarget][2] ~= "p" then
+				if sTrack.globalEasyTimeData[tostring(mTarget)] ~= nil and sTrack.cv_enablerecords.value == 1 then
+					if sTrack.globalEasyTimeData[tostring(mTarget)][2] ~= "p" then
 						if CV_FindVar("techonly") then
-							CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(sTrack.globalEasyTimeData[mTarget][1]).." by "..tostring(sTrack.globalEasyTimeData[mTarget][2]))
+							CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(sTrack.globalEasyTimeData[tostring(mTarget)][1]).." by "..tostring(sTrack.globalEasyTimeData[tostring(mTarget)][2]))
 						else
-							CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(sTrack.globalEasyTimeData[mTarget][1]).." by "..tostring(sTrack.globalEasyTimeData[mTarget][2]))
+							CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(sTrack.globalEasyTimeData[tostring(mTarget)][1]).." by "..tostring(sTrack.globalEasyTimeData[tostring(mTarget)][2]))
 						end				
 					end
-					if sTrack.globalEasyTimeData[mTarget][5] ~= "p" then
-						CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(sTrack.globalEasyTimeData[mTarget][4]).." by "..tostring(sTrack.globalEasyTimeData[mTarget][5]))
+					if sTrack.globalEasyTimeData[tostring(mTarget)][5] ~= "p" then
+						CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(sTrack.globalEasyTimeData[tostring(mTarget)][4]).." by "..tostring(sTrack.globalEasyTimeData[tostring(mTarget)][5]))
 					end
-					if sTrack.globalEasyTimeData[mTarget][8] ~= "p" then
-						CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(sTrack.globalEasyTimeData[mTarget][7]).." by "..tostring(sTrack.globalEasyTimeData[mTarget][8]))
+					if sTrack.globalEasyTimeData[tostring(mTarget)][8] ~= "p" then
+						CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(sTrack.globalEasyTimeData[tostring(mTarget)][7]).." by "..tostring(sTrack.globalEasyTimeData[tostring(mTarget)][8]))
 					end
 				end		
 			elseif gamespeed == 1 then
-				if sTrack.globalNormalTimeData[mTarget] ~= nil and sTrack.cv_enablerecords.value == 1 then
-					if sTrack.globalNormalTimeData[mTarget][2] ~= "p" then
+				if sTrack.globalNormalTimeData[tostring(mTarget)] ~= nil and sTrack.cv_enablerecords.value == 1 then
+					if sTrack.globalNormalTimeData[tostring(mTarget)][2] ~= "p" then
 						if CV_FindVar("techonly") then
-							CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(sTrack.globalNormalTimeData[mTarget][1]).." by "..tostring(sTrack.globalNormalTimeData[mTarget][2]))
+							CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(sTrack.globalNormalTimeData[tostring(mTarget)][1]).." by "..tostring(sTrack.globalNormalTimeData[tostring(mTarget)][2]))
 						else
-							CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(sTrack.globalNormalTimeData[mTarget][1]).." by "..tostring(sTrack.globalNormalTimeData[mTarget][2]))
+							CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(sTrack.globalNormalTimeData[tostring(mTarget)][1]).." by "..tostring(sTrack.globalNormalTimeData[tostring(mTarget)][2]))
 						end				
 					end
-					if sTrack.globalNormalTimeData[mTarget][5] ~= "p" then
-						CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(sTrack.globalNormalTimeData[mTarget][4]).." by "..tostring(sTrack.globalNormalTimeData[mTarget][5]))
+					if sTrack.globalNormalTimeData[tostring(mTarget)][5] ~= "p" then
+						CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(sTrack.globalNormalTimeData[tostring(mTarget)][4]).." by "..tostring(sTrack.globalNormalTimeData[tostring(mTarget)][5]))
 					end
-					if sTrack.globalNormalTimeData[mTarget][8] ~= "p" then
-						CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(sTrack.globalNormalTimeData[mTarget][7]).." by "..tostring(sTrack.globalNormalTimeData[mTarget][8]))
+					if sTrack.globalNormalTimeData[tostring(mTarget)][8] ~= "p" then
+						CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(sTrack.globalNormalTimeData[tostring(mTarget)][7]).." by "..tostring(sTrack.globalNormalTimeData[tostring(mTarget)][8]))
 					end
 				end			
 			elseif gamespeed == 2 then
-				if sTrack.globalHardTimeData[mTarget] ~= nil and sTrack.cv_enablerecords.value == 1 then
-					if sTrack.globalHardTimeData[mTarget][2] ~= "p" then
+				if sTrack.globalHardTimeData[tostring(mTarget)] ~= nil and sTrack.cv_enablerecords.value == 1 then
+					if sTrack.globalHardTimeData[tostring(mTarget)][2] ~= "p" then
 						if CV_FindVar("techonly") then
-							CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(sTrack.globalHardTimeData[mTarget][1]).." by "..tostring(sTrack.globalHardTimeData[mTarget][2]))
+							CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(sTrack.globalHardTimeData[tostring(mTarget)][1]).." by "..tostring(sTrack.globalHardTimeData[tostring(mTarget)][2]))
 						else
-							CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(sTrack.globalHardTimeData[mTarget][1]).." by "..tostring(sTrack.globalHardTimeData[mTarget][2]))
+							CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(sTrack.globalHardTimeData[tostring(mTarget)][1]).." by "..tostring(sTrack.globalHardTimeData[tostring(mTarget)][2]))
 						end				
 					end
-					if sTrack.globalHardTimeData[mTarget][5] ~= "p" then
-						CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(sTrack.globalHardTimeData[mTarget][4]).." by "..tostring(sTrack.globalHardTimeData[mTarget][5]))
+					if sTrack.globalHardTimeData[tostring(mTarget)][5] ~= "p" then
+						CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(sTrack.globalHardTimeData[tostring(mTarget)][4]).." by "..tostring(sTrack.globalHardTimeData[tostring(mTarget)][5]))
 					end
-					if sTrack.globalHardTimeData[mTarget][8] ~= "p" then
-						CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(sTrack.globalHardTimeData[mTarget][7]).." by "..tostring(sTrack.globalHardTimeData[mTarget][8]))
+					if sTrack.globalHardTimeData[tostring(mTarget)][8] ~= "p" then
+						CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(sTrack.globalHardTimeData[tostring(mTarget)][7]).." by "..tostring(sTrack.globalHardTimeData[tostring(mTarget)][8]))
 					end
 				end			
 			end
@@ -365,9 +390,9 @@ COM_AddCommand("st_skindata", st_skindata)
 --Delete a map record (use this when a map updates and old records don't apply)
 --BE. CAREFUL.
 local function st_clearmaprecord(p, ...)
-	if (IsPlayerAdmin(player) or player == server) then
-		local mapID = table.concat({..})
-		if sTarget == nil or sTarget == '' then
+	if (IsPlayerAdmin(p) or p == server) then
+		local mapID = table.concat({...})
+		if mapID == nil or mapID == '' then
 			CONS_Printf(p, "\nClears map time records and saves the changes to file immediately")
 			CONS_Printf(p, "\nUsage: st_clearmaprecord [mapID], mapID can be numeric or extended format")
 			CONS_Printf(p, "\n(DO NOT TYPO THE MAP ID - IT IS IRREVERSIBLY DESTRUCTIVE)")
@@ -376,6 +401,7 @@ local function st_clearmaprecord(p, ...)
 		mapID = sTrack.convertMapToInt(mapID)
 		if mapID == -1 then
 			CONS_Printf(p, "\nInvalid MapID format. No changes have been made.")
+			return
 		end
 		
 		local didWork = false
@@ -394,21 +420,22 @@ local function st_clearmaprecord(p, ...)
 		end
 		
 		if didWork == false then
-			if mapheaderinfo[tostring(mapID)] then
-				CONS_Printf(p, "\nNo records found for "..mapheaderinfo[tostring(mapID)].lvlttl..". No changes made.")
+			if sTrack.globalMapData[tostring(mapID)] then
+				CONS_Printf(p, "\nNo records found for "..sTrack.globalMapData[tostring(mapID)][3]..". No changes made.")
 			else
-				CONS_Printf(p, "\nNo records found for ID "..tostring(mapID)". No changes made.")
+				CONS_Printf(p, "\nNo records found for ID "..tostring(mapID)..". No changes made.")
 			end
 		else
 			sTrack.saveFiles("Time")
 			
-			if mapheaderinfo[tostring(mapID)] then
-				CONS_Printf(p, "\nRecords have been wiped for "..mapheaderinfo[tostring(mapID)].lvlttl..".")
+			if sTrack.globalMapData[tostring(mapID)] then
+				CONS_Printf(p, "\nRecords have been wiped for "..sTrack.globalMapData[tostring(mapID)][3]..".")
 			else
-				CONS_Printf(p, "\nRecords have been wiped for unloaded map with ID "..tostring(mapID)".")
+				CONS_Printf(p, "\nRecords have been wiped for unloaded map with ID "..tostring(mapID)..".")
 			end
 		end		
 	else
 		CONS_Printf(p, "\nYou must be an admin to use this command.")
 	end
 end
+COM_AddCommand("st_clearmaprecord", st_clearmaprecord)

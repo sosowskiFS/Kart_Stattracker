@@ -231,7 +231,6 @@ sTrack.saveFiles = function(whatToSave)
 		if not pcall(_saveTimeFunc) then
 			print("Failed to save time file!")
 		end	
-	end
 end
 
 sTrack.checkNilPlayer = function(name)
@@ -388,38 +387,38 @@ sTrack.convertMapToInt = function(mapID)
 	
 	--Char in C++ converts to int, lua doesn't have that luxury, so...
 	local conDig = {
-		"a" = 0, "A" = 0,
-		"b" = 1, "B" = 1,
-		"c" = 2, "C" = 2,
-		"d" = 3, "D" = 3,
-		"e" = 4, "E" = 4,
-		"f" = 5, "F" = 5,
-		"g" = 6, "G" = 6,
-		"h" = 7, "H" = 7,
-		"i" = 8, "I" = 8,
-		"j" = 9, "J" = 9,
-		"k" = 10, "K" = 10,
-		"l" = 11, "L" = 11,
-		"m" = 12, "M" = 12,
-		"n" = 13, "N" = 13,
-		"o" = 14, "O" = 14,
-		"p" = 15, "P" = 15,
-		"q" = 16, "Q" = 16,
-		"r" = 17, "R" = 17,
-		"s" = 18, "S" = 18,
-		"t" = 19, "T" = 19,
-		"u" = 20, "U" = 20,
-		"v" = 21, "V" = 21,
-		"w" = 22, "W" = 22,
-		"x" = 23, "X" = 23,
-		"y" = 24, "Y" = 24,
-		"z" = 25, "Z" = 25	
+		['a'] = 0, ['A'] = 0,
+		['b'] = 1, ['B'] = 1,
+		['c'] = 2, ['C'] = 2,
+		['d'] = 3, ['D'] = 3,
+		['e'] = 4, ['E'] = 4,
+		['f'] = 5, ['F'] = 5,
+		['g'] = 6, ['G'] = 6,
+		['h'] = 7, ['H'] = 7,
+		['i'] = 8, ['I'] = 8,
+		['j'] = 9, ['J'] = 9,
+		['k'] = 10, ['K'] = 10,
+		['l'] = 11, ['L'] = 11,
+		['m'] = 12, ['M'] = 12,
+		['n'] = 13, ['N'] = 13,
+		['o'] = 14, ['O'] = 14,
+		['p'] = 15, ['P'] = 15,
+		['q'] = 16, ['Q'] = 16,
+		['r'] = 17, ['R'] = 17,
+		['s'] = 18, ['S'] = 18,
+		['t'] = 19, ['T'] = 19,
+		['u'] = 20, ['U'] = 20,
+		['v'] = 21, ['V'] = 21,
+		['w'] = 22, ['W'] = 22,
+		['x'] = 23, ['X'] = 23,
+		['y'] = 24, ['Y'] = 24,
+		['z'] = 25, ['Z'] = 25,
 	}
 	--Letters in digit 2 are conDig[] + 10
 	local Digit1 = 0
 	local Digit2 = 0
 	for i = 1, #mapID do
-		local c = string.sub(i, i)
+		local c = mapID:sub(i, i)
 		if tonumber(c) ~= nil then
 			if i == 1 then
 				Digit1 = c
@@ -427,6 +426,10 @@ sTrack.convertMapToInt = function(mapID)
 				Digit2 = c
 			end
 		else
+			if conDig[tostring(c)] == nil then
+				--Invalid character
+				return -1
+			end
 			if i == 1 then
 				Digit1 = conDig[tostring(c)]
 			else
@@ -434,7 +437,6 @@ sTrack.convertMapToInt = function(mapID)
 			end
 		end
 	end
-	
 	return ((36 * Digit1 + Digit2) + 100)
 end
 			
