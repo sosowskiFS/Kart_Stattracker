@@ -102,7 +102,6 @@ if p then
 					--sTrack.globalPlayerData[LpName] = {LmapsPlayed, Lwins, Lhits, LselfHits, Lspinned, Lexploded, Lsquished, Lsecond, Lthird, Lelo, LjElo, LnElo, LeElo, LcElo, Lelo, LjElo, LnElo, LeElo, LcElo}
 				--end
 			end
-			print(sTrack.globalPlayerData[rowHolder[1]][19])
 		end
 	end
 	p:close()
