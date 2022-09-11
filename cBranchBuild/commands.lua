@@ -177,16 +177,16 @@ local function st_playerdata(p, ...)
 				kString = "KartScores - \x83"..tostring(sTrack.globalPlayerData[pTarget][10]).." Vanilla/Tech "
 			end
 			if CV_FindVar("juicebox") then
-				kString = $ + "\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][11]).." Juicebox "
+				kString = $.."\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][11]).." Juicebox "
 			end
 			if CV_FindVar("driftnitro") then
-				kString = $ + "\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." Nitro "
+				kString = $.."\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][12]).." Nitro "
 			end
 			if CV_FindVar("elimination") then
-				kString = $ + "\x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][13]).." Elimination "
+				kString = $.."\x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][13]).." Elimination "
 			end
 			if CV_FindVar("combi_active") then
-				kString = $ + "\x80| \x87"..tostring(sTrack.globalPlayerData[pTarget][14]).." Combi "
+				kString = $.."\x80| \x87"..tostring(sTrack.globalPlayerData[pTarget][14]).." Combi "
 			end
 			CONS_Printf(p, kString)
 			
@@ -195,16 +195,16 @@ local function st_playerdata(p, ...)
 				kString = "\x85Highest KartScores \x80- \x83"..tostring(sTrack.globalPlayerData[pTarget][15]).." Vanilla/Tech "
 			end
 			if CV_FindVar("juicebox") then
-				kString = $ + "\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][16]).." Juicebox "
+				kString = $.."\x80| \x84"..tostring(sTrack.globalPlayerData[pTarget][16]).." Juicebox "
 			end
 			if CV_FindVar("driftnitro") then
-				kString = $ + "\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][17]).." Nitro "
+				kString = $.."\x80| \x85"..tostring(sTrack.globalPlayerData[pTarget][17]).." Nitro "
 			end
 			if CV_FindVar("elimination") then
-				kString = $ + "\x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][18]).." Elimination "
+				kString = $.."\x80| \x86"..tostring(sTrack.globalPlayerData[pTarget][18]).." Elimination "
 			end
 			if CV_FindVar("combi_active") then
-				kString = $ + "\x80| \x87"..tostring(sTrack.globalPlayerData[pTarget][19]).." Combi "
+				kString = $.."\x80| \x87"..tostring(sTrack.globalPlayerData[pTarget][19]).." Combi "
 			end
 			CONS_Printf(p, kString)
 		end

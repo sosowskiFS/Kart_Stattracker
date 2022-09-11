@@ -412,7 +412,7 @@ local function intThink()
 				
 				sTrack.globalPlayerData[player][gameModeIndex] = sTrack.globalPlayerData[player][gameModeIndex] + change
 				
-				if tonumber(sTrack.globalPlayerData[player][gameModeIndex + 5]) < tonumber(sTrack.globalPlayerData[player][gameModeIndex]) then
+				if sTrack.globalPlayerData[player][gameModeIndex + 5] and tonumber(sTrack.globalPlayerData[player][gameModeIndex + 5]) < tonumber(sTrack.globalPlayerData[player][gameModeIndex]) then
 					--New personal highest KS for this mode
 					sTrack.globalPlayerData[player][gameModeIndex + 5] = sTrack.globalPlayerData[player][gameModeIndex]
 				end
