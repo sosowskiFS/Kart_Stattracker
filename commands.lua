@@ -213,49 +213,49 @@ local function st_mapdata(p, ...)
 		
 		if gamespeed == 0 then
 			if sTrack.globalEasyTimeData[mTarget] ~= nil and sTrack.cv_enablerecords.value == 1 then
-				if sTrack.globalEasyTimeData[mTarget][2] ~= "placeholder" then
+				if sTrack.globalEasyTimeData[mTarget][2] ~= "p" then
 					if CV_FindVar("techonly") then
 						CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(sTrack.globalEasyTimeData[mTarget][1]).." by "..tostring(sTrack.globalEasyTimeData[mTarget][2]))
 					else
 						CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(sTrack.globalEasyTimeData[mTarget][1]).." by "..tostring(sTrack.globalEasyTimeData[mTarget][2]))
 					end				
 				end
-				if sTrack.globalEasyTimeData[mTarget][5] ~= "placeholder" then
+				if sTrack.globalEasyTimeData[mTarget][5] ~= "p" then
 					CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(sTrack.globalEasyTimeData[mTarget][4]).." by "..tostring(sTrack.globalEasyTimeData[mTarget][5]))
 				end
-				if sTrack.globalEasyTimeData[mTarget][8] ~= "placeholder" then
+				if sTrack.globalEasyTimeData[mTarget][8] ~= "p" then
 					CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(sTrack.globalEasyTimeData[mTarget][7]).." by "..tostring(sTrack.globalEasyTimeData[mTarget][8]))
 				end
 			end		
 		elseif gamespeed == 1 then
 			if sTrack.globalNormalTimeData[mTarget] ~= nil and sTrack.cv_enablerecords.value == 1 then
-				if sTrack.globalNormalTimeData[mTarget][2] ~= "placeholder" then
+				if sTrack.globalNormalTimeData[mTarget][2] ~= "p" then
 					if CV_FindVar("techonly") then
 						CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(sTrack.globalNormalTimeData[mTarget][1]).." by "..tostring(sTrack.globalNormalTimeData[mTarget][2]))
 					else
 						CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(sTrack.globalNormalTimeData[mTarget][1]).." by "..tostring(sTrack.globalNormalTimeData[mTarget][2]))
 					end				
 				end
-				if sTrack.globalNormalTimeData[mTarget][5] ~= "placeholder" then
+				if sTrack.globalNormalTimeData[mTarget][5] ~= "p" then
 					CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(sTrack.globalNormalTimeData[mTarget][4]).." by "..tostring(sTrack.globalNormalTimeData[mTarget][5]))
 				end
-				if sTrack.globalNormalTimeData[mTarget][8] ~= "placeholder" then
+				if sTrack.globalNormalTimeData[mTarget][8] ~= "p" then
 					CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(sTrack.globalNormalTimeData[mTarget][7]).." by "..tostring(sTrack.globalNormalTimeData[mTarget][8]))
 				end
 			end			
 		elseif gamespeed == 2 then
 			if sTrack.globalHardTimeData[mTarget] ~= nil and sTrack.cv_enablerecords.value == 1 then
-				if sTrack.globalHardTimeData[mTarget][2] ~= "placeholder" then
+				if sTrack.globalHardTimeData[mTarget][2] ~= "p" then
 					if CV_FindVar("techonly") then
 						CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(sTrack.globalHardTimeData[mTarget][1]).." by "..tostring(sTrack.globalHardTimeData[mTarget][2]))
 					else
 						CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(sTrack.globalHardTimeData[mTarget][1]).." by "..tostring(sTrack.globalHardTimeData[mTarget][2]))
 					end				
 				end
-				if sTrack.globalHardTimeData[mTarget][5] ~= "placeholder" then
+				if sTrack.globalHardTimeData[mTarget][5] ~= "p" then
 					CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(sTrack.globalHardTimeData[mTarget][4]).." by "..tostring(sTrack.globalHardTimeData[mTarget][5]))
 				end
-				if sTrack.globalHardTimeData[mTarget][8] ~= "placeholder" then
+				if sTrack.globalHardTimeData[mTarget][8] ~= "p" then
 					CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(sTrack.globalHardTimeData[mTarget][7]).." by "..tostring(sTrack.globalHardTimeData[mTarget][8]))
 				end
 			end			

@@ -356,11 +356,11 @@ local function intThink()
 		--Make sure no special game type is running
 		if hasTimeSupport and sTrack.cv_enablerecords.value == 1 then
 			if gamespeed == 0 and sTrack.globalEasyTimeData[tostring(gamemap)] == nil then
-				sTrack.globalEasyTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+				sTrack.globalEasyTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
 			elseif gamespeed == 1 and sTrack.globalNormalTimeData[tostring(gamemap)] == nil then
-				sTrack.globalNormalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+				sTrack.globalNormalTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
 			elseif gamespeed == 2 and sTrack.globalHardTimeData[tostring(gamemap)] == nil then
-				sTrack.globalHardTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+				sTrack.globalHardTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
 			end
 			
 			if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
@@ -581,7 +581,7 @@ local function think()
 				if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
 					if gamespeed == 0 then
 						if sTrack.globalEasyTimeData[tostring(gamemap)] == nil then
-							sTrack.globalEasyTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+							sTrack.globalEasyTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
 						end
 						if (cMode == 2 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][7])) or (cMode == 1 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][4])) or (cMode == 0 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][1])) then
 							rTimeHolder = p.realtime
@@ -593,7 +593,7 @@ local function think()
 						end
 					elseif gamespeed == 1 then
 						if sTrack.globalNormalTimeData[tostring(gamemap)] == nil then
-							sTrack.globalNormalTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+							sTrack.globalNormalTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
 						end
 						if (cMode == 2 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][7])) or (cMode == 1 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][4])) or (cMode == 0 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][1])) then
 							rTimeHolder = p.realtime
@@ -605,7 +605,7 @@ local function think()
 						end
 					elseif gamespeed == 2 then
 						if sTrack.globalHardTimeData[tostring(gamemap)] == nil then
-							sTrack.globalHardTimeData[tostring(gamemap)] = {99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic", 99999999, "placeholder", "sonic"}
+							sTrack.globalHardTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
 						end
 						if (cMode == 2 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][7])) or (cMode == 1 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][4])) or (cMode == 0 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][1])) then
 							rTimeHolder = p.realtime
@@ -780,7 +780,7 @@ local function drawRecordTime(v, p)
 
 	
 	--Hide temp stuff
-	if recordHolder == 'placeholder' then return end
+	if recordHolder == 'p' then return end
 	
 	if stringTime ~= nil then
 		local rgHudOffset = 138
