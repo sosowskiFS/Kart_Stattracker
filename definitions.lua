@@ -12,6 +12,8 @@ sTrack.globalPlayerSkinUseData = {}
 sTrack.ksChanges = {}
 
 --Load data into tables
+local pre = collectgarbage("count")
+
 local f = io.open("Skincounter.txt", "r")
 if f then
 	--file already exsists, load from it
@@ -33,12 +35,17 @@ if f then
 			--local skinName, count, realName, totalCount = string.match(l, "(.*);(.*);(.*);(.*)")
 
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[4] then
-				sTrack.globalSkinData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4]}
+				--sTrack.globalSkinData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4]}
+				sTrack.globalSkinData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]
 			end
 		end
 	end
 	f:close()
 end
+
+print("SkinCounter - "..tostring(collectgarbage("count") - pre))
+pre = collectgarbage("count")
+
 local m = io.open("Mapdata.txt", "r")
 if m then
 	--file already exsists, load from it
@@ -60,12 +67,17 @@ if m then
 			--local mapID, timesPlayed, rtv, mapName = string.match(l, "(.*);(.*);(.*);(.*)")
 
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[4] then
-				sTrack.globalMapData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4]}
+				--sTrack.globalMapData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4]}
+				sTrack.globalMapData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]
 			end
 		end
 	end
 	m:close()
 end
+
+print("Mapdata - "..tostring(collectgarbage("count") - pre))
+pre = collectgarbage("count")
+
 local p = io.open("Playerdata.txt", "r")
 if p then
 	--do I really have to explain this to you three times
@@ -90,12 +102,16 @@ if p then
 			--Doesn't match below comment, yet
 			--local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo, eloC, jEloC, nEloC, eEloC, cEloC = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[15] then
-				sTrack.globalPlayerData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4], rowHolder[5], rowHolder[6], rowHolder[7], rowHolder[8], rowHolder[9], rowHolder[10], rowHolder[11], rowHolder[12], rowHolder[13], rowHolder[14], rowHolder[15]}
+				--sTrack.globalPlayerData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4], rowHolder[5], rowHolder[6], rowHolder[7], rowHolder[8], rowHolder[9], rowHolder[10], rowHolder[11], rowHolder[12], rowHolder[13], rowHolder[14], rowHolder[15]}
+				sTrack.globalPlayerData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..";"..rowHolder[11]..";"..rowHolder[12]..";"..rowHolder[13]..";"..rowHolder[14]..";"..rowHolder[15]
 			end
 		end
 	end
 	p:close()
 end
+
+print("Playerdata - "..tostring(collectgarbage("count") - pre))
+pre = collectgarbage("count")
 
 local q = io.open("pSkinUse.txt", "r")
 if q then
@@ -126,6 +142,9 @@ if q then
 	end
 	q:close()
 end
+
+print("SkinUse - "..tostring(collectgarbage("count") - pre))
+pre = collectgarbage("count")
 
 local t = io.open("EasyRecords.txt", "r")
 if t then
@@ -170,6 +189,9 @@ if t then
 	t:close()
 end
 
+print("ERecords - "..tostring(collectgarbage("count") - pre))
+pre = collectgarbage("count")
+
 local n = io.open("NormalRecords.txt", "r")
 if n then
 	--Vanilla/Tech records, juicebox records, Nitro records
@@ -213,6 +235,9 @@ if n then
 	n:close()
 end
 
+print("NRecords - "..tostring(collectgarbage("count") - pre))
+pre = collectgarbage("count")
+
 local h = io.open("HardRecords.txt", "r")
 if h then
 	--Vanilla/Tech records, juicebox records, Nitro records
@@ -255,6 +280,9 @@ if h then
 	end
 	h:close()
 end
+
+print("HRecords - "..tostring(collectgarbage("count") - pre))
+pre = collectgarbage("count")
 
 --You can't pcall functions with parameters unless the function is written inside of that, I guess
 local function _saveSkinFunc()
