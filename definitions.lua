@@ -182,7 +182,7 @@ if t then
 					rowHolder[9] = "p"
 					rowHolder[10] = "h"
 				end
-				sTrack.globalEasyTimeData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4], rowHolder[5], rowHolder[6], rowHolder[7], rowHolder[8], rowHolder[9], rowHolder[10]}
+				sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
 			end
 		end
 	end
@@ -228,7 +228,7 @@ if n then
 					rowHolder[9] = "p"
 					rowHolder[10] = "h"
 				end
-				sTrack.globalNormalTimeData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4], rowHolder[5], rowHolder[6], rowHolder[7], rowHolder[8], rowHolder[9], rowHolder[10]}
+				sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
 			end
 		end
 	end
@@ -274,7 +274,7 @@ if h then
 					rowHolder[9] = "p"
 					rowHolder[10] = "h"
 				end
-				sTrack.globalHardTimeData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4], rowHolder[5], rowHolder[6], rowHolder[7], rowHolder[8], rowHolder[9], rowHolder[10]}
+				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
 			end
 		end
 	end
@@ -291,7 +291,7 @@ local function _saveSkinFunc()
 	local dataString = ""
 	for key, value in pairs(sTrack.globalSkinData) do
 		if key:find(";") then continue end -- sanity check
-		dataString = $..key..";"..value[1]..";"..value[2]..";"..value[3].."\n"
+		dataString = $..key..";"..value.."\n"
 		--f:write(key, ";", value[1], ";", value[2], ";", value[3], "\n")
 	end
 	f:write(dataString)
@@ -303,7 +303,7 @@ local function _saveMapFunc()
 	local f = assert(io.open("Mapdata.txt", "w+"))
 	local dataString = ""
 	for key, value in pairs(sTrack.globalMapData) do
-		dataString = $..key..";"..value[1]..";"..value[2]..";"..value[3].."\n"
+		dataString = $..key..";"..value.."\n"
 		--f:write(key, ";", value[1], ";", value[2], ";", value[3], "\n")
 	end
 	f:write(dataString)
@@ -317,7 +317,7 @@ local function _savePlayerFunc()
 	local dataString = ""
 	for key, value in pairs(sTrack.globalPlayerData) do
 		if key:find(";") then continue end -- sanity check
-		dataString = $..key..";"..value[1]..";"..value[2]..";"..value[3]..";"..value[4]..";"..value[5]..";"..value[6]..";"..value[7]..";"..value[8]..";"..value[9]..";"..value[10]..";"..value[11]..";"..value[12]..";"..value[13]..";"..value[14].."\n"
+		dataString = $..key..";"..value.."\n"
 		--f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], ";", value[10], ";", value[11], ";", value[12], ";", value[13], ";", value[14], "\n")
 	end
 	f:write(dataString)
@@ -332,23 +332,20 @@ local function _saveTimeFunc()
 	if gamespeed == 0 then
 		f = assert(io.open("EasyRecords.txt", "w+"))
 		for key, value in pairs(sTrack.globalEasyTimeData) do
-			if value[2]:find(";") or value[5]:find(";") or value[8]:find(";") then continue end -- sanity check
 			--f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
-			dataString = $..key..";"..value[1]..";"..value[2]..";"..value[3]..";"..value[4]..";"..value[5]..";"..value[6]..";"..value[7]..";"..value[8]..";"..value[9].."\n"
+			dataString = $..key..";"..value.."\n"
 		end
 	elseif gamespeed == 1 then
 		f = assert(io.open("NormalRecords.txt", "w+"))
 		for key, value in pairs(sTrack.globalNormalTimeData) do
-			if value[2]:find(";") or value[5]:find(";") or value[8]:find(";") then continue end -- sanity check
 			--f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
-			dataString = $..key..";"..value[1]..";"..value[2]..";"..value[3]..";"..value[4]..";"..value[5]..";"..value[6]..";"..value[7]..";"..value[8]..";"..value[9].."\n"
+			dataString = $..key..";"..value.."\n"
 		end
 	elseif gamespeed == 2 then
 		f = assert(io.open("HardRecords.txt", "w+"))
 		for key, value in pairs(sTrack.globalHardTimeData) do
-			if value[2]:find(";") or value[5]:find(";") or value[8]:find(";") then continue end -- sanity check
 			--f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
-			dataString = $..key..";"..value[1]..";"..value[2]..";"..value[3]..";"..value[4]..";"..value[5]..";"..value[6]..";"..value[7]..";"..value[8]..";"..value[9].."\n"
+			dataString = $..key..";"..value.."\n"
 		end
 	end
 	f:write(dataString)
@@ -408,7 +405,7 @@ end
 sTrack.checkNilPlayer = function(name)
 	--Cleaner to just throw this here since I have to do it so much
 	if sTrack.globalPlayerData[name] == nil then
-		sTrack.globalPlayerData[name] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1500, 1500, 1500, 1500, 1500}
+		sTrack.globalPlayerData[name] = "0;0;0;0;0;0;0;0;0;1500;1500;1500;1500;1500"
 	end
 end
 
@@ -541,5 +538,38 @@ sTrack.spairs = function(t, order)
             return keys[i], t[keys[i]]
         end
     end
+end
+
+--Turns a data string into a table for temporary use
+sTrack.stringSplit = function(input)
+	local holder = ""
+	local rowHolder = {}
+	local index = 1
+	input:gsub(".", function(c)
+		if c==';' then
+			rowHolder[index] = holder
+			holder = ""
+			index = index + 1			
+		else
+			holder = holder..c
+		end		
+	end)
+	rowHolder[index] = holder
+	
+	return rowHolder
+end
+
+--Turns a temporary table back into a data string
+sTrack.stringCombine = function(input)
+	local dataString = ""
+	for k, v in pairs(input)
+		if dataString == "" then
+			dataString = $..v
+		else
+			dataString = $..";"..v
+		end		
+	end
+	
+	return dataString
 end
 			
