@@ -93,7 +93,7 @@ local didMaint = false
 local function intThink()
 	if sTrack.cv_enabled.value == 0 then return end
 	--Data maintenance
-	if didMaint == false then
+	--[[if didMaint == false then
 		--Reset use values to 0 in globalSkinData, repopulate it from player skin use data
 		for k, v in pairs(sTrack.globalSkinData)
 			sTrack.globalSkinData[k][1] = 0
@@ -163,7 +163,9 @@ local function intThink()
 		end
 		
 		didMaint = true
-	end
+	end]]--
+	--Load lua tables with relevant data
+	sTrack.loadIntermissionData()
 	
 	--checks to see if more than 1 player is playing for various increments
 	local foundP = 0
@@ -426,6 +428,9 @@ local function intThink()
 			sTrack.saveFiles("Time")	
 		end
 	end
+	
+	--Clear out all data now as we're done with it
+	sTrack.unloadData()
 end
 addHook("IntermissionThinker", intThink)
 
@@ -464,6 +469,15 @@ local function think()
 		sTrack.ksChanges = {}
 		cMode = sTrack.findCurrentMode()
 		gameModeIndex = sTrack.getModeIndex()
+		
+		--Load map record for this map
+		if gamespeed == 0 and sTrack.globalEasyTimeData[tostring(gamemap)] == nil then
+			sTrack.loadMapRecord()
+		elseif gamespeed == 1 and sTrack.globalNormalTimeData[tostring(gamemap)] == nil then
+			sTrack.loadMapRecord()
+		elseif gamespeed == 2 and sTrack.globalHardTimeData[tostring(gamemap)] == nil then
+			sTrack.loadMapRecord()
+		end
 	end
 	
 	if not completedRun then
