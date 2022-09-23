@@ -342,9 +342,9 @@ local function intThink()
 						end
 					end
 				end
-			end
-			--Save the data back as a string
-			sTrack.globalPlayerData[v] = sTrack.stringCombine(actPlayer)
+				--Save the data back as a string
+				sTrack.globalPlayerData[v] = sTrack.stringCombine(actPlayer)
+			end		
 		end
 		
 		--Loop through and apply all KartScore changes

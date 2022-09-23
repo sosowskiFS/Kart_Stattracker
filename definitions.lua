@@ -561,6 +561,7 @@ end
 
 --Turns a temporary table back into a data string
 sTrack.stringCombine = function(input)
+	if input == nil then return nil end
 	local dataString = ""
 	for k, v in pairs(input)
 		if dataString == "" then
