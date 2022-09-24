@@ -11,6 +11,46 @@ sTrack.globalPlayerSkinUseData = {}
 --sTrack.ksChanges[playerName] = totalChange (numeric)
 sTrack.ksChanges = {}
 
+--Set up pointers for limiting saved data
+--Time record pointers
+sTrack.jTimePointer = nil
+sTrack.nTimePointer = nil
+
+if CV_FindVar("driftnitro") and CV_FindVar("juicebox") then
+	sTrack.jTimePointer = 4
+	sTrack.nTimePointer = 7
+elseif CV_FindVar("juicebox") then
+	sTrack.jTimePointer = 4
+elseif CV_FindVar("driftnitro") then
+	sTrack.nTimePointer = 4
+end
+
+--Pointers for KS
+-- 10 = vanilla KS pointer
+--elo, jElo, nElo, eElo, cElo
+sTrack.jKSPointer = nil
+sTrack.nKSPointer = nil
+sTrack.eKSPointer = nil
+sTrack.cKSPointer = nil
+local KSPointer = 11
+if CV_FindVar("juicebox") then
+	sTrack.jKSPointer = KSPointer
+	KSPointer = $ + 1
+end
+if CV_FindVar("driftnitro") then
+	sTrack.nKSPointer = KSPointer
+	KSPointer = $ + 1
+end
+if CV_FindVar("elimination") then
+	sTrack.eKSPointer = KSPointer
+	KSPointer = $ + 1
+end
+if CV_FindVar("combi_active") then
+	sTrack.cKSPointer = KSPointer
+	KSPointer = $ + 1
+end
+KSPointer = nil
+
 --Load data into tables
 local pre = collectgarbage("count")
 
@@ -99,11 +139,42 @@ if p then
 			--tonumber scrubs out a possible newline character from the last data point	
 			rowHolder[index] = tonumber(holder)
 			
-			--Doesn't match below comment, yet
-			--local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo, eloC, jEloC, nEloC, eEloC, cEloC = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[15] then
+			--local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+			if rowHolder[1] and rowHolder[1] ~= '' then
 				--sTrack.globalPlayerData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4], rowHolder[5], rowHolder[6], rowHolder[7], rowHolder[8], rowHolder[9], rowHolder[10], rowHolder[11], rowHolder[12], rowHolder[13], rowHolder[14], rowHolder[15]}
-				sTrack.globalPlayerData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..";"..rowHolder[11]..";"..rowHolder[12]..";"..rowHolder[13]..";"..rowHolder[14]..";"..rowHolder[15]
+				sTrack.globalPlayerData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..";"..rowHolder[11]
+				if sTrack.jKSPointer then
+					if rowHolder[15] then
+						--assuming old file
+						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[12]
+					else
+						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[sTrack.jKSPointer + 1]
+					end	
+				end
+				if sTrack.nKSPointer then
+					if rowHolder[15] then
+						--assuming old file
+						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[13]
+					else
+						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[sTrack.nKSPointer + 1]
+					end						
+				end
+				if sTrack.eKSPointer then
+					if rowHolder[15] then
+						--assuming old file
+						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[14]
+					else
+						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[sTrack.eKSPointer + 1]
+					end					
+				end
+				if sTrack.cKSPointer then
+					if rowHolder[15] then
+						--assuming old file
+						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[15]
+					else
+						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[sTrack.cKSPointer + 1]
+					end						
+				end
 			end
 		end
 	end
@@ -165,24 +236,37 @@ if t then
 			end)
 			rowHolder[index] = holder
 			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
+			if rowHolder[1] and rowHolder[1] ~= '' then
 				--Reset old placeholder values
-				if rowHolder[3] == "placeholder"
+				if rowHolder[4] and rowHolder[3] == "placeholder"
 					rowHolder[2] = 99999
 					rowHolder[3] = "p"
 					rowHolder[4] = "h"
 				end
-				if rowHolder[6] == "placeholder"
+				if rowHolder[7] and rowHolder[6] == "placeholder"
 					rowHolder[5] = 99999
 					rowHolder[6] = "p"
 					rowHolder[7] = "h"
 				end
-				if rowHolder[9] == "placeholder"
+				if rowHolder[10] and rowHolder[9] == "placeholder"
 					rowHolder[8] = 99999
 					rowHolder[9] = "p"
 					rowHolder[10] = "h"
 				end
-				sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+				
+				if sTrack.nTimePointer and sTrack.jTimePointer and rowHolder[10] then
+					sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+				elseif sTrack.nTimePointer or sTrack.jTimePointer and rowHolder[7] then
+					 if rowHolder[10] and sTrack.nTimePointer then
+						--Loading an old file and need to grab the values at the end instead
+						sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+					 else
+						sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]
+					 end						
+				elseif rowHolder[4] then
+					sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]
+				end
+							
 			end
 		end
 	end
@@ -211,7 +295,7 @@ if n then
 			end)
 			rowHolder[index] = holder
 			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
+			if rowHolder[1] and rowHolder[1] ~= '' then
 				--Reset old placeholder values
 				if rowHolder[3] == "placeholder"
 					rowHolder[2] = 99999
@@ -228,7 +312,20 @@ if n then
 					rowHolder[9] = "p"
 					rowHolder[10] = "h"
 				end
-				sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+				
+				if sTrack.nTimePointer and sTrack.jTimePointer and rowHolder[10] then
+					sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+				elseif sTrack.nTimePointer or sTrack.jTimePointer and rowHolder[7] then
+					if rowHolder[10] and sTrack.nTimePointer then
+						--Loading an old file and need to grab the values at the end instead
+						sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+					 else
+						sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]
+					 end	
+				elseif rowHolder[4] then
+					sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]
+				end
+				
 			end
 		end
 	end
@@ -257,7 +354,7 @@ if h then
 			end)
 			rowHolder[index] = holder
 			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
+			if rowHolder[1] and rowHolder[1] ~= '' then
 				--Reset old placeholder values
 				if rowHolder[3] == "placeholder"
 					rowHolder[2] = 99999
@@ -274,7 +371,20 @@ if h then
 					rowHolder[9] = "p"
 					rowHolder[10] = "h"
 				end
-				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+				
+				if sTrack.nTimePointer and sTrack.jTimePointer and rowHolder[10] then
+					sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+				elseif sTrack.nTimePointer or sTrack.jTimePointer and rowHolder[7] then
+					if rowHolder[10] and sTrack.nTimePointer then
+						--Loading an old file and need to grab the values at the end instead
+						sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+					else
+						sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]
+					end	
+				elseif rowHolder[4] then		
+					sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]
+				end
+				
 			end
 		end
 	end
@@ -405,10 +515,24 @@ end
 sTrack.checkNilPlayer = function(name)
 	--Cleaner to just throw this here since I have to do it so much
 	if sTrack.globalPlayerData[name] == nil then
-		sTrack.globalPlayerData[name] = "0;0;0;0;0;0;0;0;0;1500;1500;1500;1500;1500"
+		sTrack.globalPlayerData[name] = "0;0;0;0;0;0;0;0;0;1500"
+		if sTrack.jKSPointer then
+			sTrack.globalPlayerData[name] = $..";1500"
+		end
+		if sTrack.nKSPointer then
+			sTrack.globalPlayerData[name] = $..";1500"
+		end
+		if sTrack.eKSPointer then
+			sTrack.globalPlayerData[name] = $..";1500"
+		end
+		if sTrack.cKSPointer then
+			sTrack.globalPlayerData[name] = $..";1500"
+		end
 	end
 end
 
+	--sTrack.jTimePointer = 4
+	--sTrack.nTimePointer = 7
 --0 Vanilla/Tech, 1 Juicebox, 2 Nitro
 sTrack.findCurrentMode = function()
 	if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
@@ -430,20 +554,20 @@ sTrack.getModeIndex = function()
 	--bElo 13, eElo 14, cElo 15
 	local gameModeIndex = 10
 	if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
-		gameModeIndex = 12
+		gameModeIndex = sTrack.nKSPointer
 	elseif CV_FindVar("juicebox") and CV_FindVar("juicebox").value == 1 then
 		if CV_FindVar("techonly") and CV_FindVar("techonly").value == 1 then
 			gameModeIndex = 10
 		else
-			gameModeIndex = 11
+			gameModeIndex = sTrack.jKSPointer
 		end				
 	end
 	
 	--These modes override the above modes
 	if CV_FindVar("elimination") and CV_FindVar("elimination").value == 1 then
-		gameModeIndex = 13
+		gameModeIndex = sTrack.eKSPointer
 	elseif CV_FindVar("combi_active") and CV_FindVar("combi_active").value == 1 then
-		gameModeIndex = 14
+		gameModeIndex = sTrack.cKSPointer
 	end
 	return gameModeIndex
 end
@@ -572,5 +696,16 @@ sTrack.stringCombine = function(input)
 	end
 	
 	return dataString
+end
+
+--Creates a new placeholder time record depending on current pointers
+sTrack.buildPlaceholderRecord = function()
+	if sTrack.nTimePointer and sTrack.jTimePointer then
+		return "99999;p;h;99999;p;h;99999;p;h"
+	elseif sTrack.nTimePointer or sTrack.jTimePointer then
+		return "99999;p;h;99999;p;h"
+	else
+		return "99999;p;h"
+	end
 end
 			
