@@ -52,7 +52,7 @@ end
 KSPointer = nil
 
 --Load data into tables
-local pre = collectgarbage("count")
+--local pre = collectgarbage("count")
 
 local f = io.open("Skincounter.txt", "r")
 if f then
@@ -83,8 +83,8 @@ if f then
 	f:close()
 end
 
-print("SkinCounter - "..tostring(collectgarbage("count") - pre))
-pre = collectgarbage("count")
+--print("SkinCounter - "..tostring(collectgarbage("count") - pre))
+--pre = collectgarbage("count")
 
 local m = io.open("Mapdata.txt", "r")
 if m then
@@ -115,8 +115,8 @@ if m then
 	m:close()
 end
 
-print("Mapdata - "..tostring(collectgarbage("count") - pre))
-pre = collectgarbage("count")
+--print("Mapdata - "..tostring(collectgarbage("count") - pre))
+--pre = collectgarbage("count")
 
 local p = io.open("Playerdata.txt", "r")
 if p then
@@ -181,8 +181,8 @@ if p then
 	p:close()
 end
 
-print("Playerdata - "..tostring(collectgarbage("count") - pre))
-pre = collectgarbage("count")
+--print("Playerdata - "..tostring(collectgarbage("count") - pre))
+--pre = collectgarbage("count")
 
 local q = io.open("pSkinUse.txt", "r")
 if q then
@@ -214,8 +214,8 @@ if q then
 	q:close()
 end
 
-print("SkinUse - "..tostring(collectgarbage("count") - pre))
-pre = collectgarbage("count")
+--print("SkinUse - "..tostring(collectgarbage("count") - pre))
+--pre = collectgarbage("count")
 
 local t = io.open("EasyRecords.txt", "r")
 if t then
@@ -273,8 +273,8 @@ if t then
 	t:close()
 end
 
-print("ERecords - "..tostring(collectgarbage("count") - pre))
-pre = collectgarbage("count")
+--print("ERecords - "..tostring(collectgarbage("count") - pre))
+--pre = collectgarbage("count")
 
 local n = io.open("NormalRecords.txt", "r")
 if n then
@@ -332,8 +332,8 @@ if n then
 	n:close()
 end
 
-print("NRecords - "..tostring(collectgarbage("count") - pre))
-pre = collectgarbage("count")
+--print("NRecords - "..tostring(collectgarbage("count") - pre))
+--pre = collectgarbage("count")
 
 local h = io.open("HardRecords.txt", "r")
 if h then
@@ -391,8 +391,8 @@ if h then
 	h:close()
 end
 
-print("HRecords - "..tostring(collectgarbage("count") - pre))
-pre = collectgarbage("count")
+--print("HRecords - "..tostring(collectgarbage("count") - pre))
+--pre = collectgarbage("count")
 
 --You can't pcall functions with parameters unless the function is written inside of that, I guess
 local function _saveSkinFunc()
