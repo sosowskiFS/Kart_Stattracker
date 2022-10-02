@@ -112,60 +112,13 @@ local function intThink()
 	--Data maintenance
 	if didMaint == false then
 		--Reset use values to 0 in globalSkinData, repopulate it from player skin use data
-		if (sTrack.cv_limitnetvar.value and consoleplayer == server) or sTrack.cv_limitnetvar.value == 0 then
-			--This is redundant, I think
-			--[[for k, v in pairs(sTrack.globalSkinData)
-				sTrack.globalSkinData[k][1] = 0
-				sTrack.globalSkinData[k][3] = 0
-			end
-			
-			--globalPlayerSkinUseData["PlayerName"]["SkinName"]
-			local playerSkinUseReference = sTrack.globalPlayerSkinUseData
-			for k, v in pairs(playerSkinUseReference)
-				for k2, v2 in pairs(playerSkinUseReference[k])
-					if sTrack.cv_wiperemovedaddons.value == 1 and skins[k2] == nil then
-						--This skin doesn't exist anymore and can be removed
-						sTrack.globalPlayerSkinUseData[k][k2] = nil
-					else
-						--calculate the weighted uses			
-						local weightedUse = FixedFloor((v2 / 5) * FRACUNIT) / FRACUNIT
-						if tonumber(v2) > 0 then
-							weightedUse = $ + 1
-						end
-						if weightedUse > 10 then
-							weightedUse = 10
-						end			
-						
-						if sTrack.globalSkinData[k2] == nil then
-							if skins[k2] == nil then
-								sTrack.globalSkinData[k2] = {weightedUse, "Removed Skin", v2}
-							else
-								sTrack.globalSkinData[k2] = {weightedUse, skins[k2].realname, v2}
-							end					
-						else
-							sTrack.globalSkinData[k2][1] = $ + weightedUse
-							sTrack.globalSkinData[k2][3] = $ + v2
-						end		
-					end				
-				end
-			end]]--
-		
+		if (sTrack.cv_limitnetvar.value and consoleplayer == server) or sTrack.cv_limitnetvar.value == 0 then	
 			--Add new skins that aren't represented in data yet
 			for s in skins.iterate do
 				if sTrack.globalSkinData[s.name] == nil then
-					sTrack.globalSkinData[s.name] = "0;"..s.realname";0"
+					sTrack.globalSkinData[s.name] = "0;"..s.realname..";0"
 				end
 			end
-			--Delete removed skins
-			--[[local skinReference = sTrack.globalSkinData
-			for k, v in pairs(skinReference) do
-				if sTrack.cv_wiperemovedaddons.value == 1 and skins[k] == nil then
-					sTrack.globalSkinData[k] = nil
-				elseif skins[k] ~= nil and v[2] == "Removed Skin" then
-					--Fix broken record
-					sTrack.globalSkinData[k][2] = skins[k].realname
-				end
-			end]]--
 		
 			--Add new maps that aren't in data yet & delete removed maps
 			--MAPZZ = 1035. If they extend this higher then update the max in the loop below.
