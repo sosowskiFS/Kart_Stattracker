@@ -11,6 +11,48 @@ sTrack.globalPlayerSkinUseData = {}
 --sTrack.ksChanges[playerName] = totalChange (numeric)
 sTrack.ksChanges = {}
 
+--If I ever want to reduce placeholder data, here this is, but we pretty much use everything now.
+
+--Set up pointers for limiting saved data
+--Time record pointers
+sTrack.jTimePointer = 4
+sTrack.nTimePointer = 7
+
+--[[if CV_FindVar("driftnitro") and CV_FindVar("juicebox") then
+	sTrack.jTimePointer = 4
+	sTrack.nTimePointer = 7
+elseif CV_FindVar("juicebox") then
+	sTrack.jTimePointer = 4
+elseif CV_FindVar("driftnitro") then
+	sTrack.nTimePointer = 4
+end]]--
+
+--Pointers for KS
+-- 10 = vanilla KS pointer
+--elo, jElo, nElo, eElo, cElo
+sTrack.jKSPointer = 11
+sTrack.nKSPointer = 12
+sTrack.eKSPointer = 13
+sTrack.cKSPointer = 14
+--[[local KSPointer = 11
+if CV_FindVar("juicebox") then
+	sTrack.jKSPointer = KSPointer
+	KSPointer = $ + 1
+end
+if CV_FindVar("driftnitro") then
+	sTrack.nKSPointer = KSPointer
+	KSPointer = $ + 1
+end
+if CV_FindVar("elimination") then
+	sTrack.eKSPointer = KSPointer
+	KSPointer = $ + 1
+end
+if CV_FindVar("combi_active") then
+	sTrack.cKSPointer = KSPointer
+	KSPointer = $ + 1
+end
+KSPointer = nil]]--
+
 --Load data into tables
 --Previously used string.match but that doesn't seem to scale well with a large amount of columns (long processing times)
 --New - gsub to just loop through every character and manually assemble the data row
@@ -35,7 +77,7 @@ if f then
 			--local skinName, count, realName, totalCount = string.match(l, "(.*);(.*);(.*);(.*)")
 
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[4] then
-				sTrack.globalSkinData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4]}
+				sTrack.globalSkinData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]
 			end
 		end
 	end
@@ -62,7 +104,7 @@ if m then
 			--local mapID, timesPlayed, rtv, mapName = string.match(l, "(.*);(.*);(.*);(.*)")
 
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[4] then
-				sTrack.globalMapData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4]}
+				sTrack.globalMapData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]
 			end
 		end
 	end
@@ -92,15 +134,7 @@ if p then
 			--local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo, eloC, jEloC, nEloC, eEloC, cEloC = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 			--print(pName)
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[20] then
-				--print("in")
-				--sTrack.globalPlayerData[pName] = {mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo, eloC, jEloC, nEloC, eEloC, cEloC}
-				sTrack.globalPlayerData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4], rowHolder[5], rowHolder[6], rowHolder[7], rowHolder[8], rowHolder[9], rowHolder[10], rowHolder[11], rowHolder[12], rowHolder[13], rowHolder[14], rowHolder[15], rowHolder[16], rowHolder[17], rowHolder[18], rowHolder[19], rowHolder[20]}
-			--else
-				--Attempt to parse & update old record
-				--local LpName, LmapsPlayed, Lwins, Lhits, LselfHits, Lspinned, Lexploded, Lsquished, Lsecond, Lthird, Lelo, LjElo, LnElo, LeElo, LcElo = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-				--if LpName and LpName ~= '' then
-					--sTrack.globalPlayerData[LpName] = {LmapsPlayed, Lwins, Lhits, LselfHits, Lspinned, Lexploded, Lsquished, Lsecond, Lthird, Lelo, LjElo, LnElo, LeElo, LcElo, Lelo, LjElo, LnElo, LeElo, LcElo}
-				--end
+				sTrack.globalPlayerData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..";"..rowHolder[11]..";"..rowHolder[12]..";"..rowHolder[13]..";"..rowHolder[14]..";"..rowHolder[15]..";"..rowHolder[16]..";"..rowHolder[17]..";"..rowHolder[18]..";"..rowHolder[19]..";"..rowHolder[20]
 			end
 		end
 	end
@@ -157,7 +191,7 @@ if t then
 			rowHolder[index] = holder
 			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
-				sTrack.globalEasyTimeData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4], rowHolder[5], rowHolder[6], rowHolder[7], rowHolder[8], rowHolder[9], rowHolder[10]}
+				sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
 			end
 		end
 	end
@@ -184,7 +218,7 @@ if n then
 			rowHolder[index] = holder
 			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
-				sTrack.globalNormalTimeData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4], rowHolder[5], rowHolder[6], rowHolder[7], rowHolder[8], rowHolder[9], rowHolder[10]}
+				sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
 			end
 		end
 	end
@@ -211,7 +245,7 @@ if h then
 			rowHolder[index] = holder
 			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
-				sTrack.globalHardTimeData[rowHolder[1]] = {rowHolder[2], rowHolder[3], rowHolder[4], rowHolder[5], rowHolder[6], rowHolder[7], rowHolder[8], rowHolder[9], rowHolder[10]}
+				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
 			end
 		end
 	end
@@ -221,31 +255,41 @@ end
 --You can't pcall functions with parameters unless the function is written inside of that, I guess
 local function _saveSkinFunc()
     --{skinID, weightedUse, fullName, totalUse}
-	local f = assert(io.open("Skincounter.txt", "w"))
+	local f = assert(io.open("Skincounter.txt", "w+"))
+	local dataString = ""
 	for key, value in pairs(sTrack.globalSkinData) do
 		if key:find(";") then continue end -- sanity check
-		f:write(key, ";", value[1], ";", value[2], ";", value[3], "\n")
+		dataString = $..key..";"..value.."\n"
+		--f:write(key, ";", value[1], ";", value[2], ";", value[3], "\n")
 	end
+	f:write(dataString)
 	f:close()
 end
 
 local function _saveMapFunc()
 	--{Plays, RTVs, Map Name}
-	local f = assert(io.open("Mapdata.txt", "w"))
+	local f = assert(io.open("Mapdata.txt", "w+"))
+	local dataString = ""
 	for key, value in pairs(sTrack.globalMapData) do
-		f:write(key, ";", value[1], ";", value[2], ";", value[3], "\n")
+		dataString = $..key..";"..value.."\n"
+		--f:write(key, ";", value[1], ";", value[2], ";", value[3], "\n")
 	end
+	f:write(dataString)
 	f:close()
 end
 
 local function _savePlayerFunc()
-	local f = assert(io.open("Playerdata.txt", "w"))
-	--{mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo, eloC, jEloC, nEloC, eEloC, cEloC}
+	local f = assert(io.open("Playerdata.txt", "w+"))
+	--{mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo}
+	--Test to see if assembling the string first, and THEN writing to file works faster
+	local dataString = ""
 	for key, value in pairs(sTrack.globalPlayerData) do
-		if key == '' or key:find(";") then continue end -- sanity check
-		f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], ";", value[10], ";", value[11], ";", value[12], ";", value[13], ";", value[14], ";", value[15], ";", value[16], ";", value[17], ";", value[18], ";", value[19], "\n")
+		if key:find(";") then continue end -- sanity check
+		dataString = $..key..";"..value.."\n"
+		--f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], ";", value[10], ";", value[11], ";", value[12], ";", value[13], ";", value[14], "\n")
 	end
-	f:close()	
+	f:write(dataString)
+	f:close()
 end
 
 local function _savePSkinUseFunc()
@@ -269,26 +313,27 @@ local function _saveTimeFunc()
 	--{time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin}
 	--local f = assert(io.open("Timerecords.txt", "w"))
 	local f = nil
+	local dataString = ""
 	if gamespeed == 0 then
-		f = assert(io.open("EasyRecords.txt", "w"))
+		f = assert(io.open("EasyRecords.txt", "w+"))
 		for key, value in pairs(sTrack.globalEasyTimeData) do
-			if value[2]:find(";") or value[5]:find(";") or value[8]:find(";") then continue end -- sanity check
-			f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
+			--f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
+			dataString = $..key..";"..value.."\n"
 		end
 	elseif gamespeed == 1 then
-		f = assert(io.open("NormalRecords.txt", "w"))
+		f = assert(io.open("NormalRecords.txt", "w+"))
 		for key, value in pairs(sTrack.globalNormalTimeData) do
-			if value[2]:find(";") or value[5]:find(";") or value[8]:find(";") then continue end -- sanity check
-			f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
+			--f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
+			dataString = $..key..";"..value.."\n"
 		end
 	elseif gamespeed == 2 then
-		f = assert(io.open("HardRecords.txt", "w"))
+		f = assert(io.open("HardRecords.txt", "w+"))
 		for key, value in pairs(sTrack.globalHardTimeData) do
-			if value[2]:find(";") or value[5]:find(";") or value[8]:find(";") then continue end -- sanity check
-			f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
+			--f:write(key, ";", value[1], ";", value[2], ";", value[3], ";", value[4], ";", value[5], ";", value[6], ";", value[7], ";", value[8], ";", value[9], "\n")
+			dataString = $..key..";"..value.."\n"
 		end
 	end
-	
+	f:write(dataString)
 	f:close()
 end
 
@@ -325,7 +370,7 @@ end
 sTrack.checkNilPlayer = function(name)
 	--Cleaner to just throw this here since I have to do it so much
 	if sTrack.globalPlayerData[name] == nil then
-		sTrack.globalPlayerData[name] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500}
+		sTrack.globalPlayerData[name] = "0;0;0;0;0;0;0;0;0;1500;1500;1500;1500;1500;1500;1500;1500;1500;1500"
 	end
 end
 
@@ -527,5 +572,45 @@ sTrack.convertMapToInt = function(mapID)
 		end
 	end
 	return ((36 * Digit1 + Digit2) + 100)
+end
+
+--Turns a data string into a table for temporary use
+sTrack.stringSplit = function(input)
+	local holder = ""
+	local rowHolder = {}
+	local index = 1
+	input:gsub(".", function(c)
+		if c==';' then
+			rowHolder[index] = holder
+			holder = ""
+			index = index + 1			
+		else
+			holder = holder..c
+		end		
+	end)
+	rowHolder[index] = holder
+	
+	return rowHolder
+end
+
+--Turns a temporary table back into a data string
+sTrack.stringCombine = function(input)
+	if input == nil then return nil end
+	local dataString = ""
+	for k, v in pairs(input)
+		if dataString == "" then
+			dataString = $..v
+		else
+			dataString = $..";"..v
+		end		
+	end
+	
+	return dataString
+end
+
+--Creates a new placeholder time record
+--(there's pointers here on public version, but not in custom)
+sTrack.buildPlaceholderRecord = function()
+	return "99999;p;h;99999;p;h;99999;p;h"
 end
 			

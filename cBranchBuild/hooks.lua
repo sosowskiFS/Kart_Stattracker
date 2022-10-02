@@ -4,20 +4,25 @@ local function playerSpin(p, i, s)
 		--player hit = p.name
 		--player who threw item = s.player.name (nil - enviroment, matches p - self hit)
 		sTrack.checkNilPlayer(p.name)
-		sTrack.globalPlayerData[p.name][5] = sTrack.globalPlayerData[p.name][5] + 1
+		local hitPlayer = sTrack.stringSplit(sTrack.globalPlayerData[p.name])
+		hitPlayer[5] = hitPlayer[5] + 1
 		
 		if s ~= nil and s.player ~= nil then
 			if s.player.name == p.name then
 				--Self hit
-				sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
+				hitPlayer[4] = hitPlayer[4] + 1
 			else
 				sTrack.checkNilPlayer(s.player.name)
-				sTrack.globalPlayerData[s.player.name][3] = sTrack.globalPlayerData[s.player.name][3] + 1		
+				local inflictor = sTrack.stringSplit(sTrack.globalPlayerData[s.player.name])
+				inflictor[3] = inflictor[3] + 1
+				sTrack.globalPlayerData[s.player.name] = sTrack.stringCombine(inflictor)
 			end
 		else
 			--Self hit (enviromental hazard probably)
-			sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
+			hitPlayer[4] = hitPlayer[4] + 1
 		end
+		
+		sTrack.globalPlayerData[p.name] = sTrack.stringCombine(hitPlayer)
 	end
 end
 addHook("PlayerSpin", playerSpin)
@@ -25,19 +30,24 @@ addHook("PlayerSpin", playerSpin)
 local function playerExplode(p, i, s)
 	if sTrack.cv_enabled.value == 1 then
 		sTrack.checkNilPlayer(p.name)
-		sTrack.globalPlayerData[p.name][6] = sTrack.globalPlayerData[p.name][6] + 1
+		local hitPlayer = sTrack.stringSplit(sTrack.globalPlayerData[p.name])
+		hitPlayer[6] = hitPlayer[6] + 1
 		
 		if s ~= nil and s.player ~= nil then
 			if s.player.name == p.name then
 				--Self hit
-				sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
+				hitPlayer[4] = hitPlayer[4] + 1
 			else
 				sTrack.checkNilPlayer(s.player.name)
-				sTrack.globalPlayerData[s.player.name][3] = sTrack.globalPlayerData[s.player.name][3] + 1		
+				local inflictor = sTrack.stringSplit(sTrack.globalPlayerData[s.player.name])
+				inflictor[3] = inflictor[3] + 1
+				sTrack.globalPlayerData[s.player.name] = sTrack.stringCombine(inflictor)	
 			end
 		else
-			sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
+			hitPlayer[4] = hitPlayer[4] + 1
 		end
+		
+		sTrack.globalPlayerData[p.name] = sTrack.stringCombine(hitPlayer)
 	end
 end
 addHook("PlayerExplode", playerExplode)
@@ -45,20 +55,24 @@ addHook("PlayerExplode", playerExplode)
 local function playerSquish(p, i, s)
 	if sTrack.cv_enabled.value == 1 then
 		sTrack.checkNilPlayer(p.name)
-		sTrack.globalPlayerData[p.name][7] = sTrack.globalPlayerData[p.name][7] + 1
+		local hitPlayer = sTrack.stringSplit(sTrack.globalPlayerData[p.name])
+		hitPlayer[7] = hitPlayer[7] + 1
 		
 		if s ~= nil and s.player ~= nil then
 			if s.player.name == p.name then
 				--Self hit
-				sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
+				hitPlayer[4] = hitPlayer[4] + 1
 			else
 				sTrack.checkNilPlayer(s.player.name)
-				sTrack.globalPlayerData[s.player.name][3] = sTrack.globalPlayerData[s.player.name][3] + 1
-				
+				local inflictor = sTrack.stringSplit(sTrack.globalPlayerData[s.player.name])
+				inflictor[3] = inflictor[3] + 1
+				sTrack.globalPlayerData[s.player.name] = sTrack.stringCombine(inflictor)	
 			end
 		else
-			sTrack.globalPlayerData[p.name][4] = sTrack.globalPlayerData[p.name][4] + 1
+			hitPlayer[4] = hitPlayer[4] + 1
 		end
+		
+		sTrack.globalPlayerData[p.name] = sTrack.stringCombine(hitPlayer)
 	end
 end
 addHook("PlayerSquish", playerSquish)
@@ -99,7 +113,8 @@ local function intThink()
 	if didMaint == false then
 		--Reset use values to 0 in globalSkinData, repopulate it from player skin use data
 		if (sTrack.cv_limitnetvar.value and consoleplayer == server) or sTrack.cv_limitnetvar.value == 0 then
-			for k, v in pairs(sTrack.globalSkinData)
+			--This is redundant, I think
+			--[[for k, v in pairs(sTrack.globalSkinData)
 				sTrack.globalSkinData[k][1] = 0
 				sTrack.globalSkinData[k][3] = 0
 			end
@@ -133,16 +148,16 @@ local function intThink()
 						end		
 					end				
 				end
-			end
+			end]]--
 		
 			--Add new skins that aren't represented in data yet
 			for s in skins.iterate do
 				if sTrack.globalSkinData[s.name] == nil then
-					sTrack.globalSkinData[s.name] = {0, s.realname, 0}
+					sTrack.globalSkinData[s.name] = "0;"..s.realname";0"
 				end
 			end
 			--Delete removed skins
-			local skinReference = sTrack.globalSkinData
+			--[[local skinReference = sTrack.globalSkinData
 			for k, v in pairs(skinReference) do
 				if sTrack.cv_wiperemovedaddons.value == 1 and skins[k] == nil then
 					sTrack.globalSkinData[k] = nil
@@ -150,20 +165,15 @@ local function intThink()
 					--Fix broken record
 					sTrack.globalSkinData[k][2] = skins[k].realname
 				end
-			end
+			end]]--
 		
 			--Add new maps that aren't in data yet & delete removed maps
 			--MAPZZ = 1035. If they extend this higher then update the max in the loop below.
 			for i=1,1035,1 do
 				if mapheaderinfo[tostring(i)] ~= nil and sTrack.globalMapData[tostring(i)] == nil then
-					sTrack.globalMapData[tostring(i)] = {0, 0, mapheaderinfo[tostring(i)].lvlttl}
+					sTrack.globalMapData[tostring(i)] = "0;0;"..mapheaderinfo[tostring(i)].lvlttl
 				elseif sTrack.cv_wiperemovedaddons.value == 1 and mapheaderinfo[tostring(i)] == nil and sTrack.globalMapData[tostring(i)] ~= nil then
 					sTrack.globalMapData[tostring(i)] = nil
-				end
-				
-				if sTrack.globalMapData[tostring(i)] ~= nil and sTrack.globalMapData[tostring(i)][3] == "I am dead" and mapheaderinfo[tostring(i)] ~= nil then
-					--Try to correct any messed up data
-					sTrack.globalMapData[tostring(i)][3] = mapheaderinfo[tostring(i)].lvlttl
 				end
 			end	
 		end
@@ -199,41 +209,48 @@ local function intThink()
 				if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
 					if gamespeed == 0 then
 						if sTrack.globalEasyTimeData[tostring(gamemap)] == nil then
-							sTrack.globalEasyTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
+							sTrack.globalEasyTimeData[tostring(gamemap)] = sTrack.buildPlaceholderRecord()
 						end
-						if (cMode == 2 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][7])) or (cMode == 1 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][4])) or (cMode == 0 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][1])) then
+						local timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[tostring(gamemap)])
+						if (cMode == 2 and p.realtime < tonumber(timeRecord[sTrack.nTimePointer])) or (cMode == 1 and p.realtime < tonumber(timeRecord[sTrack.jTimePointer])) or (cMode == 0 and p.realtime < tonumber(timeRecord[1])) then
 							rTimeHolder = p.realtime
 							rPlayerHolder = winList
 							rSkinHolder = p.mo.skin
 							rSkinColorHolder = p.skincolor
 							slideRun = "left"
+							--S_StartSound(nil, skins[p.mo.skin].soundsid[SKSKPOWR])
 						end
 					elseif gamespeed == 1 then
 						if sTrack.globalNormalTimeData[tostring(gamemap)] == nil then
-							sTrack.globalNormalTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
+							sTrack.globalNormalTimeData[tostring(gamemap)] = sTrack.buildPlaceholderRecord()
 						end
-						if (cMode == 2 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][7])) or (cMode == 1 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][4])) or (cMode == 0 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][1])) then
+						local timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[tostring(gamemap)])
+						if (cMode == 2 and p.realtime < tonumber(timeRecord[sTrack.nTimePointer])) or (cMode == 1 and p.realtime < tonumber(timeRecord[sTrack.jTimePointer])) or (cMode == 0 and p.realtime < tonumber(timeRecord[1])) then
 							rTimeHolder = p.realtime
 							rPlayerHolder = winList
 							rSkinHolder = p.mo.skin
 							rSkinColorHolder = p.skincolor
 							slideRun = "left"
+							--S_StartSound(nil, skins[p.mo.skin].soundsid[SKSKPOWR])
 						end
 					elseif gamespeed == 2 then
 						if sTrack.globalHardTimeData[tostring(gamemap)] == nil then
-							sTrack.globalHardTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
+							sTrack.globalHardTimeData[tostring(gamemap)] = sTrack.buildPlaceholderRecord()
 						end
-						if (cMode == 2 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][7])) or (cMode == 1 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][4])) or (cMode == 0 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][1])) then
+						local timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[tostring(gamemap)])
+						if (cMode == 2 and p.realtime < tonumber(timeRecord[sTrack.nTimePointer])) or (cMode == 1 and p.realtime < tonumber(timeRecord[sTrack.jTimePointer])) or (cMode == 0 and p.realtime < tonumber(timeRecord[1])) then
 							rTimeHolder = p.realtime
 							rPlayerHolder = winList
 							rSkinHolder = p.mo.skin
 							rSkinColorHolder = p.skincolor
 							slideRun = "left"
+							--S_StartSound(nil, skins[p.mo.skin].soundsid[SKSKPOWR])
 						end
 					end
 
 				end
 			end	
+
 		end
 	end
 	
@@ -263,26 +280,25 @@ local function intThink()
 						shouldIncrement = true
 					end
 					
+					if sTrack.globalSkinData[p.mo.skin] == nil then
+						sTrack.globalSkinData[p.mo.skin] = "1;"..skins[p.mo.skin].realname..";1"
+					end
+					local SkinData = sTrack.stringSplit(sTrack.globalSkinData[p.mo.skin])
+					
 					--Tick up weighted total
 					if shouldIncrement then
-						if sTrack.globalSkinData[p.mo.skin] == nil then
-							sTrack.globalSkinData[p.mo.skin] = {1, skins[p.mo.skin].realname, 1}
-						else
-							sTrack.globalSkinData[p.mo.skin][1] = sTrack.globalSkinData[p.mo.skin][1] + 1
-						end
+						SkinData[1] = SkinData[1] + 1
 					end
 					
 					--Tick up total count
-					if sTrack.globalSkinData[p.mo.skin] == nil then
-						sTrack.globalSkinData[p.mo.skin] = {1, skins[p.mo.skin].realname, 1}					
-					else
-						sTrack.globalSkinData[p.mo.skin][3] = sTrack.globalSkinData[p.mo.skin][3] + 1
-					end
+					SkinData[3] = SkinData[3] + 1
 					
+					--Save the data back as a string
+					sTrack.globalSkinData[p.mo.skin] = sTrack.stringCombine(SkinData)
 				end
 			end
 
-			sTrack.saveFiles("Skin")	
+			sTrack.saveFiles("Skin")		
 		end
 	end
 	
@@ -300,18 +316,21 @@ local function intThink()
 			
 			if doUseSaves then
 				if sTrack.globalMapData[tostring(gamemap)] == nil then
-					sTrack.globalMapData[tostring(gamemap)] = {0, 0, mapheaderinfo[tostring(gamemap)].lvlttl}
+					sTrack.globalMapData[tostring(gamemap)] = "0;0;"..mapheaderinfo[tostring(gamemap)].lvlttl
 				end
+				local MapData = sTrack.stringSplit(sTrack.globalMapData[tostring(gamemap)])
 				if playerOrder[1] ~= nil then
 					--Map was completed
-					sTrack.globalMapData[tostring(gamemap)][1] = sTrack.globalMapData[tostring(gamemap)][1] + 1
+					MapData[1] = MapData[1] + 1
 				else
 					--Nobody finished this race, assume it was RTV'd	
 					--print ("Adding an RTV count...")
-					sTrack.globalMapData[tostring(gamemap)][2] = sTrack.globalMapData[tostring(gamemap)][2] + 1
+					MapData[2] = MapData[2] + 1
 				end
+				--Save the data back as a string
+				sTrack.globalMapData[tostring(gamemap)] = sTrack.stringCombine(MapData)
 			end
-			sTrack.saveFiles("Map")	
+			sTrack.saveFiles("Map")
 		end
 	end
 	
@@ -322,37 +341,39 @@ local function intThink()
 		for pos, thisPlayer in pairs(playerOrder) do
 			for k, v in pairs(thisPlayer) do
 				sTrack.checkNilPlayer(v)
+				local actPlayer = sTrack.stringSplit(sTrack.globalPlayerData[v])
 				--Increment play count
-				sTrack.globalPlayerData[v][1] = sTrack.globalPlayerData[v][1] + 1
+				actPlayer[1] = actPlayer[1] + 1
 				
 				--Increment 1st,2nd,3rd finish where appropriate
 				if foundP > 1 then
 					if pos == 1 then
-						sTrack.globalPlayerData[v][2] = sTrack.globalPlayerData[v][2] + 1
-						if sTrack.globalPlayerData[v][2] % 100 == 0 and sTrack.cv_silentmode.value == 0 then
-							chatprint('\130'..v..' has won '..tostring(sTrack.globalPlayerData[v][2])..' times!', true)
+						actPlayer[2] = actPlayer[2] + 1
+						if actPlayer[2] % 100 == 0 and sTrack.cv_silentmode.value == 0 then
+							chatprint('\130'..v..' has won '..tostring(actPlayer[2])..' times!', true)
 						end
 					elseif pos == 2 then
-						sTrack.globalPlayerData[v][8] = sTrack.globalPlayerData[v][8] + 1
+						actPlayer[8] = actPlayer[8] + 1
 					elseif pos == 3 then
-						sTrack.globalPlayerData[v][9] = sTrack.globalPlayerData[v][9] + 1
-					end
+						actPlayer[9] = actPlayer[9] + 1
+					end				
 				end
 				
 				if hasKSSupport and sTrack.cv_enableks.value == 1 then							
 					--Calculate ELO changes and store to save at the end
 					sTrack.ksChanges[v] = 0
-					local beatPlayers = ""
-					local lostPlayers = ""
+					--local beatPlayers = ""
+					--local lostPlayers = ""
 					for ePos, ePlayers in pairs(playerOrder) do
 						for eK, eV in pairs(ePlayers)
 							--Ignore the same position
 							if eV ~= nil and pos ~= ePos then						
-								sTrack.checkNilPlayer(eV)							
+								sTrack.checkNilPlayer(eV)
+								local evilPlayer = sTrack.stringSplit(sTrack.globalPlayerData[eV])									
 								if pos < ePos then
 									--Players you beat
 									--positive = lower rank, negative = higher rank
-									local rankDif = (sTrack.globalPlayerData[v][gameModeIndex] - sTrack.globalPlayerData[eV][gameModeIndex]) / 100
+									local rankDif = (actPlayer[gameModeIndex] - evilPlayer[gameModeIndex]) / 100
 									local rankChange = 5						
 									if rankDif > 0 then
 										rankChange = rankChange - rankDif
@@ -365,10 +386,10 @@ local function intThink()
 									end
 									
 									sTrack.ksChanges[v] = sTrack.ksChanges[v] + rankChange
-									beatPlayers = beatPlayers.." "..eV.." "..tostring(sTrack.globalPlayerData[eV][gameModeIndex]).."("..tostring(rankChange)..")"
+									--beatPlayers = beatPlayers.." "..eV.." "..tostring(sTrack.globalPlayerData[eV][gameModeIndex]).."("..tostring(rankChange)..")"
 								else
 									--players you lost to
-									local rankDif = (sTrack.globalPlayerData[v][gameModeIndex] - sTrack.globalPlayerData[eV][gameModeIndex]) / 100
+									local rankDif = (actPlayer[gameModeIndex] - evilPlayer[gameModeIndex]) / 100
 									local rankChange = -5						
 									if rankDif > 0 then
 										rankChange = rankChange - rankDif
@@ -381,15 +402,17 @@ local function intThink()
 									end
 									
 									sTrack.ksChanges[v] = sTrack.ksChanges[v] + rankChange
-									lostPlayers = lostPlayers.." "..eV.." "..tostring(sTrack.globalPlayerData[eV][gameModeIndex]).."("..tostring(rankChange)..")"
+									--lostPlayers = lostPlayers.." "..eV.." "..tostring(sTrack.globalPlayerData[eV][gameModeIndex]).."("..tostring(rankChange)..")"
 								end
 							end
 						end
 					end
-					if sTrack.cv_ksdebug.value == 1 then
+					--[[if sTrack.cv_ksdebug.value == 1 then
 						print(v..","..tostring(sTrack.globalPlayerData[v][gameModeIndex]).."("..tostring(sTrack.ksChanges[v])..") | \x83"..beatPlayers.." | \x85"..lostPlayers)
-					end				
+					end	]]--			
 				end
+				--Save the data back as a string
+				sTrack.globalPlayerData[v] = sTrack.stringCombine(actPlayer)
 			end			
 		end
 		
@@ -400,27 +423,30 @@ local function intThink()
 				sTrack.checkNilPlayer(player)
 				--print(player.." - "..tostring(change))	
 				--add the increment, update the score
+				local actPlayer = sTrack.stringSplit(sTrack.globalPlayerData[player])
 				for p in players.iterate do
 					if p.valid and p.mo ~= nil and p.mo.valid and p.name == player					
 						p.interpoints = change					
-						if p.score ~= sTrack.globalPlayerData[p.name][gameModeIndex] then
-							p.score = sTrack.globalPlayerData[p.name][gameModeIndex]
+						if p.score ~= actPlayer[gameModeIndex] then
+							p.score = actPlayer[gameModeIndex]
 						end
 						--print(p.name.." - Score : "..tostring(p.score).." - Increase : "..tostring(p.interpoints))
 					end
 				end
 				
-				sTrack.globalPlayerData[player][gameModeIndex] = sTrack.globalPlayerData[player][gameModeIndex] + change
+				actPlayer[gameModeIndex] = actPlayer[gameModeIndex] + change
 				
-				if sTrack.globalPlayerData[player][gameModeIndex + 5] and tonumber(sTrack.globalPlayerData[player][gameModeIndex + 5]) < tonumber(sTrack.globalPlayerData[player][gameModeIndex]) then
+				if actPlayer[gameModeIndex + 5] and tonumber(actPlayer[gameModeIndex + 5]) < tonumber(actPlayer[gameModeIndex]) then
 					--New personal highest KS for this mode
-					sTrack.globalPlayerData[player][gameModeIndex + 5] = sTrack.globalPlayerData[player][gameModeIndex]
+					actPlayer[gameModeIndex + 5] = actPlayer[gameModeIndex]
 				end
 				
-				if sTrack.globalPlayerData[player][gameModeIndex] < 0 then
+				if actPlayer[gameModeIndex] < 0 then
 					--If you manage to hit 0 in an ELO system I'm legitimately impressed
-					sTrack.globalPlayerData[player][gameModeIndex] = 0
+					actPlayer[gameModeIndex] = 0
 				end
+				--Save the data back as a string
+				sTrack.globalPlayerData[player] = sTrack.stringCombine(actPlayer)
 			end
 		end
 		
@@ -443,11 +469,11 @@ local function intThink()
 		--Make sure no special game type is running
 		if hasTimeSupport and sTrack.cv_enablerecords.value == 1 then
 			if gamespeed == 0 and sTrack.globalEasyTimeData[tostring(gamemap)] == nil then
-				sTrack.globalEasyTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
+				sTrack.globalEasyTimeData[tostring(gamemap)] = sTrack.buildPlaceholderRecord()
 			elseif gamespeed == 1 and sTrack.globalNormalTimeData[tostring(gamemap)] == nil then
-				sTrack.globalNormalTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
+				sTrack.globalNormalTimeData[tostring(gamemap)] = sTrack.buildPlaceholderRecord()
 			elseif gamespeed == 2 and sTrack.globalHardTimeData[tostring(gamemap)] == nil then
-				sTrack.globalHardTimeData[tostring(gamemap)] = {99999, "p", "h", 99999, "p", "h", 99999, "p", "h"}
+				sTrack.globalHardTimeData[tostring(gamemap)] = sTrack.buildPlaceholderRecord()
 			end
 			
 			if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil then
@@ -464,46 +490,58 @@ local function intThink()
 				for p in players.iterate do
 					if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
 						if gamespeed == 0 then
-							if cMode == 2 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][7]) then
-								sTrack.globalEasyTimeData[tostring(gamemap)][7] = p.realtime
-								sTrack.globalEasyTimeData[tostring(gamemap)][8] = winList
-								sTrack.globalEasyTimeData[tostring(gamemap)][9] = p.mo.skin
-							elseif cMode == 1 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][4]) then
-								sTrack.globalEasyTimeData[tostring(gamemap)][4] = p.realtime
-								sTrack.globalEasyTimeData[tostring(gamemap)][5] = winList
-								sTrack.globalEasyTimeData[tostring(gamemap)][6] = p.mo.skin
-							elseif cMode == 0 and p.realtime < tonumber(sTrack.globalEasyTimeData[tostring(gamemap)][1]) then
-								sTrack.globalEasyTimeData[tostring(gamemap)][1] = p.realtime
-								sTrack.globalEasyTimeData[tostring(gamemap)][2] = winList
-								sTrack.globalEasyTimeData[tostring(gamemap)][3] = p.mo.skin
+							local timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[tostring(gamemap)])
+							if cMode == 2 and p.realtime < tonumber(timeRecord[sTrack.nTimePointer]) then
+								timeRecord[sTrack.nTimePointer] = p.realtime
+								timeRecord[sTrack.nTimePointer + 1] = winList
+								timeRecord[sTrack.nTimePointer + 2] = p.mo.skin
+								sTrack.globalEasyTimeData[tostring(gamemap)] = sTrack.stringCombine(timeRecord)
+							elseif cMode == 1 and p.realtime < tonumber(timeRecord[sTrack.jTimePointer]) then
+								timeRecord[sTrack.jTimePointer] = p.realtime
+								timeRecord[sTrack.jTimePointer + 1] = winList
+								timeRecord[sTrack.jTimePointer + 2] = p.mo.skin
+								sTrack.globalEasyTimeData[tostring(gamemap)] = sTrack.stringCombine(timeRecord)
+							elseif cMode == 0 and p.realtime < tonumber(timeRecord[1]) then
+								timeRecord[1] = p.realtime
+								timeRecord[2] = winList
+								timeRecord[3] = p.mo.skin
+								sTrack.globalEasyTimeData[tostring(gamemap)] = sTrack.stringCombine(timeRecord)
 							end
 						elseif gamespeed == 1 then
-							if cMode == 2 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][7]) then
-								sTrack.globalNormalTimeData[tostring(gamemap)][7] = p.realtime
-								sTrack.globalNormalTimeData[tostring(gamemap)][8] = winList
-								sTrack.globalNormalTimeData[tostring(gamemap)][9] = p.mo.skin
-							elseif cMode == 1 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][4]) then
-								sTrack.globalNormalTimeData[tostring(gamemap)][4] = p.realtime
-								sTrack.globalNormalTimeData[tostring(gamemap)][5] = winList
-								sTrack.globalNormalTimeData[tostring(gamemap)][6] = p.mo.skin
-							elseif cMode == 0 and p.realtime < tonumber(sTrack.globalNormalTimeData[tostring(gamemap)][1]) then
-								sTrack.globalNormalTimeData[tostring(gamemap)][1] = p.realtime
-								sTrack.globalNormalTimeData[tostring(gamemap)][2] = winList
-								sTrack.globalNormalTimeData[tostring(gamemap)][3] = p.mo.skin
+							local timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[tostring(gamemap)])
+							if cMode == 2 and p.realtime < tonumber(timeRecord[sTrack.nTimePointer]) then
+								timeRecord[sTrack.nTimePointer] = p.realtime
+								timeRecord[sTrack.nTimePointer + 1] = winList
+								timeRecord[sTrack.nTimePointer + 2] = p.mo.skin
+								sTrack.globalNormalTimeData[tostring(gamemap)] = sTrack.stringCombine(timeRecord)
+							elseif cMode == 1 and p.realtime < tonumber(timeRecord[sTrack.jTimePointer]) then
+								timeRecord[sTrack.jTimePointer] = p.realtime
+								timeRecord[sTrack.jTimePointer + 1] = winList
+								timeRecord[sTrack.jTimePointer + 2] = p.mo.skin
+								sTrack.globalNormalTimeData[tostring(gamemap)] = sTrack.stringCombine(timeRecord)
+							elseif cMode == 0 and p.realtime < tonumber(timeRecord[1]) then
+								timeRecord[1] = p.realtime
+								timeRecord[2] = winList
+								timeRecord[3] = p.mo.skin
+								sTrack.globalNormalTimeData[tostring(gamemap)] = sTrack.stringCombine(timeRecord)
 							end						
 						elseif gamespeed == 2 then
-							if cMode == 2 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][7]) then
-								sTrack.globalHardTimeData[tostring(gamemap)][7] = p.realtime
-								sTrack.globalHardTimeData[tostring(gamemap)][8] = winList
-								sTrack.globalHardTimeData[tostring(gamemap)][9] = p.mo.skin
-							elseif cMode == 1 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][4]) then
-								sTrack.globalHardTimeData[tostring(gamemap)][4] = p.realtime
-								sTrack.globalHardTimeData[tostring(gamemap)][5] = winList
-								sTrack.globalHardTimeData[tostring(gamemap)][6] = p.mo.skin
-							elseif cMode == 0 and p.realtime < tonumber(sTrack.globalHardTimeData[tostring(gamemap)][1]) then
-								sTrack.globalHardTimeData[tostring(gamemap)][1] = p.realtime
-								sTrack.globalHardTimeData[tostring(gamemap)][2] = winList
-								sTrack.globalHardTimeData[tostring(gamemap)][3] = p.mo.skin
+							local timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[tostring(gamemap)])
+							if cMode == 2 and p.realtime < tonumber(timeRecord[sTrack.nTimePointer]) then
+								timeRecord[sTrack.nTimePointer] = p.realtime
+								timeRecord[sTrack.nTimePointer + 1] = winList
+								timeRecord[sTrack.nTimePointer + 2] = p.mo.skin
+								sTrack.globalHardTimeData[tostring(gamemap)] = sTrack.stringCombine(timeRecord)
+							elseif cMode == 1 and p.realtime < tonumber(timeRecord[sTrack.jTimePointer]) then
+								timeRecord[sTrack.jTimePointer] = p.realtime
+								timeRecord[sTrack.jTimePointer + 1] = winList
+								timeRecord[sTrack.jTimePointer + 2] = p.mo.skin
+								sTrack.globalHardTimeData[tostring(gamemap)] = sTrack.stringCombine(timeRecord)
+							elseif cMode == 0 and p.realtime < tonumber(timeRecord[1]) then
+								timeRecord[1] = p.realtime
+								timeRecord[2] = winList
+								timeRecord[3] = p.mo.skin
+								sTrack.globalHardTimeData[tostring(gamemap)] = sTrack.stringCombine(timeRecord)
 							end						
 						end
 					end
@@ -577,13 +615,14 @@ local function think()
 				if p.inRace == nil or p.inRace == false then
 					p.inRace = true
 				end			
-				if p.exiting == 0 then
-					if p.pflags & PF_TIMEOVER then
-						--Someone DNF'd. Mark them down.
-						if timeList[p.name] == nil and DNFList[p.name] == nil then
-							DNFList[p.name] = true
-						end
-					else
+				if p.pflags & PF_TIMEOVER then -- Fuckal: due to custom intermissions this has to take priority
+					--Someone DNF'd. Mark them down.
+					if timeList[p.name] == nil and DNFList[p.name] == nil then
+						DNFList[p.name] = true
+					end
+				elseif p.exiting == 0 then
+					if (not (p.pflags & PF_TIMEOVER))
+					or (not (DNFList[p.name]))
 						--Someone is still running
 						allStopped = false
 					end
@@ -607,7 +646,8 @@ local function think()
 			if p.valid and p.mo ~= nil and p.mo.valid and p.scoreSet == nil then
 				--Replace player's score with the current mode's KS
 				sTrack.checkNilPlayer(p.name)
-				p.score = sTrack.globalPlayerData[p.name][gameModeIndex]
+				local actPlayer = sTrack.stringSplit(sTrack.globalPlayerData[p.name])
+				p.score = actPlayer[gameModeIndex]
 				p.scoreSet = true
 			end
 		end		
@@ -758,51 +798,60 @@ local function drawRecordTime(v, p)
 	if stringTime == nil then
 		if gamespeed == 0 then
 			if sTrack.globalEasyTimeData[tostring(gamemap)] ~= nil then
-				if gameModeIndex == 10 then
-					stringTime = sTrack.buildTimeStringTable(sTrack.globalEasyTimeData[tostring(gamemap)][1])
-					recordHolder = sTrack.globalEasyTimeData[tostring(gamemap)][2]
-					recordSkin = sTrack.globalEasyTimeData[tostring(gamemap)][3]
-				elseif gameModeIndex == 11 then
-					stringTime = sTrack.buildTimeStringTable(sTrack.globalEasyTimeData[tostring(gamemap)][4])
-					recordHolder = sTrack.globalEasyTimeData[tostring(gamemap)][5]
-					recordSkin = sTrack.globalEasyTimeData[tostring(gamemap)][6]
-				elseif gameModeIndex == 12 then
-					stringTime = sTrack.buildTimeStringTable(sTrack.globalEasyTimeData[tostring(gamemap)][7])
-					recordHolder = sTrack.globalEasyTimeData[tostring(gamemap)][8]
-					recordSkin = sTrack.globalEasyTimeData[tostring(gamemap)][9]
+				local timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[tostring(gamemap)])
+				if cMode == 0 then
+					stringTime = sTrack.buildTimeStringTable(timeRecord[1])
+					recordHolder = timeRecord[2]
+					recordSkin = timeRecord[3]
+				elseif cMode == 1 then
+					stringTime = sTrack.buildTimeStringTable(timeRecord[sTrack.jTimePointer])
+					recordHolder = timeRecord[sTrack.jTimePointer + 1]
+					recordSkin = timeRecord[sTrack.jTimePointer + 2]
+				elseif cMode == 2 then
+					stringTime = sTrack.buildTimeStringTable(timeRecord[sTrack.nTimePointer])
+					recordHolder = timeRecord[sTrack.nTimePointer + 1]
+					recordSkin = timeRecord[sTrack.nTimePointer + 2]
 				end
+			else
+				recordHolder = 'p'
 			end
 		elseif gamespeed == 1 then
 			if sTrack.globalNormalTimeData[tostring(gamemap)] ~= nil then
-				if gameModeIndex == 10 then
-					stringTime = sTrack.buildTimeStringTable(sTrack.globalNormalTimeData[tostring(gamemap)][1])
-					recordHolder = sTrack.globalNormalTimeData[tostring(gamemap)][2]
-					recordSkin = sTrack.globalNormalTimeData[tostring(gamemap)][3]
-				elseif gameModeIndex == 11 then
-					stringTime = sTrack.buildTimeStringTable(sTrack.globalNormalTimeData[tostring(gamemap)][4])
-					recordHolder = sTrack.globalNormalTimeData[tostring(gamemap)][5]
-					recordSkin = sTrack.globalNormalTimeData[tostring(gamemap)][6]
-				elseif gameModeIndex == 12 then
-					stringTime = sTrack.buildTimeStringTable(sTrack.globalNormalTimeData[tostring(gamemap)][7])
-					recordHolder = sTrack.globalNormalTimeData[tostring(gamemap)][8]
-					recordSkin = sTrack.globalNormalTimeData[tostring(gamemap)][9]
+				local timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[tostring(gamemap)])
+				if cMode == 0 then
+					stringTime = sTrack.buildTimeStringTable(timeRecord[1])
+					recordHolder = timeRecord[2]
+					recordSkin = timeRecord[3]
+				elseif cMode == 1 then
+					stringTime = sTrack.buildTimeStringTable(timeRecord[sTrack.jTimePointer])
+					recordHolder = timeRecord[sTrack.jTimePointer + 1]
+					recordSkin = timeRecord[sTrack.jTimePointer + 2]
+				elseif cMode == 2 then
+					stringTime = sTrack.buildTimeStringTable(timeRecord[sTrack.nTimePointer])
+					recordHolder = timeRecord[sTrack.nTimePointer + 1]
+					recordSkin = timeRecord[sTrack.nTimePointer + 2]
 				end
+			else
+				recordHolder = 'p'
 			end
 		elseif gamespeed == 2 then
 			if sTrack.globalHardTimeData[tostring(gamemap)] ~= nil then
-				if gameModeIndex == 10 then
-					stringTime = sTrack.buildTimeStringTable(sTrack.globalHardTimeData[tostring(gamemap)][1])
-					recordHolder = sTrack.globalHardTimeData[tostring(gamemap)][2]
-					recordSkin = sTrack.globalHardTimeData[tostring(gamemap)][3]
-				elseif gameModeIndex == 11 then
-					stringTime = sTrack.buildTimeStringTable(sTrack.globalHardTimeData[tostring(gamemap)][4])
-					recordHolder = sTrack.globalHardTimeData[tostring(gamemap)][5]
-					recordSkin = sTrack.globalHardTimeData[tostring(gamemap)][6]
-				elseif gameModeIndex == 12 then
-					stringTime = sTrack.buildTimeStringTable(sTrack.globalHardTimeData[tostring(gamemap)][7])
-					recordHolder = sTrack.globalHardTimeData[tostring(gamemap)][8]
-					recordSkin = sTrack.globalHardTimeData[tostring(gamemap)][9]
+				local timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[tostring(gamemap)])
+				if cMode == 0 then
+					stringTime = sTrack.buildTimeStringTable(timeRecord[1])
+					recordHolder = timeRecord[2]
+					recordSkin = timeRecord[3]
+				elseif cMode == 1 then
+					stringTime = sTrack.buildTimeStringTable(timeRecord[sTrack.jTimePointer])
+					recordHolder = timeRecord[sTrack.jTimePointer + 1]
+					recordSkin = timeRecord[sTrack.jTimePointer + 2]
+				elseif cMode == 2 then
+					stringTime = sTrack.buildTimeStringTable(timeRecord[sTrack.nTimePointer])
+					recordHolder = timeRecord[sTrack.nTimePointer + 1]
+					recordSkin = timeRecord[sTrack.nTimePointer + 2]
 				end
+			else
+				recordHolder = 'p'
 			end
 		end
 	end
