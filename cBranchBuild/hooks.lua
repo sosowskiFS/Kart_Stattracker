@@ -111,25 +111,22 @@ local function intThink()
 	if sTrack.cv_enabled.value == 0 then return end
 	--Data maintenance
 	if didMaint == false then
-		--Reset use values to 0 in globalSkinData, repopulate it from player skin use data
-		if (sTrack.cv_limitnetvar.value and consoleplayer == server) or sTrack.cv_limitnetvar.value == 0 then	
-			--Add new skins that aren't represented in data yet
-			for s in skins.iterate do
-				if sTrack.globalSkinData[s.name] == nil then
-					sTrack.globalSkinData[s.name] = "0;"..s.realname..";0"
-				end
+		--Add new skins that aren't represented in data yet
+		for s in skins.iterate do
+			if sTrack.globalSkinData[s.name] == nil then
+				sTrack.globalSkinData[s.name] = "0;"..s.realname..";0"
 			end
-		
-			--Add new maps that aren't in data yet & delete removed maps
-			--MAPZZ = 1035. If they extend this higher then update the max in the loop below.
-			for i=1,1035,1 do
-				if mapheaderinfo[tostring(i)] ~= nil and sTrack.globalMapData[tostring(i)] == nil then
-					sTrack.globalMapData[tostring(i)] = "0;0;"..mapheaderinfo[tostring(i)].lvlttl
-				elseif sTrack.cv_wiperemovedaddons.value == 1 and mapheaderinfo[tostring(i)] == nil and sTrack.globalMapData[tostring(i)] ~= nil then
-					sTrack.globalMapData[tostring(i)] = nil
-				end
-			end	
 		end
+	
+		--Add new maps that aren't in data yet & delete removed maps
+		--MAPZZ = 1035. If they extend this higher then update the max in the loop below.
+		for i=1,1035,1 do
+			if mapheaderinfo[tostring(i)] ~= nil and sTrack.globalMapData[tostring(i)] == nil then
+				sTrack.globalMapData[tostring(i)] = "0;0;"..mapheaderinfo[tostring(i)].lvlttl
+			elseif sTrack.cv_wiperemovedaddons.value == 1 and mapheaderinfo[tostring(i)] == nil and sTrack.globalMapData[tostring(i)] ~= nil then
+				sTrack.globalMapData[tostring(i)] = nil
+			end
+		end	
 		
 		didMaint = true
 	end
@@ -214,77 +211,73 @@ local function intThink()
 	if not didSaveSkins then
 		--These vars are always set first in case something breaks
 		didSaveSkins = true	
-		if (sTrack.cv_limitnetvar.value and consoleplayer == server) or sTrack.cv_limitnetvar.value == 0 then
-			for p in players.iterate do
-				if p.valid and p.mo ~= nil and p.mo.valid then
-					if sTrack.globalPlayerSkinUseData[p.name] == nil then
-						sTrack.globalPlayerSkinUseData[p.name] = {}
-						sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = 1
-					elseif sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] == nil then
-						sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = 1
-					else
-						sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] + 1
-					end
-					--Determine if this player's usage should increment global data
-					local shouldIncrement = false
-					if sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] == 1 then
-						shouldIncrement = true
-					elseif sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] <= 45 and sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] % 5 == 0 then
-						shouldIncrement = true
-					end
-					
-					if sTrack.globalSkinData[p.mo.skin] == nil then
-						sTrack.globalSkinData[p.mo.skin] = "1;"..skins[p.mo.skin].realname..";1"
-					end
-					local SkinData = sTrack.stringSplit(sTrack.globalSkinData[p.mo.skin])
-					
-					--Tick up weighted total
-					if shouldIncrement then
-						SkinData[1] = SkinData[1] + 1
-					end
-					
-					--Tick up total count
-					SkinData[3] = SkinData[3] + 1
-					
-					--Save the data back as a string
-					sTrack.globalSkinData[p.mo.skin] = sTrack.stringCombine(SkinData)
+		for p in players.iterate do
+			if p.valid and p.mo ~= nil and p.mo.valid then
+				if sTrack.globalPlayerSkinUseData[p.name] == nil then
+					sTrack.globalPlayerSkinUseData[p.name] = {}
+					sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = 1
+				elseif sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] == nil then
+					sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = 1
+				else
+					sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] + 1
 				end
+				--Determine if this player's usage should increment global data
+				local shouldIncrement = false
+				if sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] == 1 then
+					shouldIncrement = true
+				elseif sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] <= 45 and sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] % 5 == 0 then
+					shouldIncrement = true
+				end
+				
+				if sTrack.globalSkinData[p.mo.skin] == nil then
+					sTrack.globalSkinData[p.mo.skin] = "1;"..skins[p.mo.skin].realname..";1"
+				end
+				local SkinData = sTrack.stringSplit(sTrack.globalSkinData[p.mo.skin])
+				
+				--Tick up weighted total
+				if shouldIncrement then
+					SkinData[1] = SkinData[1] + 1
+				end
+				
+				--Tick up total count
+				SkinData[3] = SkinData[3] + 1
+				
+				--Save the data back as a string
+				sTrack.globalSkinData[p.mo.skin] = sTrack.stringCombine(SkinData)
 			end
-
-			sTrack.saveFiles("Skin")		
 		end
+
+		sTrack.saveFiles("Skin")		
 	end
 	
 	--Track Map Usage
 	if not didSaveMap then
 		didSaveMap = true	
-		if (sTrack.cv_limitnetvar.value and consoleplayer == server) or sTrack.cv_limitnetvar.value == 0 then
-			--doing an isolated check here for SPBAttack because this inflates RTV count quite a bit
-			local doUseSaves = true
-			if CV_FindVar("spbatk") and CV_FindVar("spbatk").value == 1 then
-				if foundP <= 1 then
-					doUseSaves = false
-				end
+		--doing an isolated check here for SPBAttack because this inflates RTV count quite a bit
+		local doUseSaves = true
+		if CV_FindVar("spbatk") and CV_FindVar("spbatk").value == 1 then
+			if foundP <= 1 then
+				doUseSaves = false
 			end
-			
-			if doUseSaves then
-				if sTrack.globalMapData[tostring(gamemap)] == nil then
-					sTrack.globalMapData[tostring(gamemap)] = "0;0;"..mapheaderinfo[tostring(gamemap)].lvlttl
-				end
-				local MapData = sTrack.stringSplit(sTrack.globalMapData[tostring(gamemap)])
-				if playerOrder[1] ~= nil then
-					--Map was completed
-					MapData[1] = MapData[1] + 1
-				else
-					--Nobody finished this race, assume it was RTV'd	
-					--print ("Adding an RTV count...")
-					MapData[2] = MapData[2] + 1
-				end
-				--Save the data back as a string
-				sTrack.globalMapData[tostring(gamemap)] = sTrack.stringCombine(MapData)
-			end
-			sTrack.saveFiles("Map")
 		end
+		
+		if doUseSaves then
+			if sTrack.globalMapData[tostring(gamemap)] == nil then
+				sTrack.globalMapData[tostring(gamemap)] = "0;0;"..mapheaderinfo[tostring(gamemap)].lvlttl
+			end
+			local MapData = sTrack.stringSplit(sTrack.globalMapData[tostring(gamemap)])
+			if playerOrder[1] ~= nil then
+				--Map was completed
+				MapData[1] = MapData[1] + 1
+			else
+				--Nobody finished this race, assume it was RTV'd	
+				--print ("Adding an RTV count...")
+				MapData[2] = MapData[2] + 1
+			end
+			--Save the data back as a string
+			sTrack.globalMapData[tostring(gamemap)] = sTrack.stringCombine(MapData)
+		end
+		sTrack.saveFiles("Map")
 	end
 	
 	--Track player data
@@ -666,15 +659,10 @@ local function netvars(net)
 	sTrack.globalNormalTimeData = net($)
 	sTrack.globalHardTimeData = net($)
 	sTrack.globalPlayerData = net($)
-	
-	--Experiment
-	didMaint = net($)
-	if sTrack.cv_limitnetvar.value == 0 then
-		--Extra data for only the player's benefit is loaded here.
-		sTrack.globalPlayerSkinUseData = net($)
-		sTrack.globalSkinData = net($)
-		sTrack.globalMapData = net($)	
-	end
+	sTrack.globalPlayerSkinUseData = net($)
+	sTrack.globalSkinData = net($)
+	sTrack.globalMapData = net($)	
+	didMaint = net($)	
 end
 addHook("NetVars", netvars)
 
