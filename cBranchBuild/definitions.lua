@@ -54,202 +54,205 @@ end
 KSPointer = nil]]--
 
 --Load data into tables
---Previously used string.match but that doesn't seem to scale well with a large amount of columns (long processing times)
---New - gsub to just loop through every character and manually assemble the data row
-local f = io.open("Skincounter.txt", "r")
-if f then
-	--file already exsists, load from it
-	for l in f:lines() do
-		if l ~= '' and l ~= "\n" and l ~= "\r" then
-			local holder = ""
-			local rowHolder = {}
-			local index = 1
-			l:gsub(".", function(c)
-				if c==';' then
-					rowHolder[index] = holder
-					holder = ""
-					index = index + 1			
-				else
-					holder = holder..c
-				end		
-			end)
-			rowHolder[index] = tonumber(holder)
-			--local skinName, count, realName, totalCount = string.match(l, "(.*);(.*);(.*);(.*)")
-
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[4] then
-				sTrack.globalSkinData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]
-			end
-		end
-	end
-	f:close()
-end
-local m = io.open("Mapdata.txt", "r")
-if m then
-	--file already exsists, load from it
-	for l in m:lines() do
-		if l ~= '' and l ~= "\n" and l ~= "\r" then
-			local holder = ""
-			local rowHolder = {}
-			local index = 1
-			l:gsub(".", function(c)
-				if c==';' then
-					rowHolder[index] = holder
-					holder = ""
-					index = index + 1			
-				else
-					holder = holder..c
-				end		
-			end)
-			rowHolder[index] = holder
-			--local mapID, timesPlayed, rtv, mapName = string.match(l, "(.*);(.*);(.*);(.*)")
-
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[4] then
-				sTrack.globalMapData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]
-			end
-		end
-	end
-	m:close()
-end
-local p = io.open("Playerdata.txt", "r")
-if p then
-	--do I really have to explain this to you three times
-	for l in p:lines() do
-		if l ~= '' and l ~= "\n" and l ~= "\r" then
-			local holder = ""
-			local rowHolder = {}
-			local index = 1
-			l:gsub(".", function(c)
-				if c==';' then
-					rowHolder[index] = holder
-					holder = ""
-					index = index + 1			
-				else
-					holder = holder..c
-				end		
-			end)
-			--Remember the last data point too
-			--tonumber scrubs out a possible newline character from the last data point	
-			rowHolder[index] = tonumber(holder)
-			
-			--local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo, eloC, jEloC, nEloC, eEloC, cEloC = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			--print(pName)
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[20] then
-				sTrack.globalPlayerData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..";"..rowHolder[11]..";"..rowHolder[12]..";"..rowHolder[13]..";"..rowHolder[14]..";"..rowHolder[15]..";"..rowHolder[16]..";"..rowHolder[17]..";"..rowHolder[18]..";"..rowHolder[19]..";"..rowHolder[20]
-			end
-		end
-	end
-	p:close()
-end
-
-local q = io.open("pSkinUse.txt", "r")
-if q then
-	--Skin usage per player
-	--Data line format PlayerName;SkinName/Use(as number)|SkinName2/Use....
-	--Converted data format
-		--globalPlayerSkinUseData["PlayerName"] = Table object
-		--globalPlayerSkinUseData["PlayerName"]["SkinName"] = Skin's use count by this player
-	for l in q:lines() do
-		local pName, rawData = string.match(l, "(.*);(.*)")
-		if pName and pName ~= '' then
-			local tempTable = {}
-			for str in string.gmatch(rawData, "([^|]+)") do
-				--Needs 2 splits
-				local keyV = ""
-				for str2 in string.gmatch(str, "([^/]+)") do
-					if keyV == "" then
-						keyV = str2
+--Isolating this into a function to stop the user from loading local files and syncfailing
+sTrack.loadData = function()
+	--Previously used string.match but that doesn't seem to scale well with a large amount of columns (long processing times)
+	--New - gsub to just loop through every character and manually assemble the data row
+	local f = io.open("Skincounter.txt", "r")
+	if f then
+		--file already exsists, load from it
+		for l in f:lines() do
+			if l ~= '' and l ~= "\n" and l ~= "\r" then
+				local holder = ""
+				local rowHolder = {}
+				local index = 1
+				l:gsub(".", function(c)
+					if c==';' then
+						rowHolder[index] = holder
+						holder = ""
+						index = index + 1			
 					else
-						tempTable[keyV] = str2
-						keyV = ""
-					end
+						holder = holder..c
+					end		
+				end)
+				rowHolder[index] = tonumber(holder)
+				--local skinName, count, realName, totalCount = string.match(l, "(.*);(.*);(.*);(.*)")
+
+				if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[4] then
+					sTrack.globalSkinData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]
 				end
 			end
-			
-			sTrack.globalPlayerSkinUseData[pName] = tempTable
 		end
+		f:close()
 	end
-	q:close()
-end
+	local m = io.open("Mapdata.txt", "r")
+	if m then
+		--file already exsists, load from it
+		for l in m:lines() do
+			if l ~= '' and l ~= "\n" and l ~= "\r" then
+				local holder = ""
+				local rowHolder = {}
+				local index = 1
+				l:gsub(".", function(c)
+					if c==';' then
+						rowHolder[index] = holder
+						holder = ""
+						index = index + 1			
+					else
+						holder = holder..c
+					end		
+				end)
+				rowHolder[index] = holder
+				--local mapID, timesPlayed, rtv, mapName = string.match(l, "(.*);(.*);(.*);(.*)")
 
-local t = io.open("EasyRecords.txt", "r")
-if t then
-	--Vanilla/Tech records, juicebox records, Nitro records
-	for l in t:lines() do
-		if l ~= '' and l ~= "\n" and l ~= "\r" then
-			local holder = ""
-			local rowHolder = {}
-			local index = 1
-			l:gsub(".", function(c)
-				if c==';' then
-					rowHolder[index] = holder
-					holder = ""
-					index = index + 1			
-				else
-					holder = holder..c
-				end		
-			end)
-			rowHolder[index] = holder
-			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
-				sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+				if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[4] then
+					sTrack.globalMapData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]
+				end
 			end
 		end
+		m:close()
 	end
-	t:close()
-end
-
-local n = io.open("NormalRecords.txt", "r")
-if n then
-	--Vanilla/Tech records, juicebox records, Nitro records
-	for l in n:lines() do
-		if l ~= '' and l ~= "\n" and l ~= "\r" then
-			local holder = ""
-			local rowHolder = {}
-			local index = 1
-			l:gsub(".", function(c)
-				if c==';' then
-					rowHolder[index] = holder
-					holder = ""
-					index = index + 1			
-				else
-					holder = holder..c
-				end		
-			end)
-			rowHolder[index] = holder
-			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
-				sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+	local p = io.open("Playerdata.txt", "r")
+	if p then
+		--do I really have to explain this to you three times
+		for l in p:lines() do
+			if l ~= '' and l ~= "\n" and l ~= "\r" then
+				local holder = ""
+				local rowHolder = {}
+				local index = 1
+				l:gsub(".", function(c)
+					if c==';' then
+						rowHolder[index] = holder
+						holder = ""
+						index = index + 1			
+					else
+						holder = holder..c
+					end		
+				end)
+				--Remember the last data point too
+				--tonumber scrubs out a possible newline character from the last data point	
+				rowHolder[index] = tonumber(holder)
+				
+				--local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo, eloC, jEloC, nEloC, eEloC, cEloC = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+				--print(pName)
+				if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[20] then
+					sTrack.globalPlayerData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..";"..rowHolder[11]..";"..rowHolder[12]..";"..rowHolder[13]..";"..rowHolder[14]..";"..rowHolder[15]..";"..rowHolder[16]..";"..rowHolder[17]..";"..rowHolder[18]..";"..rowHolder[19]..";"..rowHolder[20]
+				end
 			end
 		end
+		p:close()
 	end
-	n:close()
-end
 
-local h = io.open("HardRecords.txt", "r")
-if h then
-	--Vanilla/Tech records, juicebox records, Nitro records
-	for l in h:lines() do
-		if l ~= '' and l ~= "\n" and l ~= "\r" then
-			local holder = ""
-			local rowHolder = {}
-			local index = 1
-			l:gsub(".", function(c)
-				if c==';' then
-					rowHolder[index] = holder
-					holder = ""
-					index = index + 1			
-				else
-					holder = holder..c
-				end		
-			end)
-			rowHolder[index] = holder
-			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
-				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+	local q = io.open("pSkinUse.txt", "r")
+	if q then
+		--Skin usage per player
+		--Data line format PlayerName;SkinName/Use(as number)|SkinName2/Use....
+		--Converted data format
+			--globalPlayerSkinUseData["PlayerName"] = Table object
+			--globalPlayerSkinUseData["PlayerName"]["SkinName"] = Skin's use count by this player
+		for l in q:lines() do
+			local pName, rawData = string.match(l, "(.*);(.*)")
+			if pName and pName ~= '' then
+				local tempTable = {}
+				for str in string.gmatch(rawData, "([^|]+)") do
+					--Needs 2 splits
+					local keyV = ""
+					for str2 in string.gmatch(str, "([^/]+)") do
+						if keyV == "" then
+							keyV = str2
+						else
+							tempTable[keyV] = str2
+							keyV = ""
+						end
+					end
+				end
+				
+				sTrack.globalPlayerSkinUseData[pName] = tempTable
 			end
 		end
+		q:close()
 	end
-	h:close()
+
+	local t = io.open("EasyRecords.txt", "r")
+	if t then
+		--Vanilla/Tech records, juicebox records, Nitro records
+		for l in t:lines() do
+			if l ~= '' and l ~= "\n" and l ~= "\r" then
+				local holder = ""
+				local rowHolder = {}
+				local index = 1
+				l:gsub(".", function(c)
+					if c==';' then
+						rowHolder[index] = holder
+						holder = ""
+						index = index + 1			
+					else
+						holder = holder..c
+					end		
+				end)
+				rowHolder[index] = holder
+				--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+				if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
+					sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+				end
+			end
+		end
+		t:close()
+	end
+
+	local n = io.open("NormalRecords.txt", "r")
+	if n then
+		--Vanilla/Tech records, juicebox records, Nitro records
+		for l in n:lines() do
+			if l ~= '' and l ~= "\n" and l ~= "\r" then
+				local holder = ""
+				local rowHolder = {}
+				local index = 1
+				l:gsub(".", function(c)
+					if c==';' then
+						rowHolder[index] = holder
+						holder = ""
+						index = index + 1			
+					else
+						holder = holder..c
+					end		
+				end)
+				rowHolder[index] = holder
+				--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+				if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
+					sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+				end
+			end
+		end
+		n:close()
+	end
+
+	local h = io.open("HardRecords.txt", "r")
+	if h then
+		--Vanilla/Tech records, juicebox records, Nitro records
+		for l in h:lines() do
+			if l ~= '' and l ~= "\n" and l ~= "\r" then
+				local holder = ""
+				local rowHolder = {}
+				local index = 1
+				l:gsub(".", function(c)
+					if c==';' then
+						rowHolder[index] = holder
+						holder = ""
+						index = index + 1			
+					else
+						holder = holder..c
+					end		
+				end)
+				rowHolder[index] = holder
+				--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+				if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
+					sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+				end
+			end
+		end
+		h:close()
+	end
 end
 
 --You can't pcall functions with parameters unless the function is written inside of that, I guess
