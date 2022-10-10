@@ -155,7 +155,7 @@ local function intThink()
 		--Add new skins that aren't represented in data yet
 		for s in skins.iterate do
 			if sTrack.globalSkinData[s.name] == nil then
-				sTrack.globalSkinData[s.name] = "0;"..s.realname";0"
+				sTrack.globalSkinData[s.name] = "0;"..s.realname..";0"
 			end
 		end
 		--Delete removed skins
