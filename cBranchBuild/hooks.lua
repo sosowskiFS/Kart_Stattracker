@@ -103,8 +103,7 @@ local stringTime = nil
 local recordHolder = nil
 local recordSkin = nil
 
---This is only ever set to true so it runs once.
-local loadedFiles = false
+--This is only ever set to true so it runs once. 
 local didMaint = false
 
 --This is where all the calculations and saving happens
@@ -515,11 +514,6 @@ local function think()
 	if sTrack.cv_enabled.value == 0 then return end
 	
 	if leveltime < 3 then
-		if not loadedFiles then
-			print('Loading files...')
-			sTrack.loadData()
-			loadedFiles = true
-		end
 		didSaveSkins = false
 		completedRun = false
 		playerOrder = {}
@@ -668,8 +662,7 @@ local function netvars(net)
 	sTrack.globalPlayerSkinUseData = net($)
 	sTrack.globalSkinData = net($)
 	sTrack.globalMapData = net($)	
-	didMaint = net($)
-	loadedFiles = net($)
+	didMaint = net($)	
 end
 addHook("NetVars", netvars)
 
