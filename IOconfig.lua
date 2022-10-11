@@ -4,7 +4,8 @@ local loaded = false
 local commands = {
 	{sTrack.cv_recordpopup, "Shows/Hides record time popup"}, 
 	{sTrack.cv_showks, "Shows/Hides KS updates"}, 
-	{sTrack.cv_showtime, "Shows/Hides record time in game HUD"}, 
+	{sTrack.cv_showtime, "Shows/Hides record time in game HUD"},
+	{sTrack.cv_recordsound, "Plays/Mutes record time skin gloat audio"},
 }
 
 addHook("ThinkFrame", do

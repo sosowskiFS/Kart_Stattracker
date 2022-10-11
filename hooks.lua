@@ -1,6 +1,6 @@
 --Keep track of player damage
 local function playerSpin(p, i, s)
-	if sTrack.cv_enabled.value == 1 then
+	if sTrack.cv_enableplayertracking.value == 1 and sTrack.cv_enabled.value == 1 then
 		--player hit = p.name
 		--player who threw item = s.player.name (nil - enviroment, matches p - self hit)
 		sTrack.checkNilPlayer(p.name)
@@ -28,7 +28,7 @@ end
 addHook("PlayerSpin", playerSpin)
 
 local function playerExplode(p, i, s)
-	if sTrack.cv_enabled.value == 1 then
+	if sTrack.cv_enableplayertracking.value == 1 and sTrack.cv_enabled.value == 1 then
 		sTrack.checkNilPlayer(p.name)
 		local hitPlayer = sTrack.stringSplit(sTrack.globalPlayerData[p.name])
 		hitPlayer[6] = hitPlayer[6] + 1
@@ -53,7 +53,7 @@ end
 addHook("PlayerExplode", playerExplode)
 
 local function playerSquish(p, i, s)
-	if sTrack.cv_enabled.value == 1 then
+	if sTrack.cv_enableplayertracking.value == 1 and sTrack.cv_enabled.value == 1 then
 		sTrack.checkNilPlayer(p.name)
 		local hitPlayer = sTrack.stringSplit(sTrack.globalPlayerData[p.name])
 		hitPlayer[7] = hitPlayer[7] + 1
@@ -110,64 +110,14 @@ local didMaint = false
 local function intThink()
 	if sTrack.cv_enabled.value == 0 then return end
 	--Data maintenance
-	if didMaint == false then
-		--Revisit this at some point for cv_wiperemovedaddons, this block seems like just redundant work
-		
-		--Reset use values to 0 in globalSkinData, repopulate it from player skin use data
-		--[[for k, v in pairs(sTrack.globalSkinData)
-			local this = sTrack.stringSplit(sTrack.globalSkinData[k])
-			this[1] = 0
-			this[3] = 0
-			sTrack.globalSkinData[k] = sTrack.stringCombine(this)
-		end
-		
-		--globalPlayerSkinUseData["PlayerName"]["SkinName"]
-		local playerSkinUseReference = sTrack.globalPlayerSkinUseData
-		for k, v in pairs(playerSkinUseReference)
-			for k2, v2 in pairs(playerSkinUseReference[k])
-				if sTrack.cv_wiperemovedaddons.value == 1 and skins[k2] == nil then
-					--This skin doesn't exist anymore and can be removed
-					sTrack.globalPlayerSkinUseData[k][k2] = nil
-				else
-					--calculate the weighted uses			
-					local weightedUse = FixedFloor((v2 / 5) * FRACUNIT) / FRACUNIT
-					if tonumber(v2) > 0 then
-						weightedUse = $ + 1
-					end
-					if weightedUse > 10 then
-						weightedUse = 10
-					end			
-					
-					if sTrack.globalSkinData[k2] == nil then
-						if skins[k2] == nil then
-							sTrack.globalSkinData[k2] = {weightedUse, "Removed Skin", v2}
-						else
-							sTrack.globalSkinData[k2] = {weightedUse, skins[k2].realname, v2}
-						end					
-					else
-						sTrack.globalSkinData[k2][1] = $ + weightedUse
-						sTrack.globalSkinData[k2][3] = $ + v2
-					end		
-				end				
-			end
-		end]]--
-	
+	if didMaint == false then	
 		--Add new skins that aren't represented in data yet
 		for s in skins.iterate do
 			if sTrack.globalSkinData[s.name] == nil then
 				sTrack.globalSkinData[s.name] = "0;"..s.realname..";0"
 			end
 		end
-		--Delete removed skins
-		--[[local skinReference = sTrack.globalSkinData
-		for k, v in pairs(skinReference) do
-			if sTrack.cv_wiperemovedaddons.value == 1 and skins[k] == nil then
-				sTrack.globalSkinData[k] = nil
-			elseif skins[k] ~= nil and v[2] == "Removed Skin" then
-				--Fix broken record
-				sTrack.globalSkinData[k][2] = skins[k].realname
-			end
-		end]]--
+
 		--Add new maps that aren't in data yet & delete removed maps
 		--MAPZZ = 1035. If they extend this higher then update the max in the loop below.
 		for i=1,1035,1 do
@@ -196,6 +146,10 @@ local function intThink()
 	local hasKSSupport = sTrack.isKSSupportedMode()
 	
 	--Track skin usage
+	if not didSaveSkins and sTrack.cv_enableskintracking == 0 then
+		didSaveSkins = true
+	end
+	
 	if not didSaveSkins then
 		--These vars are always set first in case something breaks
 		didSaveSkins = true
@@ -240,6 +194,10 @@ local function intThink()
 	end
 	
 	--Track Map Usage
+	if not didSaveMap and sTrack.cv_enablemaptracking == 0 then
+		didSaveMap = true
+	end
+	
 	if not didSaveMap then
 		didSaveMap = true
 		
@@ -271,6 +229,10 @@ local function intThink()
 	end
 	
 	--Track player data
+	if not didSavePlayer and sTrack.cv_enableplayertracking == 0 then
+		didSavePlayer = true
+	end
+	
 	if not didSavePlayer then
 		didSavePlayer = true
 				
@@ -377,6 +339,10 @@ local function intThink()
 			end
 		end
 		sTrack.saveFiles("Player")	
+	end
+	
+	if not didSaveTime and sTrack.cv_enabletimerecordtracking == 0 then
+		didSaveTime = true
 	end
 	
 	if not didSaveTime then
@@ -609,7 +575,7 @@ local function think()
 	
 	--Handles showing the sliding new record popup
 	--This would be better suited for intermission but there's no hud lua hook in there :(
-	if completedRun and sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.cv_silentmode.value == 0 and slideRun == "stop" and hmIntermission == false then
+	if completedRun and sTrack.cv_recordpopup.value == 1 and sTrack.cv_enablerecords.value == 1 and sTrack.cv_enabletimerecordtracking.value == 1 and sTrack.cv_silentmode.value == 0 and slideRun == "stop" and hmIntermission == false then
 		if playerOrder[1] ~= nil and playerOrder[1][1] ~= nil and sTrack.isTimeSupportedMode(playerOrder) then
 			--Check for ties
 			local winList = ""
@@ -635,7 +601,9 @@ local function think()
 							rSkinHolder = p.mo.skin
 							rSkinColorHolder = p.skincolor
 							slideRun = "left"
-							S_StartSound(nil, skins[p.mo.skin].soundsid[SKSKPOWR])
+							if sTrack.cv_recordsound.value == 1 then
+								S_StartSound(nil, skins[p.mo.skin].soundsid[SKSKPOWR])
+							end				
 						end
 					elseif gamespeed == 1 then
 						if sTrack.globalNormalTimeData[tostring(gamemap)] == nil then
@@ -648,7 +616,9 @@ local function think()
 							rSkinHolder = p.mo.skin
 							rSkinColorHolder = p.skincolor
 							slideRun = "left"
-							S_StartSound(nil, skins[p.mo.skin].soundsid[SKSKPOWR])
+							if sTrack.cv_recordsound.value == 1 then
+								S_StartSound(nil, skins[p.mo.skin].soundsid[SKSKPOWR])
+							end	
 						end
 					elseif gamespeed == 2 then
 						if sTrack.globalHardTimeData[tostring(gamemap)] == nil then
@@ -661,7 +631,9 @@ local function think()
 							rSkinHolder = p.mo.skin
 							rSkinColorHolder = p.skincolor
 							slideRun = "left"
-							S_StartSound(nil, skins[p.mo.skin].soundsid[SKSKPOWR])
+							if sTrack.cv_recordsound.value == 1 then
+								S_StartSound(nil, skins[p.mo.skin].soundsid[SKSKPOWR])
+							end	
 						end
 					end
 
@@ -696,7 +668,7 @@ addHook("NetVars", netvars)
 --Intermission isn't a set up hud hook for Kart, so this will have to do without jamming in crazy hacks
 --If you do have crazy hacks, however, that concept may interest you
 local function interShowNewRecord(v)
-	if sTrack.cv_recordpopup.value == 0 or sTrack.cv_enabled.value == 0 or sTrack.cv_enablerecords.value == 0 or sTrack.cv_silentmode.value >= 1 then return end
+	if sTrack.cv_recordpopup.value == 0 or sTrack.cv_enabled.value == 0 or sTrack.cv_enablerecords.value == 0 or sTrack.cv_enabletimerecordtracking.value == 0 or sTrack.cv_silentmode.value >= 1 then return end
 	if slideRun ~= "stop" and hmIntermission == true then slideRun = "stop" end
 	if slideRun ~= "stop" then		
 		stringTime = sTrack.buildTimeString(rTimeHolder)
@@ -766,7 +738,7 @@ hud.add(interShowNewRecord, game)
 
 --Draw map + mode's record below current time (if it exists)
 local function drawRecordTime(v, p)
-	if sTrack.cv_enabled.value == 0 or sTrack.cv_showtime.value == 0 or sTrack.cv_enablerecords.value == 0 or sTrack.cv_silentmode.value >= 1 then return end
+	if sTrack.cv_enabled.value == 0 or sTrack.cv_showtime.value == 0 or sTrack.cv_enablerecords.value == 0 or sTrack.cv_enabletimerecordtracking.value == 0 or sTrack.cv_silentmode.value >= 1 then return end
 	
 	if stringTime == nil then
 		if gamespeed == 0 then

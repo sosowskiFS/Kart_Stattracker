@@ -51,7 +51,44 @@ sTrack.cv_scoreboardKS = CV_RegisterVar({
 })
 ]]--
 
+--Hard toggles for individual data catagories
+--Disabling each will stop these items from being tracked & saved, which will save you server memory.
+--Remember to also remove the noted files from your luafiles folder so they aren't loaded.
+
+--Skins (Skincounter.txt | pSkinUse.txt)
+sTrack.cv_enableskintracking = CV_RegisterVar({
+	name = "st_enableskintracking",
+	defaultvalue = 1,
+	flags = CV_NETVAR,
+	PossibleValue = CV_OnOff,
+})
+
+--Map play & rtv count (Mapdata.txt)
+sTrack.cv_enablemaptracking = CV_RegisterVar({
+	name = "st_enablemaptracking",
+	defaultvalue = 1,
+	flags = CV_NETVAR,
+	PossibleValue = CV_OnOff,
+})
+
+--Map time records (EasyRecords.txt | NormalRecords.txt | HardRecords.txt)
+sTrack.cv_enabletimerecordtracking = CV_RegisterVar({
+	name = "st_enabletimerecordtracking",
+	defaultvalue = 1,
+	flags = CV_NETVAR,
+	PossibleValue = CV_OnOff,
+})
+
+--General player data (Playerdata.txt)
+sTrack.cv_enableplayertracking = CV_RegisterVar({
+	name = "st_enableplayertracking",
+	defaultvalue = 1,
+	flags = CV_NETVAR,
+	PossibleValue = CV_OnOff,
+})
+
 --Player commands
+
 --Shows/Hides record time popup
 sTrack.cv_recordpopup = CV_RegisterVar({
 	name = "st_recordpopup",
@@ -72,10 +109,17 @@ sTrack.cv_showtime = CV_RegisterVar ({
 	defaultvalue = 1,
 	PossibleValue = CV_OnOff,
 })
+
+--Stops new record gloat from playing
+sTrack.cv_recordsound = CV_RegisterVar ({
+	name = "st_recordsound",
+	defaultvalue = 1,
+	PossibleValue = CV_OnOff,
+})
  
 --In game player data lookups
 local function st_playerdata(p, ...)
-	if sTrack.cv_silentmode.value == 2 then return end
+	if sTrack.cv_silentmode.value == 2 or sTrack.cv_enableplayertracking.value == 0 then return end
 	local pTarget = nil
 	if not ... then
 		--assume player is looking up themself
@@ -99,21 +143,20 @@ local function st_playerdata(p, ...)
 			end
 		end
 	elseif pTarget=="top" or pTarget == "top wins" then
-		CONS_Printf(p, "I need to figure out sorting with the new data system first, sorry")
-		--[[local stuffToSort = {}
+		local stuffToSort = {}
 		for k, v in pairs(sTrack.globalPlayerData) do
-			stuffToSort[k] = tonumber(v[2])	
+			local pData = sTrack.stringSplit(sTrack.globalPlayerData[k])
+			stuffToSort[k] = tonumber(pData[2])	
 		end
 		local forCounter = 1
 		for k,v in sTrack.spairs(stuffToSort, function(t,a,b) return t[b] < t[a] end) do
 			CONS_Printf(p, tostring(forCounter).." - \x83"..k.." \x82 "..tostring(v).." wins")
 			
 			forCounter = forCounter + 1
-			if forCounter > 10 then break end
-		end]]--
+			if forCounter > 15 then break end
+		end
 	elseif pTarget == "top ks" then
-		CONS_Printf(p, "I need to figure out sorting with the new data system first, sorry")
-		--[[if sTrack.cv_enableks.value == 0 then
+		if sTrack.cv_enableks.value == 0 then
 			CONS_Printf(p, "This server has disabled KartScore.")
 		else
 			--Uses the current mode's KS
@@ -121,16 +164,17 @@ local function st_playerdata(p, ...)
 			
 			local stuffToSort = {}
 			for k, v in pairs(sTrack.globalPlayerData) do
-				stuffToSort[k] = tonumber(v[gameModeIndex])
+				local pData = sTrack.stringSplit(sTrack.globalPlayerData[k])
+				stuffToSort[k] = tonumber(pData[gameModeIndex])
 			end
 			local forCounter = 1
 			for k,v in sTrack.spairs(stuffToSort, function(t,a,b) return t[b] < t[a] end) do
 				CONS_Printf(p, tostring(forCounter).." - \x83"..k.." \x82 "..tostring(v).." KartScore")
 				
 				forCounter = forCounter + 1
-				if forCounter > 10 then break end
+				if forCounter > 15 then break end
 			end
-		end]]
+		end
 	elseif sTrack.globalPlayerData[pTarget] == nil then
 		CONS_Printf(p, "Could not find player! (It's case sensitive or leave blank to see your stats)")
 	else
@@ -170,55 +214,64 @@ end
 COM_AddCommand("st_playerdata", st_playerdata)
 
 local function st_mapdata(p, ...)
-	if sTrack.cv_silentmode.value == 2 then return end
+	if sTrack.cv_silentmode.value == 2 or sTrack.cv_enablemaptracking.value == 0 then return end
 	local mTarget = nil
 	if not ... then
 		--assume player is looking up current map
 		mTarget = gamemap
 	else
-		mTarget = table.concat({...}, " ")
+		mTarget = table.concat({...})
 	end
 	mTarget = tostring(mTarget)
 	
 	if mTarget == "top" then
-		CONS_Printf(p, "I need to figure out sorting with the new data system first, sorry")
-		--[[local stuffToSort = {}
+		local stuffToSort = {}
 		for k, v in pairs(sTrack.globalMapData) do
-			stuffToSort[k] = tonumber(v[1])
+			local mData = sTrack.stringSplit(sTrack.globalMapData[k])
+			stuffToSort[k] = tonumber(mData[1])
 		end
 		local forCounter = 1
 		for k,v in sTrack.spairs(stuffToSort, function(t,a,b) return t[b] < t[a] end) do
-			if mapheaderinfo[k] and k ~= "1" then
-				CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x83"..tostring(v).." plays | \x85"..tostring(sTrack.globalMapData[k][2]).." RTVs")
+			if k ~= "1" then
+				local mData = sTrack.stringSplit(sTrack.globalMapData[k])
+				CONS_Printf(p, tostring(forCounter).." - \x82"..mData[3].." |\x83"..tostring(v).." plays | \x85"..tostring(mData[2]).." RTVs")
 			
 				forCounter = forCounter + 1
-				if forCounter > 10 then break end
+				if forCounter > 15 then break end
 			end
-		end]]--
+		end
 	elseif mTarget == "bottom" then
-		CONS_Printf(p, "I need to figure out sorting with the new data system first, sorry")
-		--[[local stuffToSort = {}
+		local stuffToSort = {}
 		for k, v in pairs(sTrack.globalMapData) do
-			stuffToSort[k] = tonumber(v[2])
+			local mData = sTrack.stringSplit(sTrack.globalMapData[k])
+			stuffToSort[k] = tonumber(mData[2])
 		end
 		local forCounter = 1
 		for k,v in sTrack.spairs(stuffToSort, function(t,a,b) return t[b] < t[a] end) do
-			if mapheaderinfo[k] and k ~= "1" then	
-				CONS_Printf(p, tostring(forCounter).." - \x82"..mapheaderinfo[k].lvlttl.." |\x85"..tostring(v).." RTVs | \x83"..tostring(sTrack.globalMapData[k][1]).." plays")
+			if k ~= "1" then
+				local mData = sTrack.stringSplit(sTrack.globalMapData[k])
+				CONS_Printf(p, tostring(forCounter).." - \x82"..mData[3].." |\x85"..tostring(v).." RTVs | \x83"..tostring(mData[1]).." plays")
 				
 				forCounter = forCounter + 1
-				if forCounter > 10 then break end
+				if forCounter > 15 then break end
 			end
-		end]]--
-	elseif sTrack.globalMapData[mTarget] == nil then
-		CONS_Printf(p, "Could not find map! (Use the map code or leave blank for current map)")
+		end
 	else
+		mTarget = sTrack.convertMapToInt(mTarget)
+		if mTarget == -1 then
+			CONS_Printf(p, "Invalid MapID")
+			return
+		end
+		if sTrack.globalMapData[tostring(mTarget)] == nil then
+			CONS_Printf(p, "Could not find map! (Use the map code or leave blank for current map)")
+			return
+		end
 		local mData = sTrack.stringSplit(sTrack.globalMapData[mTarget])
 		--timesPlayed, rtv
 		CONS_Printf(p, "\x82"..tostring(mData[3]).." ("..tostring(mTarget)..")")
 		
 		CONS_Printf(p, "\x83"..tostring(mData[1]).." plays | \x85"..tostring(mData[2]).." RTVs")
-		
+	
 		if gamespeed == 0 then
 			if sTrack.globalEasyTimeData[mTarget] ~= nil and sTrack.cv_enablerecords.value == 1 then
 				local timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[mTarget])
@@ -271,13 +324,12 @@ local function st_mapdata(p, ...)
 				end
 			end			
 		end
-
 	end
 end
 COM_AddCommand("st_mapdata", st_mapdata)
 
 local function st_skindata(p, ...)
-	if sTrack.cv_silentmode.value == 2 then return end
+	if sTrack.cv_silentmode.value == 2 or sTrack.cv_enableskintracking.value == 0 then return end
 	local sTarget = nil
 	if not ... then
 		--assume player is looking at their current skin
@@ -291,10 +343,10 @@ local function st_skindata(p, ...)
 	end
 	
 	if sTarget == "top" then
-		CONS_Printf(p, "I need to figure out sorting with the new data system first, sorry")
-		--[[local stuffToSort = {}
+		local stuffToSort = {}
 		for k, v in pairs(sTrack.globalSkinData) do
-			stuffToSort[k] = tonumber(v[1])
+			local sData = sTrack.stringSplit(sTrack.globalSkinData[k])
+			stuffToSort[k] = tonumber(sData[1])
 		end
 		local forCounter = 1
 		for k,v in sTrack.spairs(stuffToSort, function(t,a,b) return tonumber(t[b]) < tonumber(t[a]) end) do
@@ -304,8 +356,8 @@ local function st_skindata(p, ...)
 				CONS_Printf(p, tostring(forCounter).." - \x82"..k.." - \x83"..tostring(v).." weighted uses")
 			end					
 			forCounter = forCounter + 1
-			if forCounter > 10 then break end
-		end]]--
+			if forCounter > 15 then break end
+		end
 	elseif sTrack.globalSkinData[sTarget] == nil then
 		CONS_Printf(p, "Could not find skin (Use skin code or leave blank for current map)")
 	else
@@ -324,3 +376,59 @@ local function st_skindata(p, ...)
 	end
 end
 COM_AddCommand("st_skindata", st_skindata)
+
+--Admin Commands
+
+--Delete a map record (use this when a map updates and old records don't apply)
+--BE. CAREFUL.
+local function st_clearmaprecord(p, ...)
+	if (IsPlayerAdmin(p) or p == server) then
+		local mapID = table.concat({...})
+		if mapID == nil or mapID == '' then
+			CONS_Printf(p, "\nClears map time records and saves the changes to file immediately")
+			CONS_Printf(p, "\nUsage: st_clearmaprecord [mapID], mapID can be numeric or extended format")
+			CONS_Printf(p, "\n(DO NOT TYPO THE MAP ID - IT IS IRREVERSIBLY DESTRUCTIVE)")
+			return
+		end
+		mapID = sTrack.convertMapToInt(mapID)
+		if mapID == -1 then
+			CONS_Printf(p, "\nInvalid MapID format. No changes have been made.")
+			return
+		end
+		
+		local didWork = false
+		--mapheaderinfo[tostring(i)].lvlttl
+		if sTrack.globalEasyTimeData[tostring(mapID)] then
+			sTrack.globalEasyTimeData[tostring(mapID)] = sTrack.buildPlaceholderRecord()
+			didWork = true
+		end
+		if sTrack.globalNormalTimeData[tostring(mapID)] then
+			sTrack.globalNormalTimeData[tostring(mapID)] = sTrack.buildPlaceholderRecord()
+			didWork = true
+		end
+		if sTrack.globalHardTimeData[tostring(mapID)] then
+			sTrack.globalHardTimeData[tostring(mapID)] = sTrack.buildPlaceholderRecord()
+			didWork = true
+		end
+		
+		local MapData = sTrack.stringSplit(sTrack.globalMapData[tostring(mapID)])
+		if didWork == false then
+			if sTrack.globalMapData[tostring(mapID)] then
+				CONS_Printf(p, "\nNo records found for "..MapData[3]..". No changes made.")
+			else
+				CONS_Printf(p, "\nNo records found for ID "..tostring(mapID)..". No changes made.")
+			end
+		else
+			sTrack.saveFiles("Time")
+			
+			if sTrack.globalMapData[tostring(mapID)] then
+				CONS_Printf(p, "\nRecords have been wiped for "..MapData[3]..".")
+			else
+				CONS_Printf(p, "\nRecords have been wiped for unloaded map with ID "..tostring(mapID)..".")
+			end
+		end		
+	else
+		CONS_Printf(p, "\nYou must be an admin to use this command.")
+	end
+end
+COM_AddCommand("st_clearmaprecord", st_clearmaprecord)

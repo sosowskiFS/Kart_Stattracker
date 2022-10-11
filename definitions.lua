@@ -12,6 +12,8 @@ sTrack.globalPlayerSkinUseData = {}
 sTrack.ksChanges = {}
 
 --Set up pointers for limiting saved data
+--Remember to load StatTracker after your game modes for this to work
+
 --Time record pointers
 sTrack.jTimePointer = nil
 sTrack.nTimePointer = nil
@@ -47,12 +49,8 @@ if CV_FindVar("elimination") then
 end
 if CV_FindVar("combi_active") then
 	sTrack.cKSPointer = KSPointer
-	KSPointer = $ + 1
 end
 KSPointer = nil
-
---Load data into tables
---local pre = collectgarbage("count")
 
 local f = io.open("Skincounter.txt", "r")
 if f then
@@ -662,6 +660,75 @@ sTrack.spairs = function(t, order)
             return keys[i], t[keys[i]]
         end
     end
+end
+
+--Takes Map ID (with letters) and converts it into full numeric for internal use
+sTrack.convertMapToInt = function(mapID)
+	--Just in case scrubbing
+	mapID = string.gsub(tostring(mapID), "map", "")
+	mapID = string.gsub(tostring(mapID), "MAP", "")
+	--If there's no letters in the ID then we don't need to do anything
+	if tonumber(mapID) ~= nil then
+		return mapID
+	end
+	--Too long/short to be a valid map ID at this point
+	if #mapID > 2 or #mapID < 2 then
+		return -1
+	end
+	
+	--Char in C++ converts to int, lua doesn't have that luxury, so...
+	local conDig = {
+		['a'] = 0, ['A'] = 0,
+		['b'] = 1, ['B'] = 1,
+		['c'] = 2, ['C'] = 2,
+		['d'] = 3, ['D'] = 3,
+		['e'] = 4, ['E'] = 4,
+		['f'] = 5, ['F'] = 5,
+		['g'] = 6, ['G'] = 6,
+		['h'] = 7, ['H'] = 7,
+		['i'] = 8, ['I'] = 8,
+		['j'] = 9, ['J'] = 9,
+		['k'] = 10, ['K'] = 10,
+		['l'] = 11, ['L'] = 11,
+		['m'] = 12, ['M'] = 12,
+		['n'] = 13, ['N'] = 13,
+		['o'] = 14, ['O'] = 14,
+		['p'] = 15, ['P'] = 15,
+		['q'] = 16, ['Q'] = 16,
+		['r'] = 17, ['R'] = 17,
+		['s'] = 18, ['S'] = 18,
+		['t'] = 19, ['T'] = 19,
+		['u'] = 20, ['U'] = 20,
+		['v'] = 21, ['V'] = 21,
+		['w'] = 22, ['W'] = 22,
+		['x'] = 23, ['X'] = 23,
+		['y'] = 24, ['Y'] = 24,
+		['z'] = 25, ['Z'] = 25,
+	}
+	--Letters in digit 2 are conDig[] + 10
+	local Digit1 = 0
+	local Digit2 = 0
+	for i = 1, #mapID do
+		local c = mapID:sub(i, i)
+		if tonumber(c) ~= nil then
+			if i == 1 then
+				Digit1 = c
+			else
+				Digit2 = c
+			end
+		else
+			if conDig[tostring(c)] == nil then
+				--Invalid character
+				return -1
+			end
+			if i == 1 then
+				Digit1 = conDig[tostring(c)]
+			else
+				Digit2 = conDig[tostring(c)] + 10
+			end
+		end
+	end
+	return ((36 * Digit1 + Digit2) + 100)
 end
 
 --Turns a data string into a table for temporary use
