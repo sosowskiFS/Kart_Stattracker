@@ -670,11 +670,11 @@ addHook("NetVars", netvars)
 local function interShowNewRecord(v)
 	if sTrack.cv_recordpopup.value == 0 or sTrack.cv_enabled.value == 0 or sTrack.cv_enablerecords.value == 0 or sTrack.cv_enabletimerecordtracking.value == 0 or sTrack.cv_silentmode.value >= 1 then return end
 	if slideRun ~= "stop" and hmIntermission == true then slideRun = "stop" end
-	if slideRun ~= "stop" then		
-		stringTime = sTrack.buildTimeString(rTimeHolder)
-		recordHolder = rPlayerHolder
-		recordSkin = rSkinHolder
-			
+	if slideRun ~= "stop" then
+		local slideStringTime = sTrack.buildTimeString(rTimeHolder)
+		local slideRecordHolder = rPlayerHolder
+		local slideRecordSkin = rSkinHolder
+		
 		local rgHudOffset = 138
 		local screenYSub = 50
 		
@@ -710,11 +710,11 @@ local function interShowNewRecord(v)
 			slideValue = $ + 2
 		end
 	
-		if skins[recordSkin] ~= nil then
+		if skins[slideRecordSkin] ~= nil then
 			if rSkinColorHolder == nil then
-				v.draw((65-(slideValue*5))+right, ((winheight-windiff)-screenYSub), v.cachePatch(skins[recordSkin].facewant), flags, v.getColormap(recordSkin, skins[recordSkin].prefcolor))
+				v.draw((65-(slideValue*5))+right, ((winheight-windiff)-screenYSub), v.cachePatch(skins[slideRecordSkin].facewant), flags, v.getColormap(slideRecordSkin, skins[slideRecordSkin].prefcolor))
 			else
-				v.draw((65-(slideValue*5))+right, ((winheight-windiff)-screenYSub), v.cachePatch(skins[recordSkin].facewant), flags, v.getColormap(recordSkin, rSkinColorHolder))
+				v.draw((65-(slideValue*5))+right, ((winheight-windiff)-screenYSub), v.cachePatch(skins[slideRecordSkin].facewant), flags, v.getColormap(slideRecordSkin, rSkinColorHolder))
 			end		
 		end
 		
@@ -727,11 +727,11 @@ local function interShowNewRecord(v)
 			v.drawString((64-(slideValue*5))+(right - headerWidth), ((winheight-windiff)-48), "NEW RECORD", flags)
 		end]]--
 		
-		local nameWidth = v.stringWidth(recordHolder, flags)
-		v.drawString((64-(slideValue*5))+(right - nameWidth), ((winheight-windiff)-38), recordHolder, flags)
+		local nameWidth = v.stringWidth(slideRecordHolder, flags)
+		v.drawString((64-(slideValue*5))+(right - nameWidth), ((winheight-windiff)-38), slideRecordHolder, flags)
 		
-		local timeWidth = v.stringWidth(stringTime, flags)
-		v.drawString((64-(slideValue*5))+(right - timeWidth), ((winheight-windiff)-28), stringTime, flags)
+		local timeWidth = v.stringWidth(slideStringTime, flags)
+		v.drawString((64-(slideValue*5))+(right - timeWidth), ((winheight-windiff)-28), slideStringTime, flags)
 	end
 end
 hud.add(interShowNewRecord, game)

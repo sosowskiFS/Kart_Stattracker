@@ -775,4 +775,13 @@ sTrack.buildPlaceholderRecord = function()
 		return "99999;p;h"
 	end
 end
+
+--Retreive a requested player's KS for the current mode
+--Intended for hm_intermission fake scoreboard
+--Returns numeric value
+sTrack.getPlayerKS = function(pName)
+	sTrack.checkNilPlayer(pName)
+	local thisPlayer = sTrack.stringSplit(sTrack.globalPlayerData[pName])
+	return thisPlayer[sTrack.getModeIndex()]
+end
 			
