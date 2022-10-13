@@ -112,19 +112,23 @@ local function intThink()
 	--Data maintenance
 	if didMaint == false then	
 		--Add new skins that aren't represented in data yet
-		for s in skins.iterate do
-			if sTrack.globalSkinData[s.name] == nil then
-				sTrack.globalSkinData[s.name] = "0;"..s.realname..";0"
+		if sTrack.cv_enableskintracking.value == 1 then
+			for s in skins.iterate do
+				if sTrack.globalSkinData[s.name] == nil then
+					sTrack.globalSkinData[s.name] = "0;"..s.realname..";0"
+				end
 			end
 		end
 
 		--Add new maps that aren't in data yet & delete removed maps
 		--MAPZZ = 1035. If they extend this higher then update the max in the loop below.
-		for i=1,1035,1 do
-			if mapheaderinfo[tostring(i)] ~= nil and sTrack.globalMapData[tostring(i)] == nil then
-				sTrack.globalMapData[tostring(i)] = "0;0;"..mapheaderinfo[tostring(i)].lvlttl
-			elseif sTrack.cv_wiperemovedaddons.value == 1 and mapheaderinfo[tostring(i)] == nil and sTrack.globalMapData[tostring(i)] ~= nil then
-				sTrack.globalMapData[tostring(i)] = nil
+		if sTrack.cv_enablemaptracking.value == 1 then
+			for i=1,1035,1 do
+				if mapheaderinfo[tostring(i)] ~= nil and sTrack.globalMapData[tostring(i)] == nil then
+					sTrack.globalMapData[tostring(i)] = "0;0;"..mapheaderinfo[tostring(i)].lvlttl
+				elseif sTrack.cv_wiperemovedaddons.value == 1 and mapheaderinfo[tostring(i)] == nil and sTrack.globalMapData[tostring(i)] ~= nil then
+					sTrack.globalMapData[tostring(i)] = nil
+				end
 			end
 		end
 		
@@ -146,7 +150,7 @@ local function intThink()
 	local hasKSSupport = sTrack.isKSSupportedMode()
 	
 	--Track skin usage
-	if not didSaveSkins and sTrack.cv_enableskintracking == 0 then
+	if not didSaveSkins and sTrack.cv_enableskintracking.value == 0 then
 		didSaveSkins = true
 	end
 	
@@ -194,7 +198,7 @@ local function intThink()
 	end
 	
 	--Track Map Usage
-	if not didSaveMap and sTrack.cv_enablemaptracking == 0 then
+	if not didSaveMap and sTrack.cv_enablemaptracking.value == 0 then
 		didSaveMap = true
 	end
 	
@@ -229,7 +233,7 @@ local function intThink()
 	end
 	
 	--Track player data
-	if not didSavePlayer and sTrack.cv_enableplayertracking == 0 then
+	if not didSavePlayer and sTrack.cv_enableplayertracking.value == 0 then
 		didSavePlayer = true
 	end
 	
@@ -341,7 +345,7 @@ local function intThink()
 		sTrack.saveFiles("Player")	
 	end
 	
-	if not didSaveTime and sTrack.cv_enabletimerecordtracking == 0 then
+	if not didSaveTime and sTrack.cv_enabletimerecordtracking.value == 0 then
 		didSaveTime = true
 	end
 	

@@ -254,7 +254,7 @@ if t then
 				
 				if sTrack.nTimePointer and sTrack.jTimePointer and rowHolder[10] then
 					sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
-				elseif sTrack.nTimePointer or sTrack.jTimePointer and rowHolder[7] then
+				elseif (sTrack.nTimePointer or sTrack.jTimePointer) and rowHolder[7] then
 					 if rowHolder[10] and sTrack.nTimePointer then
 						--Loading an old file and need to grab the values at the end instead
 						sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
@@ -313,7 +313,7 @@ if n then
 				
 				if sTrack.nTimePointer and sTrack.jTimePointer and rowHolder[10] then
 					sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
-				elseif sTrack.nTimePointer or sTrack.jTimePointer and rowHolder[7] then
+				elseif (sTrack.nTimePointer or sTrack.jTimePointer) and rowHolder[7] then
 					if rowHolder[10] and sTrack.nTimePointer then
 						--Loading an old file and need to grab the values at the end instead
 						sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
@@ -372,7 +372,7 @@ if h then
 				
 				if sTrack.nTimePointer and sTrack.jTimePointer and rowHolder[10] then
 					sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
-				elseif sTrack.nTimePointer or sTrack.jTimePointer and rowHolder[7] then
+				elseif (sTrack.nTimePointer or sTrack.jTimePointer) and rowHolder[7] then
 					if rowHolder[10] and sTrack.nTimePointer then
 						--Loading an old file and need to grab the values at the end instead
 						sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
