@@ -65,7 +65,7 @@ sTrack.cv_enableskintracking = CV_RegisterVar({
 
 --Map play & rtv count (Mapdata.txt)
 sTrack.cv_enablemaptracking = CV_RegisterVar({
-	name = "st_enablemaptracking",
+	name = "st_enablemapcounttracking",
 	defaultvalue = 1,
 	flags = CV_NETVAR,
 	PossibleValue = CV_OnOff,
