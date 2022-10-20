@@ -88,6 +88,7 @@ local hmIntermission = false
 local didSaveMap = false
 local didSavePlayer = false
 local didSaveTime = false
+local didSaveScore = false
 local cMode = sTrack.findCurrentMode()
 local gameModeIndex = sTrack.getModeIndex()
 
@@ -436,8 +437,27 @@ local function intThink()
 			sTrack.saveFiles("Time")	
 		end
 	end
+	
+	if not didSaveScore then
+		didSaveScore = true
+			
+		for p in players.iterate do
+			if p.valid then
+				sTrack.globalScoreData[p.name] = p.score
+			end		
+		end
+		
+		sTrack.saveFiles("Score")
+	end
 end
 addHook("IntermissionThinker", intThink)
+
+local function mapLoad()
+	for p in players.iterate do
+		if p and p.valid then p.sk_loaded = false end
+	end
+end
+addHook("MapLoad", mapLoad)
 
 local function think()
 	if sTrack.cv_enabled.value == 0 then return end
@@ -452,7 +472,8 @@ local function think()
 		hmIntermission = false
 		didSaveMap = false
 		didSavePlayer = false
-		didSaveTime = false	
+		didSaveTime = false
+		didSaveScore = false
 		
 		recordSkinColor = nil
 		slideValue = -50
@@ -467,14 +488,6 @@ local function think()
 		recordHolder = nil
 		recordSkin = nil
 		
-		for p in players.iterate do
-			if p.valid and p.mo ~= nil then
-				p.inRace = true
-			elseif p.valid then
-				p.inRace = false
-			end
-		end
-		
 		sTrack.ksChanges = {}
 		cMode = sTrack.findCurrentMode()
 		gameModeIndex = sTrack.getModeIndex()
@@ -484,6 +497,12 @@ local function think()
 		local allStopped = true
 		
 		for p in players.iterate do
+			if p.valid and not p.sk_loaded then
+				p.sk_loaded = true
+				if sTrack.globalScoreData[p.name] then
+					p.score = tonumber(sTrack.globalScoreData[p.name])
+				end
+			end
 			if p.valid and p.mo ~= nil and p.mo.valid then
 				--Note player as currently racing
 				if p.inRace == nil or p.inRace == false then
@@ -662,6 +681,7 @@ local function netvars(net)
 	sTrack.globalNormalTimeData = net($)
 	sTrack.globalHardTimeData = net($)
 	sTrack.globalPlayerSkinUseData = net($)
+	sTrack.globalScoreData = net($)
 	
 	didMaint = net($)
 end

@@ -7,6 +7,7 @@ sTrack.globalEasyTimeData = {}
 sTrack.globalNormalTimeData = {}
 sTrack.globalHardTimeData = {}
 sTrack.globalPlayerSkinUseData = {}
+sTrack.globalScoreData = {}
 --This table is only populated during intermission, code wisely.
 --sTrack.ksChanges[playerName] = totalChange (numeric)
 sTrack.ksChanges = {}
@@ -389,6 +390,37 @@ if h then
 	h:close()
 end
 
+--Importing scorekeeper data
+local m = io.open("scorekeeper.txt", "r")
+if m then
+	--file already exsists, load from it
+	for l in m:lines() do
+		if l ~= '' and l ~= "\n" and l ~= "\r" then
+			local holder = ""
+			local rowHolder = {}
+			local index = 1
+			l:gsub(".", function(c)
+				if c==';' then
+					rowHolder[index] = holder
+					holder = ""
+					index = index + 1			
+				else
+					holder = holder..c
+				end		
+			end)
+			rowHolder[index] = holder
+			
+			--pName;score
+			--Removing reset timer from this to make it into an optional parameter which will hit all sheets at once
+			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[2] then
+				sTrack.globalScoreData[rowHolder[1]] = rowHolder[2]
+			end
+		end
+	end
+	m:close()
+end
+
+
 --print("HRecords - "..tostring(collectgarbage("count") - pre))
 --pre = collectgarbage("count")
 
@@ -480,6 +512,18 @@ local function _savePSkinUseFunc()
 	f:close()
 end
 
+local function _saveScoreFunc()
+    --just score
+	local f = assert(io.open("scorekeeper.txt", "w+"))
+	local dataString = ""
+	for key, value in pairs(sTrack.globalScoreData) do
+		if key:find(";") then continue end -- sanity check
+		dataString = $..key..";"..value.."\n"
+	end
+	f:write(dataString)
+	f:close()
+end
+
 --Global functions
 sTrack.saveFiles = function(whatToSave)
 	if consoleplayer ~= server then return end
@@ -506,6 +550,11 @@ sTrack.saveFiles = function(whatToSave)
 		--print('Saving time data...')
 		if not pcall(_saveTimeFunc) then
 			print("Failed to save time file!")
+		end	
+	elseif whatToSave == "Score" then
+		--print('Saving score data...')
+		if not pcall(_saveScoreFunc) then
+			print("Failed to save score file!")
 		end	
 	end
 end
