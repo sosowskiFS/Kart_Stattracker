@@ -538,14 +538,6 @@ local function think()
 		recordHolder = nil
 		recordSkin = nil
 		
-		for p in players.iterate do
-			if p.valid and p.mo ~= nil then
-				p.inRace = true
-			elseif p.valid then
-				p.inRace = false
-			end
-		end
-		
 		sTrack.ksChanges = {}
 		cMode = sTrack.findCurrentMode()
 		gameModeIndex = sTrack.getModeIndex()	
