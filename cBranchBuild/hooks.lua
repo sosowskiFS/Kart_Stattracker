@@ -662,7 +662,35 @@ local function netvars(net)
 	sTrack.globalPlayerSkinUseData = net($)
 	sTrack.globalSkinData = net($)
 	sTrack.globalMapData = net($)	
-	didMaint = net($)	
+	didMaint = net($)
+	
+	didSaveSkins = net($)
+	completedRun = net($)
+	playerOrder = net($)
+	timeList = net($)
+	DNFList = net($)
+	RSList = net($)
+	didSaveMap = net($)
+	didSavePlayer = net($)
+	didSaveTime = net($)
+	
+	recordSkinColor = net($)
+	slideValue = net($)
+	slideRun = net($)
+	slideDelay = net($)
+	
+	rTimeHolder = net($)
+	rPlayerHolder = net($)
+	rSkinHolder = net($)
+	rSkinColorHolder = net($)
+	
+	stringTime = net($)
+	recordHolder = net($)
+	recordSkin = net($)
+	
+	sTrack.ksChanges = net($)
+	cMode = net($)
+	gameModeIndex = net($)
 end
 addHook("NetVars", netvars)
 
