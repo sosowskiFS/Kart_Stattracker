@@ -531,7 +531,7 @@ local function think()
 					RSList[p.name] = p.realtime
 				end
 				p.inRace = false
-			elseif p.valid and p.inRace == nil and p.mo == nil then
+			elseif p.valid and (p.inRace == nil or p.inRace == true) and p.mo == nil then
 				p.inRace = false
 			end
 			
@@ -684,6 +684,35 @@ local function netvars(net)
 	sTrack.globalScoreData = net($)
 	
 	didMaint = net($)
+	
+	didSaveSkins = net($)
+	completedRun = net($)
+	playerOrder = net($)
+	timeList = net($)
+	DNFList = net($)
+	RSList = net($)
+	hmIntermission = net($)
+	didSaveMap = net($)
+	didSavePlayer = net($)
+	didSaveTime = net($)
+	didSaveScore = net($)
+	
+	recordSkinColor = net($)
+	slideValue = net($)
+	slideRun = net($)
+	
+	rTimeHolder = net($)
+	rPlayerHolder = net($)
+	rSkinHolder = net($)
+	rSkinColorHolder = net($)
+	
+	stringTime = net($)
+	recordHolder = net($)
+	recordSkin = net($)
+	
+	sTrack.ksChanges = net($)
+	cMode = net($)
+	gameModeIndex = net($)
 end
 addHook("NetVars", netvars)
 
