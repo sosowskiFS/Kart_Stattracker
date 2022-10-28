@@ -438,6 +438,10 @@ local function intThink()
 		end
 	end
 	
+	if not didSaveScore and sTrack.cv_enablescorekeeper.value == 0 then
+		didSaveScore = true
+	end
+	
 	if not didSaveScore then
 		didSaveScore = true
 			
@@ -499,7 +503,7 @@ local function think()
 		for p in players.iterate do
 			if p.valid and not p.sk_loaded then
 				p.sk_loaded = true
-				if sTrack.globalScoreData[p.name] then
+				if sTrack.globalScoreData[p.name] and sTrack.cv_enablescorekeeper.value == 1 then
 					p.score = tonumber(sTrack.globalScoreData[p.name])
 				end
 			end

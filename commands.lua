@@ -87,6 +87,14 @@ sTrack.cv_enableplayertracking = CV_RegisterVar({
 	PossibleValue = CV_OnOff,
 })
 
+--Scorekeeper tracking (scorekeeper.txt)
+sTrack.cv_enablescorekeeper = CV_RegisterVar({
+	name = "st_enablescorekeeper",
+	defaultvalue = 1,
+	flags = CV_NETVAR,
+	PossibleValue = CV_OnOff,
+})
+
 --Player commands
 
 --Shows/Hides record time popup
