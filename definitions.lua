@@ -146,32 +146,44 @@ if p then
 					if rowHolder[15] then
 						--assuming old file
 						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[12]
-					else
+					elseif rowHolder[sTrack.jKSPointer + 1] then
 						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[sTrack.jKSPointer + 1]
+					else
+						--add a default
+						sTrack.globalPlayerData[rowHolder[1]] = $..";1500"
 					end	
 				end
 				if sTrack.nKSPointer then
 					if rowHolder[15] then
 						--assuming old file
 						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[13]
-					else
+					elseif rowHolder[sTrack.nKSPointer + 1] then
 						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[sTrack.nKSPointer + 1]
+					else
+						--add a default
+						sTrack.globalPlayerData[rowHolder[1]] = $..";1500"
 					end						
 				end
 				if sTrack.eKSPointer then
 					if rowHolder[15] then
 						--assuming old file
 						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[14]
-					else
+					elseif rowHolder[sTrack.eKSPointer + 1] then
 						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[sTrack.eKSPointer + 1]
+					else
+						--add a default
+						sTrack.globalPlayerData[rowHolder[1]] = $..";1500"
 					end					
 				end
 				if sTrack.cKSPointer then
 					if rowHolder[15] then
 						--assuming old file
 						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[15]
-					else
+					elseif rowHolder[sTrack.cKSPointer + 1] then
 						sTrack.globalPlayerData[rowHolder[1]] = $..";"..rowHolder[sTrack.cKSPointer + 1]
+					else
+						--add a default
+						sTrack.globalPlayerData[rowHolder[1]] = $..";1500"
 					end						
 				end
 			end

@@ -440,3 +440,51 @@ local function st_clearmaprecord(p, ...)
 	end
 end
 COM_AddCommand("st_clearmaprecord", st_clearmaprecord)
+
+//Scorekeeper's setscore function
+COM_AddCommand("sk_setscore",function(p, thedude, amount)
+	if not thedude then
+		CONS_Printf(p, "\133Usage: \128'sk_setscore <name/node> <score>' - Sets the score of the player at the specified name or node.")
+		return
+	end
+	
+	local plyr = tonumber(thedude)
+	local target = nil
+	local results = {}
+
+	if plyr~=nil and plyr>=0 then
+		target = players[plyr]
+	end
+	if target == nil then
+		for p in players.iterate
+			if p and p.valid then //AHHH PARANOIA
+				if string.find(p.name, thedude,1,true)~=nil then
+					table.insert(results, p)
+				end
+			end
+		end
+		if #results > 1 then
+			CONS_Printf(p, "\133Found more than one player matching that name. \128Be more specific or use a node:")
+			for i=1,#results do
+				CONS_Printf(p, results[i].name.." [Node "..#results[i].."]")
+			end
+			return
+		elseif #results < 1 then
+			CONS_Printf(p, "\133No players found by that name. \128(this command only works for players currently in-game)")
+			return
+		else
+			target = results[1]
+		end
+	end
+
+	if target and target.valid then
+		local realscore = tonumber(amount)
+		if realscore == nil then
+			CONS_Printf(p, "\133Invalid score. \128Make sure to enclose player names that have spaces with quotations, or use a player node.")
+			return
+		end
+		target.score = realscore
+		target.skforcesave = true //forces score to save even if lower then what they currently have
+		CONS_Printf(p, "Successfully set the score of "..target.name.." to "..realscore..". (You can use 'showscores' to verify)")
+	end
+end,1)

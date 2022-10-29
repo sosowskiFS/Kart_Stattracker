@@ -507,6 +507,11 @@ local function think()
 					p.score = tonumber(sTrack.globalScoreData[p.name])
 				end
 			end
+			if p.valid and p.skforcesave then
+				--Force update player's score if done so via sk_setscore
+				sTrack.globalScoreData[p.name] = p.score
+				p.skforcesave = false
+			end
 			if p.valid and p.mo ~= nil and p.mo.valid then
 				--Note player as currently racing
 				if p.inRace == nil or p.inRace == false then
