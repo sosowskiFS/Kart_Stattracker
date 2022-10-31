@@ -437,7 +437,11 @@ local function intThink()
 			sTrack.saveFiles("Time")	
 		end
 	end
-	
+end
+addHook("IntermissionThinker", intThink)
+
+local function intThinkScorekeeper()
+	//Seperated to save properly if hmintermission exists
 	if not didSaveScore and sTrack.cv_enablescorekeeper.value == 0 then
 		didSaveScore = true
 	end
@@ -454,7 +458,7 @@ local function intThink()
 		sTrack.saveFiles("Score")
 	end
 end
-addHook("IntermissionThinker", intThink)
+addHook("IntermissionThinker", intThinkScorekeeper)
 
 local function mapLoad()
 	for p in players.iterate do
