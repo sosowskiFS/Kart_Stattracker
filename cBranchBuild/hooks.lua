@@ -371,7 +371,7 @@ local function intThink()
 				--add the increment, update the score
 				local actPlayer = sTrack.stringSplit(sTrack.globalPlayerData[player])
 				for p in players.iterate do
-					if p.valid and p.mo ~= nil and p.mo.valid and p.name == player					
+					if p.valid and p.mo ~= nil and p.mo.valid and p.name == player	and sTrack.cv_enableks.value == 1				
 						p.interpoints = change					
 						if p.score ~= actPlayer[gameModeIndex] then
 							p.score = actPlayer[gameModeIndex]
@@ -581,7 +581,7 @@ local function think()
 				p.inRace = false
 			end
 			
-			if p.valid and p.mo ~= nil and p.mo.valid and p.scoreSet == nil then
+			if p.valid and p.mo ~= nil and p.mo.valid and p.scoreSet == nil and sTrack.cv_enableks.value == 1 then
 				--Replace player's score with the current mode's KS
 				sTrack.checkNilPlayer(p.name)
 				local actPlayer = sTrack.stringSplit(sTrack.globalPlayerData[p.name])
