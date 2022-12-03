@@ -17,6 +17,7 @@ sTrack.ksChanges = {}
 --Time record pointers
 sTrack.jTimePointer = 4
 sTrack.nTimePointer = 7
+sTrack.rTimePointer = 10
 
 --[[if CV_FindVar("driftnitro") and CV_FindVar("juicebox") then
 	sTrack.jTimePointer = 4
@@ -34,6 +35,7 @@ sTrack.jKSPointer = 11
 sTrack.nKSPointer = 12
 sTrack.eKSPointer = 13
 sTrack.cKSPointer = 14
+sTrack.rKSPointer = 20
 --[[local KSPointer = 11
 if CV_FindVar("juicebox") then
 	sTrack.jKSPointer = KSPointer
@@ -131,10 +133,18 @@ if p then
 			--tonumber scrubs out a possible newline character from the last data point	
 			rowHolder[index] = tonumber(holder)
 			
-			--local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo, eloC, jEloC, nEloC, eEloC, cEloC = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+			--local pName, mapsPlayed, wins, hits, selfHits, spinned, exploded, squished, second, third, elo, jElo, nElo, eElo, cElo, eloC, jEloC, nEloC, eEloC, cEloC, rElo, rEloC = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 			--print(pName)
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[20] then
-				sTrack.globalPlayerData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..";"..rowHolder[11]..";"..rowHolder[12]..";"..rowHolder[13]..";"..rowHolder[14]..";"..rowHolder[15]..";"..rowHolder[16]..";"..rowHolder[17]..";"..rowHolder[18]..";"..rowHolder[19]..";"..rowHolder[20]
+			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[22] then
+				sTrack.globalPlayerData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..
+						rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..";"..rowHolder[11]..";"..rowHolder[12]..";"..rowHolder[13]..
+						";"..rowHolder[14]..";"..rowHolder[15]..";"..rowHolder[16]..";"..rowHolder[17]..";"..rowHolder[18]..";"..rowHolder[19]..";"..rowHolder[20]..
+						";"..rowHolder[21]..";"..rowHolder[22]
+			elseif rowHolder[1] and rowHolder[1] ~= '' and rowHolder[20] then
+				sTrack.globalPlayerData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..
+					rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..";"..rowHolder[11]..";"..rowHolder[12]..";"..rowHolder[13]..
+					";"..rowHolder[14]..";"..rowHolder[15]..";"..rowHolder[16]..";"..rowHolder[17]..";"..rowHolder[18]..";"..rowHolder[19]..";"..rowHolder[20]..
+					";1500;1500"
 			end
 		end
 	end
@@ -189,9 +199,15 @@ if t then
 				end		
 			end)
 			rowHolder[index] = holder
-			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
-				sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin, rTime, rPlayer, rSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[13] then
+				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
+					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
+					";99999;p;h"
+			elseif rowHolder[1] and rowHolder[1] ~= '' and rowHolder[13] then
+				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
+					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
+					";"..rowHolder[11]..";"..rowholder[12]..";"..rowHolder[13]
 			end
 		end
 	end
@@ -216,9 +232,15 @@ if n then
 				end		
 			end)
 			rowHolder[index] = holder
-			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
-				sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin, rTime, rPlayer, rSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[13] then
+				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
+					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
+					";99999;p;h"
+			elseif rowHolder[1] and rowHolder[1] ~= '' and rowHolder[13] then
+				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
+					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
+					";"..rowHolder[11]..";"..rowholder[12]..";"..rowHolder[13]
 			end
 		end
 	end
@@ -243,9 +265,15 @@ if h then
 				end		
 			end)
 			rowHolder[index] = holder
-			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
-			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
-				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]
+			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin, rTime, rPlayer, rSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
+			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[13] then
+				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
+					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
+					";99999;p;h"
+			elseif rowHolder[1] and rowHolder[1] ~= '' and rowHolder[13] then
+				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
+					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
+					";"..rowHolder[11]..";"..rowholder[12]..";"..rowHolder[13]
 			end
 		end
 	end
@@ -370,12 +398,15 @@ end
 sTrack.checkNilPlayer = function(name)
 	--Cleaner to just throw this here since I have to do it so much
 	if sTrack.globalPlayerData[name] == nil then
-		sTrack.globalPlayerData[name] = "0;0;0;0;0;0;0;0;0;1500;1500;1500;1500;1500;1500;1500;1500;1500;1500"
+		sTrack.globalPlayerData[name] = "0;0;0;0;0;0;0;0;0;1500;1500;1500;1500;1500;1500;1500;1500;1500;1500;1500;1500"
 	end
 end
 
---0 Vanilla/Tech, 1 Juicebox, 2 Nitro
+--0 Vanilla/Tech, 1 Juicebox, 2 Nitro, 3 Rings
 sTrack.findCurrentMode = function()
+	if CV_FindVar("ringsOn") then
+		return 3
+	end
 	if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
 		return 2
 	end
@@ -409,6 +440,8 @@ sTrack.getModeIndex = function()
 		gameModeIndex = 13
 	elseif CV_FindVar("combi_active") and CV_FindVar("combi_active").value == 1 then
 		gameModeIndex = 14
+	elseif CV_FindVar("ringsOn") then
+		gameModeIndex = 20
 	end
 	return gameModeIndex
 end
@@ -611,6 +644,15 @@ end
 --Creates a new placeholder time record
 --(there's pointers here on public version, but not in custom)
 sTrack.buildPlaceholderRecord = function()
-	return "99999;p;h;99999;p;h;99999;p;h"
+	return "99999;p;h;99999;p;h;99999;p;h;99999;p;h"
+end
+
+--Retreive a requested player's KS for the current mode
+--Intended for hm_intermission fake scoreboard
+--Returns numeric value
+sTrack.getPlayerKS = function(pName)
+	sTrack.checkNilPlayer(pName)
+	local thisPlayer = sTrack.stringSplit(sTrack.globalPlayerData[pName])
+	return thisPlayer[sTrack.getModeIndex()]
 end
 			
