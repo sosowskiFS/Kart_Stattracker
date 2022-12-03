@@ -467,6 +467,46 @@ local function mapLoad()
 end
 addHook("MapLoad", mapLoad)
 
+local function playerThink(p)
+	if sTrack.cv_enablescorekeeper.value == 1 and p.valid then
+		if not p.sk_lastname then
+			--Attempt initial load	
+			if sTrack.globalScoreData[p.name] then			
+				p.score = tonumber(sTrack.globalScoreData[p.name])
+				if sTrack.cv_enabledebug.value == 1 then
+					print(p.name.." initilizing with score "..sTrack.globalScoreData[p.name])
+				end
+			end
+			p.sk_lastname = p.name
+		elseif p.name ~= p.sk_lastname then
+			--Attempt second load
+			if sTrack.globalScoreData[p.name] then
+				p.score = tonumber(sTrack.globalScoreData[p.name])
+				if sTrack.cv_enabledebug.value == 1 then
+					print(p.sk_lastname.." changed name to "..p.name..", loading new name's score of "..sTrack.globalScoreData[p.name])
+				end
+			else
+				if sTrack.globalScoreData[p.sk_lastname] and (tonumber(sTrack.globalScoreData[p.sk_lastname]) < p.score or p.skforcesave) then
+					sTrack.globalScoreData[p.sk_lastname] = tostring(p.score)
+					p.skforcesave = false
+					if sTrack.cv_enabledebug.value == 1 then
+						print(p.sk_lastname.." changed name to "..p.name..", new name has no record. Saving old name's score at "..sTrack.globalScoreData[p.sk_lastname])
+					end
+					p.score = 0
+				end
+			end			
+			p.sk_lastname = p.name
+		elseif sTrack.globalScoreData[p.name] and tonumber(sTrack.globalScoreData[p.name]) > 0 and p.score == 0 then
+			--HERE COMES A NEW CHALLENGER, ALSO THE GAME RESETS SCORES FOR NO REASON!
+			p.score = tonumber(sTrack.globalScoreData[p.name])
+			if sTrack.cv_enabledebug.value == 1 then
+				print(p.name.."'s score reset to 0. Setting it back to saved value of "..sTrack.globalScoreData[p.name])
+			end
+		end
+	end
+end
+addHook("PlayerThink", playerThink)
+
 local function think()
 	if sTrack.cv_enabled.value == 0 then return end
 	
@@ -505,12 +545,6 @@ local function think()
 		local allStopped = true
 		
 		for p in players.iterate do
-			if p.valid and not p.sk_loaded then
-				p.sk_loaded = true
-				if sTrack.globalScoreData[p.name] and sTrack.cv_enablescorekeeper.value == 1 then
-					p.score = tonumber(sTrack.globalScoreData[p.name])
-				end
-			end
 			if p.valid and p.skforcesave then
 				--Force update player's score if done so via sk_setscore
 				sTrack.globalScoreData[p.name] = p.score

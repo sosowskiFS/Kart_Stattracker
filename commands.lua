@@ -94,6 +94,13 @@ sTrack.cv_enablescorekeeper = CV_RegisterVar({
 	flags = CV_NETVAR,
 	PossibleValue = CV_OnOff,
 })
+--For REALLY BIG misakes
+sTrack.cv_enabledebug = CV_RegisterVar({
+	name = "st_enabledebug",
+	defaultvalue = 0,
+	flags = CV_NETVAR,
+	PossibleValue = CV_OnOff,
+})
 
 --Player commands
 
