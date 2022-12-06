@@ -159,17 +159,17 @@ local function intThink()
 				if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
 					local timeRecord = ""
 					if gamespeed == 0 then
-						local timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[tostring(gamemap)])
+						timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[tostring(gamemap)])
 						if sTrack.globalEasyTimeData[tostring(gamemap)] == nil then
 							sTrack.globalEasyTimeData[tostring(gamemap)] = sTrack.buildPlaceholderRecord()
 						end
 					elseif gamespeed == 1 then
-						local timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[tostring(gamemap)])
+						timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[tostring(gamemap)])
 						if sTrack.globalNormalTimeData[tostring(gamemap)] == nil then
 							sTrack.globalNormalTimeData[tostring(gamemap)] = sTrack.buildPlaceholderRecord()
 						end
 					elseif gamespeed == 2 then
-						local timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[tostring(gamemap)])
+						timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[tostring(gamemap)])
 						if sTrack.globalHardTimeData[tostring(gamemap)] == nil then
 							sTrack.globalHardTimeData[tostring(gamemap)] = sTrack.buildPlaceholderRecord()
 						end
@@ -435,26 +435,26 @@ local function intThink()
 					if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
 						local timeRecord = ""
 						if gamespeed == 0 then
-							local timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[tostring(gamemap)])
+							timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[tostring(gamemap)])
 						elseif gamespeed == 1 then
-							local timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[tostring(gamemap)])
+							timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[tostring(gamemap)])
 						elseif gamespeed == 2 then
-							local timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[tostring(gamemap)])
+							timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[tostring(gamemap)])
 						end
 						
-						if cMode == 2 and p.realtime < tonumber(timeRecord[sTrack.nTimePointer]) then
+						if cMode == 2 and p.realtime ~= 0 and p.realtime < tonumber(timeRecord[sTrack.nTimePointer]) then
 							timeRecord[sTrack.nTimePointer] = p.realtime
 							timeRecord[sTrack.nTimePointer + 1] = winList
 							timeRecord[sTrack.nTimePointer + 2] = p.mo.skin
-						elseif cMode == 1 and p.realtime < tonumber(timeRecord[sTrack.jTimePointer]) then
+						elseif cMode == 1 and p.realtime ~= 0 and p.realtime < tonumber(timeRecord[sTrack.jTimePointer]) then
 							timeRecord[sTrack.jTimePointer] = p.realtime
 							timeRecord[sTrack.jTimePointer + 1] = winList
 							timeRecord[sTrack.jTimePointer + 2] = p.mo.skin
-						elseif cMode == 0 and p.realtime < tonumber(timeRecord[1]) then
+						elseif cMode == 0 and p.realtime ~= 0 and p.realtime < tonumber(timeRecord[1]) then
 							timeRecord[1] = p.realtime
 							timeRecord[2] = winList
 							timeRecord[3] = p.mo.skin						
-						elseif cMode == 3 and p.realtime < tonumber(timeRecord[sTrack.rTimePointer]) then
+						elseif cMode == 3 and p.realtime ~= 0 and p.realtime < tonumber(timeRecord[sTrack.rTimePointer]) then
 							timeRecord[sTrack.rTimePointer] = p.realtime
 							timeRecord[sTrack.rTimePointer + 1] = winList
 							timeRecord[sTrack.rTimePointer + 2] = p.mo.skin

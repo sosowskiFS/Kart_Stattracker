@@ -283,61 +283,32 @@ local function st_mapdata(p, ...)
 		end
 		local mData = sTrack.stringSplit(sTrack.globalMapData[mTarget])
 		--timesPlayed, rtv
-		CONS_Printf(p, "\x82"..tostring(mData[3]).." ("..tostring(mTarget)..")")
-		
+		CONS_Printf(p, "\x82"..tostring(mData[3]).." ("..tostring(mTarget)..")")	
 		CONS_Printf(p, "\x83"..tostring(mData[1]).." plays | \x85"..tostring(mData[2]).." RTVs")
-	
-		if gamespeed == 0 then
-			if sTrack.globalEasyTimeData[mTarget] ~= nil and sTrack.cv_enablerecords.value == 1 then
-				local timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[mTarget])
-				if timeRecord[2] ~= "p" then
-					if CV_FindVar("techonly") then
-						CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(timeRecord[1]).." by "..tostring(timeRecord[2]))
-					else
-						CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(timeRecord[1]).." by "..tostring(timeRecord[2]))
-					end				
-				end
-				if sTrack.jTimePointer and timeRecord[sTrack.jTimePointer + 1] ~= "p" then
-					CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(timeRecord[sTrack.jTimePointer]).." by "..tostring(timeRecord[sTrack.jTimePointer + 1]))
-				end
-				if sTrack.nTimePointer and timeRecord[sTrack.nTimePointer + 1] ~= "p" then
-					CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(timeRecord[sTrack.nTimePointer]).." by "..tostring(timeRecord[sTrack.nTimePointer + 1]))
-				end
-			end		
-		elseif gamespeed == 1 then
-			if sTrack.globalNormalTimeData[mTarget] ~= nil and sTrack.cv_enablerecords.value == 1 then
-				local timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[mTarget])
-				if timeRecord[2] ~= "p" then
-					if CV_FindVar("techonly") then
-						CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(timeRecord[1]).." by "..tostring(timeRecord[2]))
-					else
-						CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(timeRecord[1]).." by "..tostring(timeRecord[2]))
-					end				
-				end
-				if sTrack.jTimePointer and timeRecord[sTrack.jTimePointer + 1] ~= "p" then
-					CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(timeRecord[sTrack.jTimePointer]).." by "..tostring(timeRecord[sTrack.jTimePointer + 1]))
-				end
-				if sTrack.nTimePointer and timeRecord[sTrack.nTimePointer + 1] ~= "p" then
-					CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(timeRecord[sTrack.nTimePointer]).." by "..tostring(timeRecord[sTrack.nTimePointer + 1]))
-				end
-			end			
-		elseif gamespeed == 2 then
-			if sTrack.globalHardTimeData[mTarget] ~= nil and sTrack.cv_enablerecords.value == 1 then
-				local timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[mTarget])
-				if timeRecord[2] ~= "p" then
-					if CV_FindVar("techonly") then
-						CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(timeRecord[1]).." by "..tostring(timeRecord[2]))
-					else
-						CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(timeRecord[1]).." by "..tostring(timeRecord[2]))
-					end				
-				end
-				if sTrack.jTimePointer and timeRecord[sTrack.jTimePointer + 1] ~= "p" then
-					CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(timeRecord[sTrack.jTimePointer]).." by "..tostring(timeRecord[sTrack.jTimePointer + 1]))
-				end
-				if sTrack.nTimePointer and timeRecord[sTrack.nTimePointer + 1] ~= "p" then
-					CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(timeRecord[sTrack.nTimePointer]).." by "..tostring(timeRecord[sTrack.nTimePointer + 1]))
-				end
-			end			
+		
+		local timeRecord = ""
+		if sTrack.cv_enablerecords.value == 1 then
+			if gamespeed == 0 then
+				timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[mTarget])
+			elseif gamespeed == 1 then
+				timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[mTarget])
+			elseif gamespeed == 2 then
+				timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[mTarget])
+			end
+			
+			if timeRecord[2] ~= "p" then
+				if CV_FindVar("techonly") then
+					CONS_Printf(p, "Vanilla/Tech Record : "..sTrack.buildTimeString(timeRecord[1]).." by "..tostring(timeRecord[2]))
+				else
+					CONS_Printf(p, "Vanilla Record : "..sTrack.buildTimeString(timeRecord[1]).." by "..tostring(timeRecord[2]))
+				end				
+			end
+			if sTrack.jTimePointer and timeRecord[sTrack.jTimePointer + 1] ~= "p" then
+				CONS_Printf(p, "Juicebox Record : "..sTrack.buildTimeString(timeRecord[sTrack.jTimePointer]).." by "..tostring(timeRecord[sTrack.jTimePointer + 1]))
+			end
+			if sTrack.nTimePointer and timeRecord[sTrack.nTimePointer + 1] ~= "p" then
+				CONS_Printf(p, "Nitro Record : "..sTrack.buildTimeString(timeRecord[sTrack.nTimePointer]).." by "..tostring(timeRecord[sTrack.nTimePointer + 1]))
+			end
 		end
 	end
 end

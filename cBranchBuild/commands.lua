@@ -286,11 +286,11 @@ local function st_mapdata(p, ...)
 		local timeRecord = ""
 		if sTrack.cv_enablerecords.value == 1 then
 			if gamespeed == 0 then
-				local timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[mTarget
+				timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[mTarget])
 			elseif gamespeed == 1 then
-				local timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[mTarget])
+				timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[mTarget])
 			elseif gamespeed == 2 then
-				local timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[mTarget])
+				timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[mTarget])
 			end
 			
 			if timeRecord[2] ~= "p" then
