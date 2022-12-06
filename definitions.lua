@@ -203,23 +203,22 @@ if q then
 		--globalPlayerSkinUseData["PlayerName"] = Table object
 		--globalPlayerSkinUseData["PlayerName"]["SkinName"] = Skin's use count by this player
 	for l in q:lines() do
-		local pName, rawData = string.match(l, "(.*);(.*)")
-		if pName then
-			local tempTable = {}
-			for str in string.gmatch(rawData, "([^|]+)") do
-				--Needs 2 splits
-				local keyV = ""
-				for str2 in string.gmatch(str, "([^/]+)") do
-					if keyV == "" then
-						keyV = str2
-					else
-						tempTable[keyV] = str2
-						keyV = ""
-					end
-				end
-			end
-			
-			sTrack.globalPlayerSkinUseData[pName] = tempTable
+		if l ~= '' and l ~= "\n" and l ~= "\r" then
+			local holder = ""
+			local rowHolder = {}
+			local index = 1
+			l:gsub(".", function(c)
+				if c==';' then
+					rowHolder[index] = holder
+					holder = ""
+					index = index + 1			
+				else
+					holder = holder..c
+				end		
+			end)
+			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[2] then
+				sTrack.globalPlayerSkinUseData[pName] = rowHolder[2]
+			end		
 		end
 	end
 	q:close()
@@ -511,14 +510,7 @@ local function _savePSkinUseFunc()
 	local dataString = ""
 	for key, value in pairs(sTrack.globalPlayerSkinUseData) do
 		if key:find(";") then continue end -- no no no no no
-		local assembledString = ""
-		for key2, value2 in pairs(value) do
-			if key2:find("/") or key2:find("|") then continue end -- Can't let seperators into the string, sorry.
-		    if assembledString ~= "" then assembledString = assembledString .. "|" end
-		    assembledString = assembledString .. key2 .. "/" .. value2
-		end
-		dataString = $..key..";"..assembledString.."\n"
-		--f:write(key, ";", assembledString, "\n")
+		dataString = $..key..";"..value.."\n"	
 	end
 	f:write(dataString)
 	f:close()
@@ -811,6 +803,31 @@ sTrack.stringSplit = function(input)
 	return rowHolder
 end
 
+--Specialty function of the above for the PlayerSkinUseData table
+sTrack.pSkinDataStringSplit = function(input)
+	--SkinName/Use(as number)|SkinName2/Use....
+	--Return format = Table[SkinName] = Uses
+	local holder = ""
+	local rowHolder = {}
+	local skinName = ""
+	input:gsub(".", function(c)
+		if c=='/' then
+			skinName = holder
+			rowHolder[skinName] = 0
+			holder = ""
+		elseif c=="|" then
+			rowHolder[skinName] = tonumber(holder)
+			holder = ""
+			skinName = ""
+		else
+			holder = holder..c
+		end		
+	end)
+	rowHolder[skinName] = tonumber(holder)
+	
+	return rowHolder
+end
+
 --Turns a temporary table back into a data string
 sTrack.stringCombine = function(input)
 	if input == nil then return nil end
@@ -823,6 +840,20 @@ sTrack.stringCombine = function(input)
 		end		
 	end
 	
+	return dataString
+end
+
+--Specialty function of the above for the PlayerSkinUseData table
+sTrack.pSkinDataStringCombine = function(input)
+	if input == nil then return nil end
+	local dataString = ""
+	for k, v in pairs(input)
+		if dataString == "" then
+			dataString = $..k.."/"..v
+		else
+			dataString = $.."|"..k.."/"..v
+		end		
+	end
 	return dataString
 end
 

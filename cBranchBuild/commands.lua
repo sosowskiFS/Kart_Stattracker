@@ -356,8 +356,11 @@ local function st_skindata(p, ...)
 		
 		local skinRecord = sTrack.stringSplit(sTrack.globalSkinData[sTarget])
 		CONS_Printf(p, tostring(skinRecord[1]).." weighted uses, "..tostring(skinRecord[3]).." total uses")
-		if sTrack.globalPlayerSkinUseData[p.name] ~= nil and sTrack.globalPlayerSkinUseData[p.name][sTarget] ~= nil then
-			CONS_Printf(p, "You've used this character "..tostring(sTrack.globalPlayerSkinUseData[p.name][sTarget]).." times")
+		if sTrack.globalPlayerSkinUseData[p.name] ~= nil then
+			local tempTable = sTrack.pSkinDataStringSplit(sTrack.globalPlayerSkinUseData[p.name])
+			if tempTable[sTarget] then
+				CONS_Printf(p, "You've used this character "..tostring(tempTable[sTarget]).." times")
+			end		
 		end
 	end
 end

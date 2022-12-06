@@ -201,21 +201,28 @@ local function intThink()
 		didSaveSkins = true	
 		for p in players.iterate do
 			if p.valid and p.mo ~= nil and p.mo.valid then
-				if sTrack.globalPlayerSkinUseData[p.name] == nil then
-					sTrack.globalPlayerSkinUseData[p.name] = {}
-					sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = 1
-				elseif sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] == nil then
-					sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = 1
-				else
-					sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] = sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] + 1
-				end
-				--Determine if this player's usage should increment global data
 				local shouldIncrement = false
-				if sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] == 1 then
-					shouldIncrement = true
-				elseif sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] <= 45 and sTrack.globalPlayerSkinUseData[p.name][p.mo.skin] % 5 == 0 then
-					shouldIncrement = true
+				if sTrack.globalPlayerSkinUseData[p.name] == nil then
+					sTrack.globalPlayerSkinUseData[p.name] = p.mo.skin.."/1"
+				else
+					local tempTable = sTrack.pSkinDataStringSplit(sTrack.globalPlayerSkinUseData[p.name])
+					if tempTable[p.mo.skin] == nil then
+						tempTable[p.mo.skin] = 1
+					else
+						tempTable[p.mo.skin] = $ + 1
+					end
+					
+					--Determine if this player's usage should increment global data			
+					if tempTable[p.mo.skin] == 1 then
+						shouldIncrement = true
+					elseif tempTable[p.mo.skin] <= 45 and tempTable[p.mo.skin] % 5 == 0 then
+						shouldIncrement = true
+					end
+					
+					--Save the data back as a string
+					sTrack.globalPlayerSkinUseData[p.name] = sTrack.pSkinDataStringCombine(tempTable)
 				end
+				
 				
 				if sTrack.globalSkinData[p.mo.skin] == nil then
 					sTrack.globalSkinData[p.mo.skin] = "1;"..skins[p.mo.skin].realname..";1"
@@ -547,7 +554,7 @@ local function think()
 					RSList[p.name] = p.realtime
 				end
 				p.inRace = false
-			elseif p.valid and p.inRace == nil and p.mo == nil then
+			elseif p.valid and (p.inRace == nil or p.inRace == true) and p.mo == nil then
 				p.inRace = false
 			end
 			
