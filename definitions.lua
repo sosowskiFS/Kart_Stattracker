@@ -216,8 +216,9 @@ if q then
 					holder = holder..c
 				end		
 			end)
+			rowHolder[index] = holder
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[2] then
-				sTrack.globalPlayerSkinUseData[pName] = rowHolder[2]
+				sTrack.globalPlayerSkinUseData[rowHolder[1]] = rowHolder[2]
 			end		
 		end
 	end

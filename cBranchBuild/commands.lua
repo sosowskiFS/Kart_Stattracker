@@ -183,7 +183,7 @@ local function st_playerdata(p, ...)
 			if CV_FindVar("combi_active") then
 				kString = $ + "\x80| \x87"..tostring(pData[sTrack.cKSPointer]).." Combi "
 			end
-			if CV_FindVar("ringsOn") then
+			if rawget(_G, "ringsOn") ~= nil then
 				kString = $ + "\x80| \x87"..tostring(pData[sTrack.rKSPointer]).." Rings "
 			end
 			CONS_Printf(p, kString)
@@ -204,7 +204,7 @@ local function st_playerdata(p, ...)
 			if CV_FindVar("combi_active") then
 				kString = $.."\x80| \x87"..tostring(pData[sTrack.cKSPointer + 5]).." Combi "
 			end
-			if CV_FindVar("ringsOn") then
+			if rawget(_G, "ringsOn") ~= nil then
 				kString = $ + "\x80| \x87"..tostring(pData[sTrack.rKSPointer + 1]).." Rings "
 			end
 			CONS_Printf(p, kString)
@@ -356,6 +356,7 @@ local function st_skindata(p, ...)
 		
 		local skinRecord = sTrack.stringSplit(sTrack.globalSkinData[sTarget])
 		CONS_Printf(p, tostring(skinRecord[1]).." weighted uses, "..tostring(skinRecord[3]).." total uses")
+		print(sTrack.globalPlayerSkinUseData[p.name])
 		if sTrack.globalPlayerSkinUseData[p.name] ~= nil then
 			local tempTable = sTrack.pSkinDataStringSplit(sTrack.globalPlayerSkinUseData[p.name])
 			if tempTable[sTarget] then

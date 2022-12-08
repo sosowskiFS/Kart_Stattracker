@@ -643,20 +643,20 @@ local function think()
 				if p.valid and p.mo ~= nil and p.mo.valid and playerOrder[1][1] == p.name
 					local timeRecord = ""
 					if gamespeed == 0 then
-						timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[tostring(gamemap)])
 						if sTrack.globalEasyTimeData[tostring(gamemap)] == nil then
 							sTrack.globalEasyTimeData[tostring(gamemap)] = sTrack.buildPlaceholderRecord()
 						end
+						timeRecord = sTrack.stringSplit(sTrack.globalEasyTimeData[tostring(gamemap)])					
 					elseif gamespeed == 1 then
-						timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[tostring(gamemap)])
 						if sTrack.globalNormalTimeData[tostring(gamemap)] == nil then
 							sTrack.globalNormalTimeData[tostring(gamemap)] = sTrack.buildPlaceholderRecord()
 						end
+						timeRecord = sTrack.stringSplit(sTrack.globalNormalTimeData[tostring(gamemap)])				
 					elseif gamespeed == 2 then
-						timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[tostring(gamemap)])
 						if sTrack.globalHardTimeData[tostring(gamemap)] == nil then
 							sTrack.globalHardTimeData[tostring(gamemap)] = sTrack.buildPlaceholderRecord()
 						end
+						timeRecord = sTrack.stringSplit(sTrack.globalHardTimeData[tostring(gamemap)])
 					end
 					
 					if (cMode == 2 and p.realtime < tonumber(timeRecord[sTrack.nTimePointer])) or 

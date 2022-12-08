@@ -172,8 +172,9 @@ if q then
 					holder = holder..c
 				end		
 			end)
+			rowHolder[index] = holder
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[2] then
-				sTrack.globalPlayerSkinUseData[pName] = rowHolder[2]
+				sTrack.globalPlayerSkinUseData[rowHolder[1]] = rowHolder[2]
 			end		
 		end
 	end
@@ -200,13 +201,13 @@ if t then
 			rowHolder[index] = holder
 			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin, rTime, rPlayer, rSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[13] then
-				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
+				sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
+					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
+					";"..rowHolder[11]..";"..rowHolder[12]..";"..rowHolder[13]
+			elseif rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
+				sTrack.globalEasyTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
 					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
 					";99999;p;h"
-			elseif rowHolder[1] and rowHolder[1] ~= '' and rowHolder[13] then
-				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
-					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
-					";"..rowHolder[11]..";"..rowholder[12]..";"..rowHolder[13]
 			end
 		end
 	end
@@ -233,13 +234,13 @@ if n then
 			rowHolder[index] = holder
 			--local mapName, time, player, skin, jTime, jPlayer, jSkin, nTime, nPlayer, nSkin, rTime, rPlayer, rSkin = string.match(l, "(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*);(.*)")
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[13] then
-				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
+				sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
+					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
+					";"..rowHolder[11]..";"..rowHolder[12]..";"..rowHolder[13]
+			elseif rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
+				sTrack.globalNormalTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
 					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
 					";99999;p;h"
-			elseif rowHolder[1] and rowHolder[1] ~= '' and rowHolder[13] then
-				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
-					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
-					";"..rowHolder[11]..";"..rowholder[12]..";"..rowHolder[13]
 			end
 		end
 	end
@@ -268,11 +269,11 @@ if h then
 			if rowHolder[1] and rowHolder[1] ~= '' and rowHolder[13] then
 				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
 					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
-					";99999;p;h"
-			elseif rowHolder[1] and rowHolder[1] ~= '' and rowHolder[13] then
+					";"..rowHolder[11]..";"..rowHolder[12]..";"..rowHolder[13]
+			elseif rowHolder[1] and rowHolder[1] ~= '' and rowHolder[10] then
 				sTrack.globalHardTimeData[rowHolder[1]] = rowHolder[2]..";"..rowHolder[3]..";"..rowHolder[4]..";"..rowHolder[5]..
 					";"..rowHolder[6]..";"..rowHolder[7]..";"..rowHolder[8]..";"..rowHolder[9]..";"..rowHolder[10]..
-					";"..rowHolder[11]..";"..rowholder[12]..";"..rowHolder[13]
+					";99999;p;h"
 			end
 		end
 	end
@@ -399,7 +400,7 @@ end
 
 --0 Vanilla/Tech, 1 Juicebox, 2 Nitro, 3 Rings
 sTrack.findCurrentMode = function()
-	if CV_FindVar("ringsOn") then
+	if rawget(_G, "ringsOn") == true then
 		return 3
 	end
 	if CV_FindVar("driftnitro") and CV_FindVar("driftnitro").value == 1 then
@@ -435,7 +436,7 @@ sTrack.getModeIndex = function()
 		gameModeIndex = 13
 	elseif CV_FindVar("combi_active") and CV_FindVar("combi_active").value == 1 then
 		gameModeIndex = 14
-	elseif CV_FindVar("ringsOn") then
+	elseif rawget(_G, "ringsOn") == true then
 		gameModeIndex = 20
 	end
 	return gameModeIndex
