@@ -200,7 +200,14 @@ local function st_playerdata(p, ...)
 		local playtime = 210 * tonumber(pData[1])
 		local hours = FixedFloor((playtime / 3600) * FRACUNIT) / FRACUNIT
 		local minutes = FixedFloor(((playtime % 3600) / 60) * FRACUNIT) / FRACUNIT
-		CONS_Printf(p, "\x83"..pTarget.." \x80- "..tostring(pData[1]).." races")
+		if tonumber(pData[1]) > 0 then
+			local winPercent = FixedInt(FixedRound(FixedDiv(pData[2], pData[1]) * 100))
+			local podiumCount = pData[2] + pData[8] + pData[9]
+			local podiumPercent = FixedInt(FixedRound(FixedDiv(podiumCount, pData[1]) * 100))
+			CONS_Printf(p, "\x83"..pTarget.." \x80- "..tostring(pData[1]).." races, ~"..tostring(winPercent).."% wins, ~"..tostring(podiumPercent).."% podium finishes")
+		else
+			CONS_Printf(p, "\x83"..pTarget.." \x80- "..tostring(pData[1]).." races")
+		end
 		CONS_Printf(p, "\x82"..tostring(pData[2]).." 1st places \x80| \x86"..tostring(pData[8]).." 2nd places \x80| \x8D"..tostring(pData[9]).." 3rd places")
 		if sTrack.cv_enableks.value == 1 then
 			local kString = "KartScores - \x83"..tostring(pData[10]).." Vanilla "
@@ -221,9 +228,18 @@ local function st_playerdata(p, ...)
 			end
 			CONS_Printf(p, kString)
 		end
-		CONS_Printf(p, tostring(pData[3]).." item hits | \x85"..tostring(pData[4]).." self or enviroment hits")
+		
+		local uHitPerRace = 0
+		local gotHitTotal = 0
+		local gotHitPerRace = 0
+		if tonumber(pData[1]) > 0 then
+			uHitPerRace = FixedInt(FixedRound(FixedDiv(pData[3], pData[1])))
+			gotHitTotal = pData[5] + pData[6] + pData[7]
+			gotHitPerRace = FixedInt(FixedRound(FixedDiv(gotHitTotal, pData[1])))
+		end	
+		CONS_Printf(p, tostring(pData[3]).." item hits (~"..tostring(uHitPerRace).." per race) | \x85"..tostring(pData[4]).." self or enviroment hits")
 		CONS_Printf(p, "\x82"..tostring(pData[5]).." spinouts | \x87"..tostring(pData[6]).." times exploded | \x84"..tostring(pData[7]).." times squished")
-		CONS_Printf(p, "Total playtime : "..tostring(hours).." hours, "..tostring(minutes).." minutes (est.)")
+		CONS_Printf(p, "You get hit ~"..tostring(gotHitPerRace).." time(s) per race. Total playtime : "..tostring(hours).." hours, "..tostring(minutes).." minutes (est.)")
 	end
 end
 COM_AddCommand("st_playerdata", st_playerdata)
