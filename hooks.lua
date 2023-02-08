@@ -664,7 +664,7 @@ local function think()
 						rSkinHolder = p.mo.skin
 						rSkinColorHolder = p.skincolor
 						slideRun = "left"
-						--S_StartSound(nil, skins[p.mo.skin].soundsid[SKSKPOWR])
+						S_StartSound(nil, skins[p.mo.skin].soundsid[SKSKPOWR])
 					end
 				end
 			end	
