@@ -13,7 +13,6 @@ gTypeVoting.currentgametype = nil	-- The current gametype.
 local randomModActive = false -- Indicator that the random state is active
 local currentMod = nil -- Save to make sure that a new roll doesn't just play the same thing as the last roll
 local currentModDuration = 0 -- Value of 1-5 for current length of current mod
-local didRandomSetup = false -- Indicator to run relevant mod console commands
 local RS_THINK, RS_VOTE, RS_INT = 1, 2, 3 -- Server status indicators not shamefully lifted from ATO because I wrote the fucking thing
 local roundstatus = RS_THINK
 
@@ -221,6 +220,9 @@ COM_AddCommand("fixall", function(player)
 			COM_BufInsertText(server, "togglerings")
 		end
 		
+		randomModActive = false
+		currentMod = nil
+		currentModDuration = 0	
 		current_gametype = ""
 		COM_BufInsertText(server, "map map01 -gametype race")		
 	else
@@ -273,19 +275,18 @@ COM_AddCommand("setmod", function(player, name)
  
  COM_AddCommand("randommod", function(player)
 	if (IsPlayerAdmin(player) or player == server) then
-		if (!randomModActive) then
+		if not randomModActive then
 			--Enable
 			randomModActive = true
 			chatprint("\130<RANDOM>\128 Random mods enabled. Shuffling begins next round.")
-			if roundstatus == RS_VOTE then
-				chatprint("\130<RANDOM>\128 (After this next race that is, because you set this on the vote screen)")
+			if roundstatus == RS_VOTE or roundstatus == RS_INT then
+				chatprint("\130<RANDOM>\128 (After this next race that is, because I can't do setup right now)")
 			end
 		else
 			--Disable
 			randomModActive = false
 			currentMod = nil
 			currentModDuration = 0
-			didRandomSetup = false
 			chatprint("\130<RANDOM>\128 Random mods disabled. You're stuck playing this mod until you change it.")
 		end
 	else
@@ -359,12 +360,8 @@ local function ThinkFrame()
 end
 
 local function IntermissionThinker()
-	roundstatus = RS_INT
-end
-
-local function VoteRandomMod()
-	if roundstatus != RS_VOTE and randomModActive then
-		if currentModDuration <= 0 then
+	if roundstatus != RS_INT and randomModActive then
+		if currentModDuration <= 1 then
 			-- Time to reroll
 			currentModDuration = P_RandomRange(2, 5)
 			local modRoll = P_RandomRange(1, 4)
@@ -385,37 +382,41 @@ local function VoteRandomMod()
 			local pickedMod = nil
 			
 			if (currentMod == 1) then
-				COM_BufInsertText(server, mods["tech"])
-				if (cv_dorings) and (cv_dorings == 1) then
+				if cv_dorings == 1 then
 					COM_BufInsertText(server, "togglerings")
 				end
+				COM_BufInsertText(server, mods["tech"])	
 				pickedMod = "TECH"
 			elseif (currentMod == 2) then
-				COM_BufInsertText(server, mods["juice"])
-				if (cv_dorings) and (cv_dorings == 1) then
+				if cv_dorings == 1 then
 					COM_BufInsertText(server, "togglerings")
 				end
+				COM_BufInsertText(server, mods["juice"])			
 				pickedMod = "JUICEBOX"
 			elseif (currentMod == 3) then
-				COM_BufInsertText(server, mods["nitro"])
-				if (cv_dorings) and (cv_dorings == 1) then
+				if cv_dorings == 1 then
 					COM_BufInsertText(server, "togglerings")
 				end
+				COM_BufInsertText(server, mods["nitro"])			
 				pickedMod = "NITRO"
 			elseif (currentMod == 4) then
-				COM_BufInsertText(server, mods["rings"])
-				if (cv_dorings) and (cv_dorings == 0) then
+				if cv_dorings == 0 then
 					COM_BufInsertText(server, "togglerings")
 				end
+				COM_BufInsertText(server, mods["rings"])			
 				pickedMod = "RINGS"
 			end
 			
-			chatprint("\130<RANDOM>\128 UP NEXT: \131"..pickedMod.."\128, running for \131"..tostring(currentModDuration).."\128 races".)
+			chatprint("\130<RANDOM>\128 UP NEXT: \131"..pickedMod.."\128, running for \131"..tostring(currentModDuration).."\128 races.")
 		else
 			-- Just tick down
 			currentModDuration = $ - 1
 		end
 	end
+	roundstatus = RS_INT
+end
+
+local function VoteRandomMod()
 	roundstatus = RS_VOTE
 end
 
@@ -463,6 +464,5 @@ addHook("NetVars", function(n)
 	randomModActive = n($)
 	currentModDuration = n($)
 	currentMod = n($)
-	didRandomSetup = n($)
 	roundstatus = n($)
 end)
