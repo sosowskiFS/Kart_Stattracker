@@ -450,7 +450,7 @@ addHook("VoteThinker",	PrepareNextRound)
 addHook("VoteThinker",	ModExistsRemind)
 addHook("VoteThinker",	VoteRandomMod)
 addHook("ThinkFrame",   ThinkFrame)
-addhook("IntermissionThinker", IntermissionThinker)
+addHook("IntermissionThinker", IntermissionThinker)
 addHook("MapLoad",		ResetVars)
 
 /* Netsync ya vars */
